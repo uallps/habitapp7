@@ -6,12 +6,16 @@
 //
 import Foundation
 
-struct Task: Identifiable { 
+struct Habit: Identifiable {
     let id = UUID()
     var title: String
-    var isCompleted: Bool = false
     var dueDate: Date? 
     var priority: Priority?
+    var completed: [Date]
+    
+    var isCompleted: Bool {
+            completed.contains { Calendar.current.isDate($0, inSameDayAs: Date()) }
+        }
 }
 
 enum Priority: String, Codable {

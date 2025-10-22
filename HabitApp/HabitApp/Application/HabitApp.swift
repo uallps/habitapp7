@@ -8,10 +8,10 @@
 import SwiftUI
 
 @main
-struct TaskApp: App {
+struct HabitApp: App {
     var body: some Scene {
         WindowGroup {
-            TaskListView()
+            HabitListView()
         }
     }
 }
