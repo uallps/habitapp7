@@ -1,0 +1,5 @@
+Esta feature sería para poder agregar nuevos tipos de frecuencias.
+Actualmente solo se permite indicar dias de la semana, pero podría hacerse de forma que se pueda hacer:
+-Semanal.
+-Mensual.
+-Adicción.
