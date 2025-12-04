@@ -2,12 +2,17 @@ import Foundation
 import SwiftUI
 
 struct HabitListView: View {
-    @StateObject var viewModel = HabitListViewModel()
+    @StateObject private var viewModel: HabitListViewModel
     
     @State private var isAddingHabit = false
     @State private var habitToEdit: Habit?
     
     @State private var isAddingCategory = false
+
+    // Inicializador con inyección de dependencias
+    init(storageProvider: StorageProvider) {
+        _viewModel = StateObject(wrappedValue: HabitListViewModel(storageProvider: storageProvider))
+    }
 
     var body: some View {
         NavigationStack {
@@ -84,9 +89,5 @@ struct HabitListView: View {
             .navigationTitle("Hábitos")
         }
     }
-}
-
-#Preview {
-    HabitListView()
 }
 

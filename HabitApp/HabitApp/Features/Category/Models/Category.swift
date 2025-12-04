@@ -4,15 +4,23 @@
 //
 //
 import Foundation
+import SwiftData
 
-struct Category: Identifiable, Codable {
-    let id = UUID()
+@Model
+final class Category {
+    @Attribute(.unique) var id: UUID
     var name: String
-    var description: String
+    var categoryDescription: String
     
+    // Relación inversa: todas las asociaciones de hábitos que usan esta categoría
+    @Relationship(deleteRule: .cascade, inverse: \HabitCategoryFeature.category)
+    var habitAssociations: [HabitCategoryFeature]
+    
+    init(id: UUID = UUID(), name: String, categoryDescription: String) {
+        self.id = id
+        self.name = name
+        self.categoryDescription = categoryDescription
+        self.habitAssociations = []
+    }
 }
-
-
-//No se si lo mejor será relacionar los habitos con las categorias o al reves
-//Podría ser que la ventana principal muestra directamente las categorias con los habitos dentro (en cuyo caso cada habito solo puede tener una categoria)
 

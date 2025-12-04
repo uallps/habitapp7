@@ -1,4 +1,5 @@
 import SwiftUI
+import SwiftData
 
 struct CreateCategoryView: View {
     @Environment(\.dismiss) var dismiss
@@ -36,8 +37,15 @@ struct CreateCategoryView: View {
                     Button("Guardar") {
                         let newCategory = Category(
                             name: name,
-                            description: description
+                            categoryDescription: description
                         )
+                        
+                        // Persistir en SwiftData usando el contexto global
+                        if let context = SwiftDataContext.shared {
+                            context.insert(newCategory)
+                            try? context.save()
+                        }
+                        
                         onSave(newCategory)
                         dismiss()
                     }

@@ -4,6 +4,7 @@ struct HabitModifyView: View {
     @Environment(\.dismiss) var dismiss
     @ObservedObject var viewModel: HabitListViewModel
     var habitToEdit: Habit?
+    var modelContext: ModelContext
     
     @State private var title = ""
     @State private var dueDate = Date()

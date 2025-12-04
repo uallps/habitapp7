@@ -12,13 +12,13 @@ struct HabitRowView: View {
     var body: some View {
         HStack {
             Button(action: toggleCompletion) {
-                Image(systemName: habit.isCompleted ? "checkmark.circle.fill" : "circle")
+                Image(systemName: habit.isCompletedToday ? "checkmark.circle.fill" : "circle")
             }
             .buttonStyle(.plain)
 
             VStack(alignment: .leading) {
                 Text(habit.title)
-                    .strikethrough(habit.isCompleted)
+                    .strikethrough(habit.isCompletedToday)
 
                 if AppConfig.showPriorities, let priority = habit.priority {
                     Text("Prioridad: \(priority.rawValue)")
@@ -48,7 +48,7 @@ struct HabitRowView: View {
                 .buttonStyle(.bordered)
                 .tint(.purple)
 
-                if habit.isCompleted, let todayEntry = getTodayCompletionEntry() {
+                if habit.isCompletedToday, let todayEntry = getTodayCompletionEntry() {
                     Button("Escribir nota") {
                         showDiaryEntry = true
                     }

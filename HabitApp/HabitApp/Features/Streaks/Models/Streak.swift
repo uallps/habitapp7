@@ -5,43 +5,149 @@
 //  Created by Francisco José García García on 16/11/25.
 //
 import Foundation
+import SwiftData
 
-// Extensión de Streaks para Habit
-extension Habit {
-    private var streakKey: String {
-        "habit_streak_\(id.uuidString)"
+// MARK: - Modelo intermedio para SwiftData
+
+@Model
+final class HabitStreakFeature {
+    @Attribute(.unique) var id: UUID
+    var habitId: UUID
+    var streak: Int
+    var maxStreak: Int
+    var nextDayTimestamp: Double?
+    
+    // Relación inversa con Habit
+    var habit: Habit?
+    
+    init(habitId: UUID, streak: Int = 0, maxStreak: Int = 0, nextDay: Date? = nil) {
+        self.id = UUID()
+        self.habitId = habitId
+        self.streak = streak
+        self.maxStreak = maxStreak
+        self.nextDayTimestamp = nextDay?.timeIntervalSince1970
     }
     
-    private var nextDayKey: String {
-        "habit_nextday_\(id.uuidString)"
-    }
-    
-    var streak: Int {
+    var nextDay: Date? {
         get {
-            UserDefaults.standard.integer(forKey: streakKey)
+            guard let timestamp = nextDayTimestamp else { return nil }
+            return Date(timeIntervalSince1970: timestamp)
         }
         set {
-            UserDefaults.standard.set(newValue, forKey: streakKey)
+            nextDayTimestamp = newValue?.timeIntervalSince1970
+        }
+    }
+}
+
+// MARK: - Extensión de Habit con computed properties
+
+extension Habit {
+    var streak: Int {
+        get {
+            guard let context = SwiftDataContext.shared else { return 0 }
+            
+            let descriptor = FetchDescriptor<HabitStreakFeature>(
+                predicate: #Predicate { $0.habitId == self.id }
+            )
+            
+            guard let features = try? context.fetch(descriptor),
+                  let feature = features.first else {
+                return 0
+            }
+            
+            return feature.streak
+        }
+        set {
+            guard let context = SwiftDataContext.shared else { return }
+            
+            let descriptor = FetchDescriptor<HabitStreakFeature>(
+                predicate: #Predicate { $0.habitId == self.id }
+            )
+            
+            if let features = try? context.fetch(descriptor),
+               let feature = features.first {
+                feature.streak = newValue
+            } else {
+                let newFeature = HabitStreakFeature(habitId: self.id, streak: newValue)
+                newFeature.habit = self
+                context.insert(newFeature)
+            }
+            
+            try? context.save()
+        }
+    }
+    
+    var maxStreak: Int {
+        get {
+            guard let context = SwiftDataContext.shared else { return 0 }
+            
+            let descriptor = FetchDescriptor<HabitStreakFeature>(
+                predicate: #Predicate { $0.habitId == self.id }
+            )
+            
+            guard let features = try? context.fetch(descriptor),
+                  let feature = features.first else {
+                return 0
+            }
+            
+            return feature.maxStreak
+        }
+        set {
+            guard let context = SwiftDataContext.shared else { return }
+            
+            let descriptor = FetchDescriptor<HabitStreakFeature>(
+                predicate: #Predicate { $0.habitId == self.id }
+            )
+            
+            if let features = try? context.fetch(descriptor),
+               let feature = features.first {
+                feature.maxStreak = newValue
+            } else {
+                let newFeature = HabitStreakFeature(habitId: self.id, maxStreak: newValue)
+                newFeature.habit = self
+                context.insert(newFeature)
+            }
+            
+            try? context.save()
         }
     }
     
     var nextDay: Date? {
         get {
-            if let timestamp = UserDefaults.standard.object(forKey: nextDayKey) as? Double {
-                return Date(timeIntervalSince1970: timestamp)
+            guard let context = SwiftDataContext.shared else { return nil }
+            
+            let descriptor = FetchDescriptor<HabitStreakFeature>(
+                predicate: #Predicate { $0.habitId == self.id }
+            )
+            
+            guard let features = try? context.fetch(descriptor),
+                  let feature = features.first else {
+                return nil
             }
-            return nil
+            
+            return feature.nextDay
         }
         set {
-            if let date = newValue {
-                UserDefaults.standard.set(date.timeIntervalSince1970, forKey: nextDayKey)
+            guard let context = SwiftDataContext.shared else { return }
+            
+            let descriptor = FetchDescriptor<HabitStreakFeature>(
+                predicate: #Predicate { $0.habitId == self.id }
+            )
+            
+            if let features = try? context.fetch(descriptor),
+               let feature = features.first {
+                feature.nextDay = newValue
             } else {
-                UserDefaults.standard.removeObject(forKey: nextDayKey)
+                let newFeature = HabitStreakFeature(habitId: self.id, nextDay: newValue)
+                newFeature.habit = self
+                context.insert(newFeature)
             }
+            
+            try? context.save()
         }
     }
     
-    mutating func checkAndUpdateStreak() {
+     func checkAndUpdateStreak() { //aqui ponia mutating
         let today = Calendar.current.startOfDay(for: Date())
         
         guard let next = nextDay else {
@@ -54,9 +160,15 @@ extension Habit {
         
         // Si hoy es el día esperado
         if Calendar.current.isDate(today, inSameDayAs: nextDayStart) {
-            if isCompleted {
+            if isCompletedToday {
                 // Completado: incrementar streak y calcular siguiente día
                 streak += 1
+                
+                // Actualizar maxStreak si el actual es mayor
+                if streak > maxStreak {
+                    maxStreak = streak
+                }
+                
                 nextDay = calculateNextDay(from: today)
             } else {
                 // No completado: resetear streak

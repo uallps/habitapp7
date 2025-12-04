@@ -2,8 +2,23 @@
 //  CompletionEntry.swift
 //  HabitApp
 //
-import Foundation
 
-struct CompletionEntry: Codable {
+import Foundation
+import SwiftData
+
+@Model
+final class CompletionEntry {
+    // Si necesitas identificar cada entry con UUID, agrégalo aquí.
+    // Para tu caso actual, basta con la fecha.
     let date: Date
+    
+    // Relación con las notas del diario (a través de DiaryNoteFeature)
+    @Relationship(deleteRule: .cascade, inverse: \DiaryNoteFeature.completionEntry)
+    var diaryFeature: DiaryNoteFeature?
+
+    init(date: Date) {
+        self.date = date
+    }
+    
+    
 }
