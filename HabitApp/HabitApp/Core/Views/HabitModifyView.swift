@@ -91,10 +91,18 @@ struct HabitModifyView: View {
                 }
             }
             .onAppear {
+                // Cargar categorías disponibles desde SwiftData
+                if let context = SwiftDataContext.shared {
+                    let descriptor = FetchDescriptor<Category>()
+                    availableCategories = (try? context.fetch(descriptor)) ?? []
+                }
+                
+                // Cargar datos del hábito si estamos editando
                 if let habit = habitToEdit {
                     title = habit.title
                     priority = habit.priority
                     selectedDays = Set(habit.frequency)
+                    selectedCategory = habit.category
                 }
             }
         }
