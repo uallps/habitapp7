@@ -48,18 +48,10 @@ class HabitListViewModel: ObservableObject {
         persist()
     }
     
-    // Actualizar hábito
+    // Actualizar hábito (solo persiste, los cambios ya están aplicados en el objeto)
     func updateHabit(_ habit: Habit) {
-        if let index = habits.firstIndex(where: { $0.id == habit.id }) {
-            habits[index].title = habit.title
-            habits[index].priority = habit.priority
-            habits[index].frequency = habit.frequency
-            
-            // Guardar categoría usando tu extensión Habit.category
-            habits[index].category = habit.category
-
-            persist()
-        }
+        // El objeto ya está modificado, solo necesitamos persistir
+        persist()
     }
 
     private func persist() {

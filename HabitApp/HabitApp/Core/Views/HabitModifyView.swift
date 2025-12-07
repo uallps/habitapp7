@@ -62,17 +62,14 @@ struct HabitModifyView: View {
                 ToolbarItem(placement: .confirmationAction) {
                     Button("Guardar") {
                         if let existingHabit = habitToEdit {
-                            // Actualizar hábito existente
-                            let updatedHabit = Habit(
-                                id: existingHabit.id,
-                                title: title,
-                                priority: priority,
-                                completed: existingHabit.completed,
-                                frequency: Array(selectedDays)
-                            )
-                            // Asignar categoría
-                            updatedHabit.category = selectedCategory
-                            viewModel.updateHabit(updatedHabit)
+                            // Actualizar hábito existente directamente (no crear uno nuevo)
+                            existingHabit.title = title
+                            existingHabit.priority = priority
+                            existingHabit.frequency = Array(selectedDays)
+                            existingHabit.category = selectedCategory
+                            
+                            // Notificar al ViewModel para que persista
+                            viewModel.updateHabit(existingHabit)
                         } else {
                             // Crear nuevo hábito
                             let newHabit = Habit(
