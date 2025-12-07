@@ -1,14 +1,16 @@
 import Foundation
 import SwiftUI
+import SwiftData
+import UserNotifications
 
 struct HabitListView: View {
     @StateObject private var viewModel: HabitListViewModel
+    @EnvironmentObject private var appConfig: AppConfig
     
     @State private var isAddingHabit = false
     @State private var habitToEdit: Habit?
-    
     @State private var isAddingCategory = false
-
+    
     // Inicializador con inyección de dependencias
     init(storageProvider: StorageProvider) {
         _viewModel = StateObject(wrappedValue: HabitListViewModel(storageProvider: storageProvider))
@@ -78,15 +80,29 @@ struct HabitListView: View {
                 HabitModifyView(viewModel: viewModel, habitToEdit: habit)
             }
 
-            // Modal para crear categoría (SIN ERRORES)
+            // Modal para crear categoría
             .sheet(isPresented: $isAddingCategory) {
                 CreateCategoryView { newCategory in
                     print("Categoría creada: \(newCategory.name)")
-                    // No hacemos nada más -> no da errores ✨
                 }
             }
 
             .navigationTitle("Hábitos")
+        }
+        .onAppear {
+            // Configurar ReminderManager con el contexto de SwiftData
+            UNUserNotificationCenter.current().delegate = NotificationDelegate.shared
+            
+            if let context = SwiftDataContext.shared {
+                ReminderManager.shared.configure(
+                    modelContext: context,
+                    enableReminders: appConfig.enableReminders
+                )
+                
+                Task {
+                    await ReminderManager.shared.scheduleDailyHabitNotification()
+                }
+            }
         }
     }
 }

@@ -26,18 +26,11 @@ final class HabitCategoryFeature {
 
 extension Habit {
     /// Propiedad computada para acceder fácilmente a la categoría
-    /// Getter: Lee desde categoryFeature
-    /// Setter: Usa el contexto global de SwiftData para persistir
     var category: Category? {
         get {
             return categoryFeature?.category
         }
         set {
-            guard let context = SwiftDataContext.shared else {
-                print("⚠️ SwiftDataContext no está inicializado")
-                return
-            }
-            
             if let newCategory = newValue {
                 // Si ya existe una feature, actualizar la categoría
                 if let existingFeature = categoryFeature {
@@ -45,17 +38,12 @@ extension Habit {
                 } else {
                     // Crear nueva feature
                     let newFeature = HabitCategoryFeature(habit: self, category: newCategory)
-                    context.insert(newFeature)
+                    self.categoryFeature = newFeature
                 }
             } else {
-                // Eliminar la feature si existe
-                if let existingFeature = categoryFeature {
-                    context.delete(existingFeature)
-                }
+                // Eliminar la feature si existe (SwiftData la eliminará por cascade)
+                self.categoryFeature = nil
             }
-            
-            // Guardar cambios
-            try? context.save()
         }
     }
     

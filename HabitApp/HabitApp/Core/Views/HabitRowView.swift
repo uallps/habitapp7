@@ -8,6 +8,8 @@ struct HabitRowView: View {
     
     @State private var showDiaryEntry = false
     @State private var showStats = false
+    
+    @EnvironmentObject private var appConfig: AppConfig
 
     var body: some View {
         HStack {
@@ -20,7 +22,7 @@ struct HabitRowView: View {
                 Text(habit.title)
                     .strikethrough(habit.isCompletedToday)
 
-                if AppConfig.showPriorities, let priority = habit.priority {
+                if appConfig.showPriorities, let priority = habit.priority {
                     Text("Prioridad: \(priority.rawValue)")
                         .font(.caption)
                         .foregroundColor(priorityColor(for: priority))

@@ -11,7 +11,16 @@ import SwiftData
 
 final class ReminderManager {
     static let shared = ReminderManager()
+    private var modelContext: ModelContext?
+    private var enableReminders: Bool = true
+    
     private init() {}
+    
+    /// Configura el contexto necesario para acceder a los hábitos
+    func configure(modelContext: ModelContext, enableReminders: Bool) {
+        self.modelContext = modelContext
+        self.enableReminders = enableReminders
+    }
 
     // MARK: - Authorization
     
@@ -36,14 +45,14 @@ final class ReminderManager {
     
     /// Carga los hábitos y programa la notificación diaria a las 00:00
     func scheduleDailyHabitNotification() async {
-        guard AppConfig.enableReminders else {
+        guard enableReminders else {
             print("Reminders deshabilitados en AppConfig")
             return
         }
         
-        // Cargar hábitos desde SwiftData
-        guard let context = SwiftDataContext.shared else {
-            print("SwiftDataContext no disponible para notificaciones")
+        // Verificar que tenemos contexto configurado
+        guard let context = modelContext else {
+            print("ModelContext no configurado en ReminderManager")
             return
         }
         
@@ -103,7 +112,7 @@ final class ReminderManager {
         }
         
         let habitList = todayHabits
-            .map { " \(.title)" }
+            .map { " \($0.title)" }
             .joined(separator: "\n")
         
         let count = todayHabits.count

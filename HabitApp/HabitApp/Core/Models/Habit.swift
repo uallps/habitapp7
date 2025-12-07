@@ -22,11 +22,11 @@ final class Habit: Identifiable {
     var completed: [CompletionEntry]
     
     // Relación con la categoría (a través de HabitCategoryFeature)
-    @Relationship(deleteRule: .cascade, inverse: \HabitCategoryFeature.habit)
+    @Relationship(deleteRule: .cascade)
     var categoryFeature: HabitCategoryFeature?
     
     // Relación con streak (a través de HabitStreakFeature)
-    @Relationship(deleteRule: .cascade, inverse: \HabitStreakFeature.habit)
+    @Relationship(deleteRule: .cascade)
     var streakFeature: HabitStreakFeature?
 
     // Guardamos los rawValues de Weekday

@@ -44,106 +44,46 @@ final class HabitStreakFeature {
 extension Habit {
     var streak: Int {
         get {
-            guard let context = SwiftDataContext.shared else { return 0 }
-            
-            let descriptor = FetchDescriptor<HabitStreakFeature>(
-                predicate: #Predicate { $0.habitId == self.id }
-            )
-            
-            guard let features = try? context.fetch(descriptor),
-                  let feature = features.first else {
-                return 0
-            }
-            
-            return feature.streak
+            return streakFeature?.streak ?? 0
         }
         set {
-            guard let context = SwiftDataContext.shared else { return }
-            
-            let descriptor = FetchDescriptor<HabitStreakFeature>(
-                predicate: #Predicate { $0.habitId == self.id }
-            )
-            
-            if let features = try? context.fetch(descriptor),
-               let feature = features.first {
+            if let feature = streakFeature {
                 feature.streak = newValue
             } else {
                 let newFeature = HabitStreakFeature(habitId: self.id, streak: newValue)
                 newFeature.habit = self
-                context.insert(newFeature)
+                self.streakFeature = newFeature
             }
-            
-            try? context.save()
         }
     }
     
     var maxStreak: Int {
         get {
-            guard let context = SwiftDataContext.shared else { return 0 }
-            
-            let descriptor = FetchDescriptor<HabitStreakFeature>(
-                predicate: #Predicate { $0.habitId == self.id }
-            )
-            
-            guard let features = try? context.fetch(descriptor),
-                  let feature = features.first else {
-                return 0
-            }
-            
-            return feature.maxStreak
+            return streakFeature?.maxStreak ?? 0
         }
         set {
-            guard let context = SwiftDataContext.shared else { return }
-            
-            let descriptor = FetchDescriptor<HabitStreakFeature>(
-                predicate: #Predicate { $0.habitId == self.id }
-            )
-            
-            if let features = try? context.fetch(descriptor),
-               let feature = features.first {
+            if let feature = streakFeature {
                 feature.maxStreak = newValue
             } else {
                 let newFeature = HabitStreakFeature(habitId: self.id, maxStreak: newValue)
                 newFeature.habit = self
-                context.insert(newFeature)
+                self.streakFeature = newFeature
             }
-            
-            try? context.save()
         }
     }
     
     var nextDay: Date? {
         get {
-            guard let context = SwiftDataContext.shared else { return nil }
-            
-            let descriptor = FetchDescriptor<HabitStreakFeature>(
-                predicate: #Predicate { $0.habitId == self.id }
-            )
-            
-            guard let features = try? context.fetch(descriptor),
-                  let feature = features.first else {
-                return nil
-            }
-            
-            return feature.nextDay
+            return streakFeature?.nextDay
         }
         set {
-            guard let context = SwiftDataContext.shared else { return }
-            
-            let descriptor = FetchDescriptor<HabitStreakFeature>(
-                predicate: #Predicate { $0.habitId == self.id }
-            )
-            
-            if let features = try? context.fetch(descriptor),
-               let feature = features.first {
+            if let feature = streakFeature {
                 feature.nextDay = newValue
             } else {
                 let newFeature = HabitStreakFeature(habitId: self.id, nextDay: newValue)
                 newFeature.habit = self
-                context.insert(newFeature)
+                self.streakFeature = newFeature
             }
-            
-            try? context.save()
         }
     }
     

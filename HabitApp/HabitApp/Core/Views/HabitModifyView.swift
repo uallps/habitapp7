@@ -1,15 +1,17 @@
 import SwiftUI
+import SwiftData
 
 struct HabitModifyView: View {
     @Environment(\.dismiss) var dismiss
     @ObservedObject var viewModel: HabitListViewModel
     var habitToEdit: Habit?
-    var modelContext: ModelContext
     
     @State private var title = ""
     @State private var dueDate = Date()
     @State private var priority: Priority? = nil
     @State private var selectedDays: Set<Weekday> = []
+    @State private var selectedCategory: Category?
+    @State private var availableCategories: [Category] = []
     
     var body: some View {
         NavigationView {
@@ -24,6 +26,13 @@ struct HabitModifyView: View {
                         Text("Baja").tag(Priority.low as Priority?)
                         Text("Media").tag(Priority.medium as Priority?)
                         Text("Alta").tag(Priority.high as Priority?)
+                    }
+                    
+                    Picker("Categoría", selection: $selectedCategory) {
+                        Text("Sin categoría").tag(nil as Category?)
+                        ForEach(availableCategories, id: \.id) { category in
+                            Text(category.name).tag(category as Category?)
+                        }
                     }
                 }
                 
@@ -53,8 +62,7 @@ struct HabitModifyView: View {
                 ToolbarItem(placement: .confirmationAction) {
                     Button("Guardar") {
                         if let existingHabit = habitToEdit {
-
-                            // 🔥 Habit reconstruido conservando el ID del original
+                            // Actualizar hábito existente
                             let updatedHabit = Habit(
                                 id: existingHabit.id,
                                 title: title,
@@ -62,15 +70,19 @@ struct HabitModifyView: View {
                                 completed: existingHabit.completed,
                                 frequency: Array(selectedDays)
                             )
-                            
+                            // Asignar categoría
+                            updatedHabit.category = selectedCategory
                             viewModel.updateHabit(updatedHabit)
                         } else {
+                            // Crear nuevo hábito
                             let newHabit = Habit(
                                 title: title,
                                 priority: priority,
                                 completed: [],
                                 frequency: Array(selectedDays)
                             )
+                            // Asignar categoría
+                            newHabit.category = selectedCategory
                             viewModel.addHabit(newHabit)
                         }
                         dismiss()

@@ -13,7 +13,7 @@ final class CompletionEntry {
     let date: Date
     
     // Relación con las notas del diario (a través de DiaryNoteFeature)
-    @Relationship(deleteRule: .cascade, inverse: \DiaryNoteFeature.completionEntry)
+    @Relationship(deleteRule: .cascade)
     var diaryFeature: DiaryNoteFeature?
 
     init(date: Date) {

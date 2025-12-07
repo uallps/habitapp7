@@ -13,7 +13,7 @@ final class Category {
     var categoryDescription: String
     
     // Relación inversa: todas las asociaciones de hábitos que usan esta categoría
-    @Relationship(deleteRule: .cascade, inverse: \HabitCategoryFeature.category)
+    @Relationship(deleteRule: .cascade)
     var habitAssociations: [HabitCategoryFeature]
     
     init(id: UUID = UUID(), name: String, categoryDescription: String) {
