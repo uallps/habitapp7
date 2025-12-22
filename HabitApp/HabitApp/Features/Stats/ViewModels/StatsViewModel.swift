@@ -39,6 +39,16 @@ class StatsViewModel: ObservableObject {
         return (Double(totalDaysCompleted) / Double(totalDaysActive)) * 100.0
     }
     
+    // MARK: - Streak Stats (preparado para cuando Streaks esté activo)
+    
+    var currentStreak: Int {
+        return habit.getStreak()
+    }
+    
+    var longestStreak: Int {
+        return habit.getMaxStreak()
+    }
+    
     var mostCompletedWeekdays: [Weekday] {
         let weekdayCounts = getWeekdayCompletionCounts()
         guard let maxCount = weekdayCounts.values.max(), maxCount > 0 else { return [] }

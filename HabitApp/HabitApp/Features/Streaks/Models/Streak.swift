@@ -5,68 +5,126 @@
 //  Created by Francisco José García García on 16/11/25.
 //
 import Foundation
+import SwiftData
 
-// Extensión de Streaks para Habit
-extension Habit {
-    private var streakKey: String {
-        "habit_streak_\(id.uuidString)"
-    }
+// MARK: - Modelo intermedio para SwiftData
+
+@Model
+final class HabitStreakFeature {
+    @Attribute(.unique) var id: UUID
+    var habitId: UUID
+    var streak: Int
+    var maxStreak: Int
+    var nextDayTimestamp: Double?
     
-    private var nextDayKey: String {
-        "habit_nextday_\(id.uuidString)"
-    }
-    
-    var streak: Int {
-        get {
-            UserDefaults.standard.integer(forKey: streakKey)
-        }
-        set {
-            UserDefaults.standard.set(newValue, forKey: streakKey)
-        }
+    init(habitId: UUID, streak: Int = 0, maxStreak: Int = 0, nextDay: Date? = nil) {
+        self.id = UUID()
+        self.habitId = habitId
+        self.streak = streak
+        self.maxStreak = maxStreak
+        self.nextDayTimestamp = nextDay?.timeIntervalSince1970
     }
     
     var nextDay: Date? {
         get {
-            if let timestamp = UserDefaults.standard.object(forKey: nextDayKey) as? Double {
-                return Date(timeIntervalSince1970: timestamp)
-            }
-            return nil
+            guard let timestamp = nextDayTimestamp else { return nil }
+            return Date(timeIntervalSince1970: timestamp)
         }
         set {
-            if let date = newValue {
-                UserDefaults.standard.set(date.timeIntervalSince1970, forKey: nextDayKey)
-            } else {
-                UserDefaults.standard.removeObject(forKey: nextDayKey)
-            }
+            nextDayTimestamp = newValue?.timeIntervalSince1970
         }
     }
+}
+
+// MARK: - Extensión de Habit con computed properties
+
+extension Habit {
     
-    mutating func checkAndUpdateStreak() {
+    private var activeContext: ModelContext? {
+        return self.modelContext ?? SwiftDataContext.shared
+    }
+    
+    private func getStreakFeature() -> HabitStreakFeature? {
+        guard let context = activeContext else { return nil }
+        let habitId = self.id
+        let descriptor = FetchDescriptor<HabitStreakFeature>(
+            predicate: #Predicate { $0.habitId == habitId }
+        )
+        return try? context.fetch(descriptor).first
+    }
+    
+    private func getOrCreateStreakFeature() -> HabitStreakFeature? {
+        guard let context = activeContext else { return nil }
+        if let feature = getStreakFeature() {
+            return feature
+        }
+        let newFeature = HabitStreakFeature(habitId: self.id)
+        context.insert(newFeature)
+        return newFeature
+    }
+
+    func getStreak() -> Int {
+        return getStreakFeature()?.streak ?? 0
+    }
+    
+    func setStreak(_ newValue: Int) {
+        getOrCreateStreakFeature()?.streak = newValue
+    }
+    
+    func getMaxStreak() -> Int {
+        return getStreakFeature()?.maxStreak ?? 0
+    }
+    
+    func setMaxStreak(_ newValue: Int) {
+        getOrCreateStreakFeature()?.maxStreak = newValue
+    }
+    
+    func getNextDay() -> Date? {
+        return getStreakFeature()?.nextDay
+    }
+    
+    func setNextDay(_ newValue: Date?) {
+        getOrCreateStreakFeature()?.nextDay = newValue
+    }
+    
+     func checkAndUpdateStreak() { //aqui ponia mutating
         let today = Calendar.current.startOfDay(for: Date())
         
-        guard let next = nextDay else {
+        var next = getNextDay()
+        
+        guard let nextDayVal = next else {
             // Primera vez, inicializar nextDay
-            nextDay = calculateNextDay(from: today)
+            let calculated = calculateNextDay(from: today)
+            setNextDay(calculated)
             return
         }
         
-        let nextDayStart = Calendar.current.startOfDay(for: next)
+        let nextDayStart = Calendar.current.startOfDay(for: nextDayVal)
         
         // Si hoy es el día esperado
         if Calendar.current.isDate(today, inSameDayAs: nextDayStart) {
-            if isCompleted {
+            if isCompletedToday {
                 // Completado: incrementar streak y calcular siguiente día
-                streak += 1
-                nextDay = calculateNextDay(from: today)
+                var currentStreak = getStreak()
+                currentStreak += 1
+                setStreak(currentStreak)
+                
+                // Actualizar maxStreak si el actual es mayor
+                let currentMax = getMaxStreak()
+                if currentStreak > currentMax {
+                    setMaxStreak(currentStreak)
+                }
+                
+                setNextDay(calculateNextDay(from: today))
             } else {
                 // No completado: resetear streak
-                streak = 0
-                nextDay = calculateNextDay(from: today)
+                setStreak(0)
+                setNextDay(calculateNextDay(from: today))
             }
         } else if today > nextDayStart {
             // Se pasó el día sin completar: resetear streak
-            streak = 0
-            nextDay = calculateNextDay(from: today)
+            setStreak(0)
+            setNextDay(calculateNextDay(from: today))
         }
     }
     
@@ -106,3 +164,4 @@ extension Habit {
         return nil
     }
 }
+

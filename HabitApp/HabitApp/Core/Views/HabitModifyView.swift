@@ -1,14 +1,23 @@
 import SwiftUI
+import SwiftData
 
 struct HabitModifyView: View {
     @Environment(\.dismiss) var dismiss
     @ObservedObject var viewModel: HabitListViewModel
+    @EnvironmentObject private var appConfig: AppConfig
     var habitToEdit: Habit?
     
     @State private var title = ""
     @State private var dueDate = Date()
     @State private var priority: Priority? = nil
     @State private var selectedDays: Set<Weekday> = []
+    @State private var selectedCategory: Category?
+    @State private var availableCategories: [Category] = []
+    @State private var showDeleteConfirmation = false
+    
+    // Hábito temporal para que los plugins puedan enlazar datos durante la edición/creación
+    @State private var tempHabit: Habit = Habit(title: "", completed: [])
+
     
     var body: some View {
         NavigationView {
@@ -23,6 +32,16 @@ struct HabitModifyView: View {
                         Text("Baja").tag(Priority.low as Priority?)
                         Text("Media").tag(Priority.medium as Priority?)
                         Text("Alta").tag(Priority.high as Priority?)
+                    }
+                    
+                    // Feature flag: picker de categoría solo si está habilitado
+                    if appConfig.showCategories {
+                        Picker("Categoría", selection: $selectedCategory) {
+                            Text("Sin categoría").tag(nil as Category?)
+                            ForEach(availableCategories, id: \.id) { category in
+                                Text(category.name).tag(category as Category?)
+                            }
+                        }
                     }
                 }
                 
@@ -40,6 +59,24 @@ struct HabitModifyView: View {
                         ))
                     }
                 }
+                
+                // 🔌 PLUGINS: Secciones de modificación (ej. Frecuencia extendida, Tipo de hábito)
+                if let context = SwiftDataContext.shared {
+                    ForEach(PluginRegistry.shared.getHabitModificationSections(habit: tempHabit, context: context).indices, id: \.self) { index in
+                        PluginRegistry.shared.getHabitModificationSections(habit: tempHabit, context: context)[index]
+                    }
+                }
+                
+                // Sección de eliminación visible solo cuando estamos editando un hábito existente
+                if habitToEdit != nil {
+                    Section {
+                        Button(role: .destructive) {
+                            showDeleteConfirmation = true
+                        } label: {
+                            Text("Eliminar Hábito")
+                        }
+                    }
+                }
             }
             .navigationTitle(habitToEdit == nil ? "Nuevo Hábito" : "Modificar Hábito")
             .navigationBarTitleDisplayMode(.inline)
@@ -49,28 +86,30 @@ struct HabitModifyView: View {
                         dismiss()
                     }
                 }
+                
                 ToolbarItem(placement: .confirmationAction) {
                     Button("Guardar") {
+                        // Actualizar el hábito temporal con los datos del formulario base
+                        tempHabit.title = title
+                        tempHabit.priority = priority
+                        tempHabit.frequency = Array(selectedDays)
+                        
+                        if appConfig.showCategories {
+                            tempHabit.setCategory(selectedCategory)
+                        }
+                        
+                        // Notificar a los plugins para que guarden sus datos
+                        if let context = SwiftDataContext.shared {
+                            PluginRegistry.shared.notifySave(habit: tempHabit, context: context)
+                        }
+                        
                         if let existingHabit = habitToEdit {
-
-                            // 🔥 Habit reconstruido conservando el ID del original
-                            let updatedHabit = Habit(
-                                id: existingHabit.id,
-                                title: title,
-                                priority: priority,
-                                completed: existingHabit.completed,
-                                frequency: Array(selectedDays)
-                            )
-                            
-                            viewModel.updateHabit(updatedHabit)
+                            // Si editamos, tempHabit ya es existingHabit (por referencia en onAppear)
+                            // Solo notificamos al VM
+                            viewModel.updateHabit(existingHabit)
                         } else {
-                            let newHabit = Habit(
-                                title: title,
-                                priority: priority,
-                                completed: [],
-                                frequency: Array(selectedDays)
-                            )
-                            viewModel.addHabit(newHabit)
+                            // Si es nuevo, tempHabit es el nuevo objeto
+                            viewModel.addHabit(tempHabit)
                         }
                         dismiss()
                     }
@@ -78,11 +117,36 @@ struct HabitModifyView: View {
                 }
             }
             .onAppear {
+                // Feature flag: cargar categorías solo si está habilitado
+                if appConfig.showCategories {
+                    if let context = SwiftDataContext.shared {
+                        let descriptor = FetchDescriptor<Category>()
+                        availableCategories = (try? context.fetch(descriptor)) ?? []
+                    }
+                }
+                
+                // Cargar datos del hábito si estamos editando
                 if let habit = habitToEdit {
+                    tempHabit = habit
                     title = habit.title
                     priority = habit.priority
                     selectedDays = Set(habit.frequency)
+                    
+                    if appConfig.showCategories {
+                        selectedCategory = habit.getCategory()
+                    }
                 }
+            }
+            .alert("Eliminar Hábito", isPresented: $showDeleteConfirmation) {
+                Button("Eliminar", role: .destructive) {
+                    if let existingHabit = habitToEdit {
+                        viewModel.deleteHabit(existingHabit)
+                    }
+                    dismiss()
+                }
+                Button("Cancelar", role: .cancel) { }
+            } message: {
+                Text("Esta acción no se puede deshacer.")
             }
         }
     }

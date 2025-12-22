@@ -6,30 +6,61 @@
 //
 
 import Foundation
+import SwiftData
+
+/// Modelo intermedio que relaciona Habit con Category
+/// Esta clase permite almacenar la relación en SwiftData
+@Model
+final class HabitCategoryFeature {
+    var habitId: UUID
+    
+    @Relationship(inverse: \Category.habitAssociations)
+    var category: Category?
+    
+    init(habitId: UUID, category: Category? = nil) {
+        self.habitId = habitId
+        self.category = category
+    }
+}
 
 extension Habit {
     
-    // Key única basada en el ID del hábito
-    private var categoryKey: String {
-        "habit_category_\(id.uuidString)"
+    private var activeContext: ModelContext? {
+        return self.modelContext ?? SwiftDataContext.shared
+    }
+
+    /// Método para acceder a la categoría
+    func getCategory() -> Category? {
+        guard let context = activeContext else { return nil }
+        let habitId = self.id
+        let descriptor = FetchDescriptor<HabitCategoryFeature>(
+            predicate: #Predicate { $0.habitId == habitId }
+        )
+        return try? context.fetch(descriptor).first?.category
     }
     
-    /// Categoría almacenada en UserDefaults (igual que streak y nextDay)
-    var category: Category? {
-        get {
-            if let data = UserDefaults.standard.data(forKey: categoryKey),
-               let decoded = try? JSONDecoder().decode(Category.self, from: data) {
-                return decoded
+    /// Método para establecer la categoría
+    func setCategory(_ newCategory: Category?) {
+        guard let context = activeContext else { return }
+        let habitId = self.id
+        let descriptor = FetchDescriptor<HabitCategoryFeature>(
+            predicate: #Predicate { $0.habitId == habitId }
+        )
+        
+        do {
+            let features = try context.fetch(descriptor)
+            if let existingFeature = features.first {
+                if let newCategory = newCategory {
+                    existingFeature.category = newCategory
+                } else {
+                    context.delete(existingFeature)
+                }
+            } else if let newCategory = newCategory {
+                let newFeature = HabitCategoryFeature(habitId: habitId, category: newCategory)
+                context.insert(newFeature)
             }
-            return nil
-        }
-        set {
-            if let category = newValue,
-               let encoded = try? JSONEncoder().encode(category) {
-                UserDefaults.standard.set(encoded, forKey: categoryKey)
-            } else {
-                UserDefaults.standard.removeObject(forKey: categoryKey)
-            }
+        } catch {
+            print("Error setting category: \(error)")
         }
     }
     
@@ -40,7 +71,7 @@ extension Habit {
         var groupedHabits: [String: [Habit]] = [:]
         
         for habit in habits {
-            let categoryName = habit.category?.name ?? "Sin categoría"
+            let categoryName = habit.getCategory()?.name ?? "Sin categoría"
             
             if groupedHabits[categoryName] == nil {
                 groupedHabits[categoryName] = []
@@ -51,3 +82,4 @@ extension Habit {
         return groupedHabits
     }
 }
+

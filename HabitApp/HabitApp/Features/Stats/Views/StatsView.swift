@@ -49,6 +49,18 @@ struct StatsView: View {
                             value: String(format: "%.1f%%", viewModel.completionPercentage)
                         )
                         
+                        // MARK: - Streak Stats (preparadas para cuando ambas features estén activas)
+                        
+                        StatRow(
+                            title: "Racha actual",
+                            value: "\(viewModel.currentStreak) días"
+                        )
+                        
+                        StatRow(
+                            title: "Racha más larga",
+                            value: "\(viewModel.longestStreak) días"
+                        )
+                        
                         StatRow(
                             title: "Día(s) más cumplido",
                             value: formatWeekdays(viewModel.mostCompletedWeekdays)

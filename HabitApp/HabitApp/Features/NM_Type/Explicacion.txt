@@ -1,3 +1,0 @@
-Esta feature sería que se puedan completar de distintas formas:
--Listas (El habito se debe hacer X veces, por tanto se va en aumento hasta llegar al objetivo)
--Tiempo (El habito se debe hacer durante X tiempo, por tanto se activa un cronometro)

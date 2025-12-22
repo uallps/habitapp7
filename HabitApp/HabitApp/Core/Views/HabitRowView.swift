@@ -8,29 +8,42 @@ struct HabitRowView: View {
     
     @State private var showDiaryEntry = false
     @State private var showStats = false
+    
+    @EnvironmentObject private var appConfig: AppConfig
 
     var body: some View {
         HStack {
-            Button(action: toggleCompletion) {
-                Image(systemName: habit.isCompleted ? "checkmark.circle.fill" : "circle")
+            // 🔌 PLUGINS: Completion View (ej. Checkbox, Contador, Timer)
+            if let customCompletion = PluginRegistry.shared.getHabitRowCompletionView(habit: habit, toggleAction: toggleCompletion) {
+                customCompletion
+            } else {
+                Button(action: toggleCompletion) {
+                    Image(systemName: habit.isCompletedToday ? "checkmark.circle.fill" : "circle")
+                }
+                .buttonStyle(.plain)
             }
-            .buttonStyle(.plain)
 
             VStack(alignment: .leading) {
                 Text(habit.title)
-                    .strikethrough(habit.isCompleted)
+                    .strikethrough(habit.isCompletedToday)
 
-                if AppConfig.showPriorities, let priority = habit.priority {
+                // Feature flag: mostrar prioridad solo si está habilitado
+                if appConfig.showPriorities, let priority = habit.priority {
                     Text("Prioridad: \(priority.rawValue)")
                         .font(.caption)
                         .foregroundColor(priorityColor(for: priority))
                 }
                 
-                // Mostrar racha solo si es mayor a 1
-                if habit.streak > 1 {
-                    Text("🔥 Racha: \(habit.streak) días")
+                // Feature flag: mostrar racha solo si está habilitado
+                if appConfig.enableStreaks && habit.getStreak() > 1 {
+                    Text("🔥 Racha: \(habit.getStreak()) días")
                         .font(.caption)
                         .foregroundColor(.orange)
+                }
+                
+                // 🔌 PLUGINS: Accessory Views (ej. Etiquetas extra)
+                ForEach(PluginRegistry.shared.getHabitRowAccessoryViews(habit: habit).indices, id: \.self) { index in
+                    PluginRegistry.shared.getHabitRowAccessoryViews(habit: habit)[index]
                 }
             }
             
@@ -42,13 +55,17 @@ struct HabitRowView: View {
                 }
                 .buttonStyle(.bordered)
 
-                Button("Estadísticas") {
-                    showStats = true
+                // Feature flag: botón de estadísticas solo si está habilitado
+                if appConfig.enableStats {
+                    Button("Estadísticas") {
+                        showStats = true
+                    }
+                    .buttonStyle(.bordered)
+                    .tint(.purple)
                 }
-                .buttonStyle(.bordered)
-                .tint(.purple)
 
-                if habit.isCompleted, let todayEntry = getTodayCompletionEntry() {
+                // Feature flag: botón de diario solo si está habilitado
+                if appConfig.enableDiary && habit.isCompletedToday, let todayEntry = getTodayCompletionEntry() {
                     Button("Escribir nota") {
                         showDiaryEntry = true
                     }
