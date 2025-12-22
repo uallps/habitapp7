@@ -8,17 +8,15 @@ import SwiftData
 
 @Model
 final class CompletionEntry {
+    // Identificador único para relacionar con features
+    @Attribute(.unique) var id: UUID
+    
     // Si necesitas identificar cada entry con UUID, agrégalo aquí.
     // Para tu caso actual, basta con la fecha.
     let date: Date
     
-    // Relación con las notas del diario (a través de DiaryNoteFeature)
-    @Relationship(deleteRule: .cascade)
-    var diaryFeature: DiaryNoteFeature?
-
     init(date: Date) {
+        self.id = UUID()
         self.date = date
     }
-    
-    
 }

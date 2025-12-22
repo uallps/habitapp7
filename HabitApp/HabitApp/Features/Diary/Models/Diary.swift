@@ -10,41 +10,61 @@ import SwiftData
 /// Esta clase permite almacenar las notas en SwiftData
 @Model
 final class DiaryNoteFeature {
-    var completionEntry: CompletionEntry?
+    var completionEntryId: UUID
     
     var note: String?
     
-    init(completionEntry: CompletionEntry? = nil, note: String? = nil) {
-        self.completionEntry = completionEntry
+    init(completionEntryId: UUID, note: String? = nil) {
+        self.completionEntryId = completionEntryId
         self.note = note
     }
 }
 
 // Extensión del diario para CompletionEntry
 extension CompletionEntry {
-    /// Propiedad computada para acceder fácilmente a la nota
-    var note: String? {
-        get {
-            return diaryFeature?.note
-        }
-        set {
-            if let newNote = newValue, !newNote.isEmpty {
-                // Si ya existe una feature, actualizar la nota
-                if let existingFeature = diaryFeature {
+    
+    private var activeContext: ModelContext? {
+        return self.modelContext ?? SwiftDataContext.shared
+    }
+
+    /// Método para acceder a la nota
+    func getNote() -> String? {
+        guard let context = activeContext else { return nil }
+        let entryId = self.id
+        let descriptor = FetchDescriptor<DiaryNoteFeature>(
+            predicate: #Predicate { $0.completionEntryId == entryId }
+        )
+        return try? context.fetch(descriptor).first?.note
+    }
+    
+    /// Método para establecer la nota
+    func setNote(_ newNote: String?) {
+        guard let context = activeContext else { return }
+        let entryId = self.id
+        let descriptor = FetchDescriptor<DiaryNoteFeature>(
+            predicate: #Predicate { $0.completionEntryId == entryId }
+        )
+        
+        do {
+            let features = try context.fetch(descriptor)
+            if let existingFeature = features.first {
+                if let newNote = newNote, !newNote.isEmpty {
                     existingFeature.note = newNote
                 } else {
-                    // Crear nueva feature
-                    let newFeature = DiaryNoteFeature(completionEntry: self, note: newNote)
-                    self.diaryFeature = newFeature
+                    context.delete(existingFeature)
                 }
-            } else {
-                // Eliminar la feature si existe (nota vacía o nil)
-                self.diaryFeature = nil
+            } else if let newNote = newNote, !newNote.isEmpty {
+                let newFeature = DiaryNoteFeature(completionEntryId: entryId, note: newNote)
+                context.insert(newFeature)
             }
+        } catch {
+            print("Error setting note: \(error)")
         }
     }
     
     var hasNote: Bool {
-        note != nil && !note!.isEmpty
+        guard let note = getNote() else { return false }
+        return !note.isEmpty
     }
 }
+

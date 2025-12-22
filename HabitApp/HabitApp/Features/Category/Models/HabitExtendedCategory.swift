@@ -12,38 +12,55 @@ import SwiftData
 /// Esta clase permite almacenar la relación en SwiftData
 @Model
 final class HabitCategoryFeature {
-    @Relationship(inverse: \Habit.categoryFeature)
-    var habit: Habit?
+    var habitId: UUID
     
     @Relationship(inverse: \Category.habitAssociations)
     var category: Category?
     
-    init(habit: Habit? = nil, category: Category? = nil) {
-        self.habit = habit
+    init(habitId: UUID, category: Category? = nil) {
+        self.habitId = habitId
         self.category = category
     }
 }
 
 extension Habit {
-    /// Propiedad computada para acceder fácilmente a la categoría
-    var category: Category? {
-        get {
-            return categoryFeature?.category
-        }
-        set {
-            if let newCategory = newValue {
-                // Si ya existe una feature, actualizar la categoría
-                if let existingFeature = categoryFeature {
+    
+    private var activeContext: ModelContext? {
+        return self.modelContext ?? SwiftDataContext.shared
+    }
+
+    /// Método para acceder a la categoría
+    func getCategory() -> Category? {
+        guard let context = activeContext else { return nil }
+        let habitId = self.id
+        let descriptor = FetchDescriptor<HabitCategoryFeature>(
+            predicate: #Predicate { $0.habitId == habitId }
+        )
+        return try? context.fetch(descriptor).first?.category
+    }
+    
+    /// Método para establecer la categoría
+    func setCategory(_ newCategory: Category?) {
+        guard let context = activeContext else { return }
+        let habitId = self.id
+        let descriptor = FetchDescriptor<HabitCategoryFeature>(
+            predicate: #Predicate { $0.habitId == habitId }
+        )
+        
+        do {
+            let features = try context.fetch(descriptor)
+            if let existingFeature = features.first {
+                if let newCategory = newCategory {
                     existingFeature.category = newCategory
                 } else {
-                    // Crear nueva feature
-                    let newFeature = HabitCategoryFeature(habit: self, category: newCategory)
-                    self.categoryFeature = newFeature
+                    context.delete(existingFeature)
                 }
-            } else {
-                // Eliminar la feature si existe (SwiftData la eliminará por cascade)
-                self.categoryFeature = nil
+            } else if let newCategory = newCategory {
+                let newFeature = HabitCategoryFeature(habitId: habitId, category: newCategory)
+                context.insert(newFeature)
             }
+        } catch {
+            print("Error setting category: \(error)")
         }
     }
     
@@ -54,7 +71,7 @@ extension Habit {
         var groupedHabits: [String: [Habit]] = [:]
         
         for habit in habits {
-            let categoryName = habit.category?.name ?? "Sin categoría"
+            let categoryName = habit.getCategory()?.name ?? "Sin categoría"
             
             if groupedHabits[categoryName] == nil {
                 groupedHabits[categoryName] = []
@@ -65,3 +82,4 @@ extension Habit {
         return groupedHabits
     }
 }
+

@@ -42,11 +42,11 @@ class StatsViewModel: ObservableObject {
     // MARK: - Streak Stats (preparado para cuando Streaks esté activo)
     
     var currentStreak: Int {
-        return habit.streak
+        return habit.getStreak()
     }
     
     var longestStreak: Int {
-        return habit.maxStreak
+        return habit.getMaxStreak()
     }
     
     var mostCompletedWeekdays: [Weekday] {

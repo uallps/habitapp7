@@ -34,6 +34,24 @@ class HabitListViewModel: ObservableObject {
         persist()
     }
     
+    func reloadHabits() {
+        Task { @MainActor in
+            do {
+                let loaded = try await storage.loadHabits()
+                self.habits = loaded
+            } catch {
+                print("Error recargando hábitos: \(error)")
+            }
+        }
+    }
+    
+    func deleteHabit(_ habit: Habit) {
+        if let idx = habits.firstIndex(where: { $0.id == habit.id }) {
+            habits.remove(at: idx)
+            persist()
+        }
+    }
+    
     // Marcar/desmarcar completado
     func toggleCompletion(habit: Habit) {
         guard let index = habits.firstIndex(where: { $0.id == habit.id }) else { return }

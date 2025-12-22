@@ -14,10 +14,10 @@ class DiaryViewModel: ObservableObject {
     
     init(completionEntry: CompletionEntry) {
         self.completionEntry = completionEntry
-        self.noteText = completionEntry.note ?? ""
+        self.noteText = completionEntry.getNote() ?? ""
     }
     
     func saveNote() {
-        completionEntry.note = noteText.trimmingCharacters(in: .whitespacesAndNewlines)
+        completionEntry.setNote(noteText.trimmingCharacters(in: .whitespacesAndNewlines))
     }
 }

@@ -20,14 +20,6 @@ final class Habit: Identifiable {
     // Completados: relación to-many sin orden garantizado
     @Relationship(deleteRule: .cascade)
     var completed: [CompletionEntry]
-    
-    // Relación con la categoría (a través de HabitCategoryFeature)
-    @Relationship(deleteRule: .cascade)
-    var categoryFeature: HabitCategoryFeature?
-    
-    // Relación con streak (a través de HabitStreakFeature)
-    @Relationship(deleteRule: .cascade)
-    var streakFeature: HabitStreakFeature?
 
     // Guardamos los rawValues de Weekday
     private var frequencyRaw: [String]
@@ -54,6 +46,10 @@ final class Habit: Identifiable {
     // Propiedad derivada: ¿está completada hoy?
     var isCompletedToday: Bool {
         let today = Date()
+        // 🔌 PLUGINS: Permitir que un plugin determine si está completado (ej. Adicción = !entry)
+        if let pluginResult = PluginRegistry.shared.isHabitCompleted(habit: self, date: today) {
+            return pluginResult
+        }
         return completed.contains { Calendar.current.isDate($0.date, inSameDayAs: today) }
     }
 }
@@ -97,6 +93,11 @@ extension Habit {
     /// - Parameter date: Fecha a verificar
     /// - Returns: true si el hábito debe hacerse ese día
     func shouldBeCompletedOn(date: Date) -> Bool {
+        // 🔌 PLUGINS: Permitir que un plugin determine si se debe completar hoy (ej. Frecuencia extendida)
+        if let pluginResult = PluginRegistry.shared.shouldHabitBeCompletedOn(habit: self, date: date) {
+            return pluginResult
+        }
+        
         // Si no hay frecuencia definida, no se debe completar
         guard !frequency.isEmpty else {
             return false
