@@ -4,6 +4,8 @@ import SwiftData
 class ExpandedFrequencyPlugin: NSObject, FeaturePlugin, ViewPlugin, LogicPlugin {
     var id: String { "NM_ExpandedFrequency" }
     var models: [any PersistentModel.Type] { [ExpandedFrequency.self] }
+
+    private var frequencyCache: [UUID: ExpandedFrequency] = [:]
     
     // MARK: - ViewPlugin
     
@@ -12,14 +14,7 @@ class ExpandedFrequencyPlugin: NSObject, FeaturePlugin, ViewPlugin, LogicPlugin 
     }
     
     func habitRowCompletionView(habit: Habit, toggleAction: @escaping () -> Void) -> AnyView? {
-        guard let context = habit.modelContext else { return nil }
-        
-        let habitID = habit.id
-        let descriptor = FetchDescriptor<ExpandedFrequency>(
-            predicate: #Predicate { $0.habitID == habitID }
-        )
-        
-        if let freq = try? context.fetch(descriptor).first, freq.type == .addiction {
+        if let freq = loadFrequency(for: habit), freq.type == .addiction {
             return AnyView(AddictionCompletionView(habit: habit, toggleAction: toggleAction))
         }
         
@@ -33,14 +28,7 @@ class ExpandedFrequencyPlugin: NSObject, FeaturePlugin, ViewPlugin, LogicPlugin 
     // MARK: - LogicPlugin
     
     func shouldHabitBeCompletedOn(habit: Habit, date: Date) -> Bool? {
-        guard let context = habit.modelContext else { return nil }
-        
-        let habitID = habit.id
-        let descriptor = FetchDescriptor<ExpandedFrequency>(
-            predicate: #Predicate { $0.habitID == habitID }
-        )
-        
-        if let freq = try? context.fetch(descriptor).first {
+        if let freq = loadFrequency(for: habit) {
             switch freq.type {
             case .daily:
                 return nil // Use default logic
@@ -53,19 +41,32 @@ class ExpandedFrequencyPlugin: NSObject, FeaturePlugin, ViewPlugin, LogicPlugin 
     }
     
     func isHabitCompleted(habit: Habit, date: Date) -> Bool? {
-        guard let context = habit.modelContext else { return nil }
-        
-        let habitID = habit.id
-        let descriptor = FetchDescriptor<ExpandedFrequency>(
-            predicate: #Predicate { $0.habitID == habitID }
-        )
-        
-        if let freq = try? context.fetch(descriptor).first, freq.type == .addiction {
+        if let freq = loadFrequency(for: habit), freq.type == .addiction {
             // Adicción: Completado (Éxito) si NO hay entrada hoy
             let hasEntry = habit.completed.contains { Calendar.current.isDate($0.date, inSameDayAs: date) }
             return !hasEntry
         }
         
+        return nil
+    }
+
+    private func loadFrequency(for habit: Habit) -> ExpandedFrequency? {
+        guard let context = habit.modelContext else { return nil }
+
+        if let cached = frequencyCache[habit.id] {
+            return cached
+        }
+
+        let habitID = habit.id
+        let descriptor = FetchDescriptor<ExpandedFrequency>(
+            predicate: #Predicate { $0.habitID == habitID }
+        )
+
+        if let freq = try? context.fetch(descriptor).first {
+            frequencyCache[habitID] = freq
+            return freq
+        }
+
         return nil
     }
 }

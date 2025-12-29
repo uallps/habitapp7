@@ -1,6 +1,5 @@
 import Foundation
 import SwiftUI
-import SwiftData
 import UserNotifications
 
 struct HabitListView: View {
@@ -17,20 +16,23 @@ struct HabitListView: View {
     }
     
     var body: some View {
+        let headerViews = PluginRegistry.shared.getHabitListHeaderViews()
+        let footerViews = PluginRegistry.shared.getHabitListFooterViews()
+
         NavigationStack {
             ZStack {
                 
                 VStack(spacing: 0) {
                     // 🔌 PLUGINS: Header Views (ej. Motivación)
-                    ForEach(PluginRegistry.shared.getHabitListHeaderViews().indices, id: \.self) { index in
-                        PluginRegistry.shared.getHabitListHeaderViews()[index]
+                    ForEach(headerViews.indices, id: \.self) { index in
+                        headerViews[index]
                     }
                     
                     // Lista de hábitos
                     List {
                         if appConfig.showCategories {
                             // Agrupados por categoría
-                            let groupedHabits = Habit.groupByCategory(viewModel.habits)
+                            let groupedHabits = viewModel.groupedHabitsByCategory()
                             
                             ForEach(groupedHabits.keys.sorted(), id: \.self) { categoryName in
                                 Section(header: Text(categoryName)) {
@@ -72,8 +74,8 @@ struct HabitListView: View {
                             Spacer()
                             
                             // 🔌 PLUGINS: Footer Views (ej. Calendario, Menú Motivación)
-                            ForEach(PluginRegistry.shared.getHabitListFooterViews().indices, id: \.self) { index in
-                                PluginRegistry.shared.getHabitListFooterViews()[index]
+                            ForEach(footerViews.indices, id: \.self) { index in
+                                footerViews[index]
                                     .padding(.trailing, 10)
                                     .padding(.bottom, 20)
                             }

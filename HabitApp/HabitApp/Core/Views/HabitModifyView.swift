@@ -62,8 +62,10 @@ struct HabitModifyView: View {
                 
                 // 🔌 PLUGINS: Secciones de modificación (ej. Frecuencia extendida, Tipo de hábito)
                 if let context = SwiftDataContext.shared {
-                    ForEach(PluginRegistry.shared.getHabitModificationSections(habit: tempHabit, context: context).indices, id: \.self) { index in
-                        PluginRegistry.shared.getHabitModificationSections(habit: tempHabit, context: context)[index]
+                    let modificationSections =
+                        PluginRegistry.shared.getHabitModificationSections(habit: tempHabit, context: context)
+                    ForEach(modificationSections.indices, id: \.self) { index in
+                        modificationSections[index]
                     }
                 }
                 
