@@ -4,7 +4,7 @@ import SwiftData
 
 class HabitListViewModel: ObservableObject {
     @Published var habits: [Habit] = []
-    @Published var categories: [Category] = []   // ← Lista de categorías
+    @Published var categories: [Category] = []   // Lista de categorias
 
     private let storage: StorageProvider
     private var groupedHabitsCache: [String: [Habit]] = [:]

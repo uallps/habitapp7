@@ -2,7 +2,7 @@
 //  Streak.swift
 //  HabitApp
 //
-//  Created by Francisco José García García on 16/11/25.
+//  Created by Francisco Jose Garcia Garcia on 16/11/25.
 //
 import Foundation
 import SwiftData
@@ -36,7 +36,7 @@ final class HabitStreakFeature {
     }
 }
 
-// MARK: - Extensión de Habit con computed properties
+// MARK: - Extension de Habit con computed properties
 
 extension Habit {
     
@@ -87,24 +87,29 @@ extension Habit {
         getOrCreateStreakFeature()?.nextDay = newValue
     }
     
-     func checkAndUpdateStreak() { //aqui ponia mutating
+    func checkAndUpdateStreak() {
         let today = Calendar.current.startOfDay(for: Date())
-        
-        var next = getNextDay()
-        
+        let next = getNextDay()
+
         guard let nextDayVal = next else {
             // Primera vez, inicializar nextDay
             let calculated = calculateNextDay(from: today)
             setNextDay(calculated)
             return
         }
-        
+
         let nextDayStart = Calendar.current.startOfDay(for: nextDayVal)
-        
-        // Si hoy es el día esperado
+
+        // Si el siguiente dia esperado esta en pausa, avanzar sin afectar la racha
+        if !shouldBeCompletedOn(date: nextDayStart) {
+            setNextDay(calculateNextDay(from: nextDayStart))
+            return
+        }
+
+        // Si hoy es el dia esperado
         if Calendar.current.isDate(today, inSameDayAs: nextDayStart) {
             if isCompletedToday {
-                // Completado: incrementar streak y calcular siguiente día
+                // Completado: incrementar streak y calcular siguiente dia
                 var currentStreak = getStreak()
                 currentStreak += 1
                 setStreak(currentStreak)
@@ -122,7 +127,7 @@ extension Habit {
                 setNextDay(calculateNextDay(from: today))
             }
         } else if today > nextDayStart {
-            // Se pasó el día sin completar: resetear streak
+            // Se paso el dia sin completar: resetear streak
             setStreak(0)
             setNextDay(calculateNextDay(from: today))
         }
@@ -130,11 +135,28 @@ extension Habit {
     
     private func calculateNextDay(from date: Date) -> Date? {
         guard !frequency.isEmpty else { return nil }
-        
+
+        var candidate = nextFrequencyDay(after: date)
+        var attempts = 0
+
+        while let candidateDate = candidate, attempts < 7 {
+            if shouldBeCompletedOn(date: candidateDate) {
+                return candidateDate
+            }
+            candidate = nextFrequencyDay(after: candidateDate)
+            attempts += 1
+        }
+
+        return nil
+    }
+
+    private func nextFrequencyDay(after date: Date) -> Date? {
+        guard !frequency.isEmpty else { return nil }
+
         let calendar = Calendar.current
         let currentWeekday = calendar.component(.weekday, from: date)
-        
-        // Convertir frequency a números de día de la semana (1=Sunday, 2=Monday, etc.)
+
+        // Convertir frequency a numeros de dia de la semana (1=Sunday, 2=Monday, etc.)
         let frequencyWeekdays = frequency.map { weekday -> Int in
             switch weekday {
             case .sunday: return 1
@@ -147,7 +169,7 @@ extension Habit {
             }
         }.sorted()
         
-        // Buscar el siguiente día en la frecuencia
+        // Buscar el siguiente dia en la frecuencia
         for weekday in frequencyWeekdays {
             if weekday > currentWeekday {
                 let daysToAdd = weekday - currentWeekday
@@ -155,7 +177,7 @@ extension Habit {
             }
         }
         
-        // Si no hay ninguno mayor, el siguiente es el primero de la próxima semana
+        // Si no hay ninguno mayor, el siguiente es el primero de la proxima semana
         if let firstWeekday = frequencyWeekdays.first {
             let daysToAdd = 7 - currentWeekday + firstWeekday
             return calendar.date(byAdding: .day, value: daysToAdd, to: date)
@@ -164,4 +186,3 @@ extension Habit {
         return nil
     }
 }
-
