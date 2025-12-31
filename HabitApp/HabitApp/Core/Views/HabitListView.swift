@@ -11,6 +11,7 @@ struct HabitListView: View {
     @State private var isAddingHabit = false
     @State private var habitToEdit: Habit?
     @State private var isAddingCategory = false
+    @State private var categoryViewMode: CategoryViewMode = .create
     @State private var showDeleteConfirmation = false
     @State private var habitToDelete: Habit?
 
@@ -99,7 +100,7 @@ struct HabitListView: View {
                 HabitModifyView(viewModel: viewModel, habitToEdit: habit)
             }
             .sheet(isPresented: $isAddingCategory) {
-                CreateCategoryView { newCategory in
+                CreateCategoryView(initialMode: categoryViewMode) { newCategory in
                     print("Categoria creada: \(newCategory.name)")
                 } onDelete: {
                     viewModel.reloadHabits()
@@ -153,7 +154,7 @@ struct HabitListView: View {
             Spacer()
 
             VStack(alignment: .trailing, spacing: 2) {
-                Text("Hoy")
+                Text("Today")
                     .font(.caption)
                     .foregroundColor(secondaryTextColor)
                     .textCase(.uppercase)
@@ -165,7 +166,7 @@ struct HabitListView: View {
         }
         .padding(.horizontal, contentPadding)
         .padding(.vertical, isCompactLayout ? 12 : 16)
-        .background(headerBackground.opacity(0.96))
+        .background(headerBackground.opacity(0.95))
         .overlay(
             Rectangle()
                 .frame(height: 1)
@@ -173,8 +174,8 @@ struct HabitListView: View {
             alignment: .bottom
         )
         .shadow(
-            color: Color.black.opacity(colorScheme == .dark ? 0.35 : 0.08),
-            radius: 10,
+            color: Color.black.opacity(colorScheme == .dark ? 0.25 : 0.08),
+            radius: 8,
             x: 0,
             y: 4
         )
@@ -194,17 +195,10 @@ struct HabitListView: View {
                 }
             }
 
-            if appConfig.showCategories && isCompactLayout {
-                VStack(spacing: 10) {
-                    createHabitButton
-                    createCategoryButton
-                }
-            } else {
-                HStack(spacing: 12) {
-                    createHabitButton
-                    if appConfig.showCategories {
-                        createCategoryButton
-                    }
+            HStack(spacing: 12) {
+                createHabitButton
+                if appConfig.showCategories {
+                    categoryMenuButton
                 }
             }
         }
@@ -212,7 +206,7 @@ struct HabitListView: View {
         .padding(.top, 12)
         .padding(.bottom, 20)
         .frame(maxWidth: .infinity)
-        .background(bottomBarBackground.opacity(0.96))
+        .background(bottomBarBackground.opacity(0.95))
         .overlay(
             Rectangle()
                 .frame(height: 1)
@@ -220,8 +214,8 @@ struct HabitListView: View {
             alignment: .top
         )
         .shadow(
-            color: Color.black.opacity(colorScheme == .dark ? 0.5 : 0.15),
-            radius: 20,
+            color: Color.black.opacity(colorScheme == .dark ? 0.35 : 0.15),
+            radius: 16,
             x: 0,
             y: -6
         )
@@ -243,6 +237,57 @@ struct HabitListView: View {
                 .frame(width: isCompactLayout ? 300 : 360, height: isCompactLayout ? 300 : 360)
                 .blur(radius: 80)
                 .offset(x: 180, y: 220)
+        }
+    }
+
+    private var createHabitButton: some View {
+        Button(action: {
+            isAddingHabit = true
+        }) {
+            Label("Crear Habito", systemImage: "plus")
+                .font(.system(size: 16, weight: .bold))
+                .foregroundColor(.white)
+                .frame(maxWidth: .infinity, minHeight: buttonHeight)
+                .background(primaryColor)
+                .clipShape(RoundedRectangle(cornerRadius: 16))
+                .shadow(
+                    color: primaryColor.opacity(colorScheme == .dark ? 0.4 : 0.3),
+                    radius: 12,
+                    x: 0,
+                    y: 6
+                )
+                .lineLimit(1)
+                .minimumScaleFactor(0.8)
+        }
+    }
+
+    private var categoryMenuButton: some View {
+        Menu {
+            Button {
+                categoryViewMode = .create
+                isAddingCategory = true
+            } label: {
+                Label("Crear categoria", systemImage: "plus")
+            }
+            Button(role: .destructive) {
+                categoryViewMode = .delete
+                isAddingCategory = true
+            } label: {
+                Label("Eliminar categoria", systemImage: "trash")
+            }
+        } label: {
+            Text("Categoria")
+                .font(.system(size: 16, weight: .bold))
+                .foregroundColor(primaryTextColor)
+                .frame(maxWidth: .infinity, minHeight: buttonHeight)
+                .background(secondaryButtonBackground)
+                .clipShape(RoundedRectangle(cornerRadius: 16))
+                .overlay(
+                    RoundedRectangle(cornerRadius: 16)
+                        .stroke(borderColor, lineWidth: 1)
+                )
+                .lineLimit(1)
+                .minimumScaleFactor(0.8)
         }
     }
 
@@ -322,50 +367,6 @@ struct HabitListView: View {
 
     private var buttonHeight: CGFloat {
         isCompactLayout ? 52 : 56
-    }
-
-    private var createHabitButton: some View {
-        Button(action: {
-            isAddingHabit = true
-        }) {
-            Label("Crear Habito", systemImage: "plus")
-                .font(.system(size: 16, weight: .bold))
-                .foregroundColor(.white)
-                .frame(maxWidth: .infinity, minHeight: buttonHeight)
-                .background(primaryColor)
-                .clipShape(RoundedRectangle(cornerRadius: 16))
-                .shadow(
-                    color: primaryColor.opacity(colorScheme == .dark ? 0.4 : 0.3),
-                    radius: 12,
-                    x: 0,
-                    y: 6
-                )
-                .lineLimit(1)
-                .minimumScaleFactor(0.8)
-        }
-    }
-
-    private var createCategoryButton: some View {
-        Button(action: {
-            isAddingCategory = true
-        }) {
-            HStack(spacing: 8) {
-                Image(systemName: "square.grid.2x2")
-                    .foregroundColor(primaryColor)
-                Text("Crear Categoria")
-                    .foregroundColor(primaryTextColor)
-            }
-            .font(.system(size: 16, weight: .bold))
-            .frame(maxWidth: .infinity, minHeight: buttonHeight)
-            .background(secondaryButtonBackground)
-            .clipShape(RoundedRectangle(cornerRadius: 16))
-            .overlay(
-                RoundedRectangle(cornerRadius: 16)
-                    .stroke(borderColor, lineWidth: 1)
-            )
-            .lineLimit(1)
-            .minimumScaleFactor(0.8)
-        }
     }
 
     private static let dayFormatter: DateFormatter = {

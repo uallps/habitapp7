@@ -5,8 +5,8 @@ class PauseDayPlugin: NSObject, FeaturePlugin, ViewPlugin, LogicPlugin {
     var id: String { "NM_PauseDay" }
     var models: [any PersistentModel.Type] { [HabitPauseDays.self] }
 
-    func habitModificationSection(habit: Habit, context: ModelContext) -> AnyView? {
-        AnyView(PauseDaySelectionView(habitID: habit.id, context: context))
+    func habitRowAccessoryView(habit: Habit) -> AnyView? {
+        AnyView(PauseDayRowButton(habit: habit))
     }
 
     func shouldHabitBeCompletedOn(habit: Habit, date: Date) -> Bool? {

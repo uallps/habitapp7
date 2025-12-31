@@ -11,13 +11,18 @@ struct PauseDaySelectionView: View {
 
     var body: some View {
         let sortedDates = selectedDates.sorted()
+        let today = Calendar.current.startOfDay(for: Date())
+        let normalizedDateToAdd = Calendar.current.startOfDay(for: dateToAdd)
 
         Section("Dias de pausa (sin habito)") {
-            DatePicker("Dia", selection: $dateToAdd, displayedComponents: .date)
+            DatePicker("Dia", selection: $dateToAdd, in: today..., displayedComponents: .date)
             Button("Agregar dia") {
                 addDate()
             }
-            .disabled(selectedDates.contains(Calendar.current.startOfDay(for: dateToAdd)))
+            .disabled(
+                normalizedDateToAdd < today ||
+                    selectedDates.contains(normalizedDateToAdd)
+            )
 
             if sortedDates.isEmpty {
                 Text("No hay dias en pausa.")
@@ -69,6 +74,8 @@ struct PauseDaySelectionView: View {
 
     private func addDate() {
         let date = Calendar.current.startOfDay(for: dateToAdd)
+        let today = Calendar.current.startOfDay(for: Date())
+        guard date >= today else { return }
         if selectedDates.insert(date).inserted {
             saveSelection()
         }

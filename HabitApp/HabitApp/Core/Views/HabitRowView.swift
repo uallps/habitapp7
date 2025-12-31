@@ -24,7 +24,7 @@ struct HabitRowView: View {
         let streak = habit.getStreak()
         let todayEntry = isCompletedToday ? getTodayCompletionEntry() : nil
 
-        return HStack(spacing: isCompactLayout ? 8 : 12) {
+        return HStack(spacing: isCompactLayout ? 6 : 12) {
             if let customCompletion = customCompletion {
                 customCompletion
             } else {
@@ -41,8 +41,9 @@ struct HabitRowView: View {
                     .font(.system(size: titleFontSize, weight: .bold))
                     .foregroundColor(primaryTextColor)
                     .strikethrough(isCompletedToday, color: secondaryTextColor)
-                    .lineLimit(isCompactLayout ? 2 : 1)
-                    .minimumScaleFactor(0.85)
+                    .lineLimit(1)
+                    .minimumScaleFactor(0.8)
+                    .truncationMode(.tail)
 
                 if appConfig.showPriorities, let priority = habit.priority {
                     Text("Prioridad: \(priority.rawValue)")
@@ -56,26 +57,19 @@ struct HabitRowView: View {
                         .foregroundColor(.orange)
                 }
 
+            }
+            .frame(maxWidth: .infinity, alignment: .leading)
+
+            HStack(spacing: isCompactLayout ? 4 : 6) {
+                editButton
+                deleteButton
                 ForEach(accessoryViews.indices, id: \.self) { index in
                     accessoryViews[index]
+                        .fixedSize(horizontal: true, vertical: false)
                 }
+                overflowMenu(todayEntry: todayEntry)
             }
-
-            Spacer()
-
-            if isCompactLayout {
-                VStack(spacing: 6) {
-                    editButton
-                    deleteButton
-                    overflowMenu(todayEntry: todayEntry)
-                }
-            } else {
-                HStack(spacing: 6) {
-                    editButton
-                    deleteButton
-                    overflowMenu(todayEntry: todayEntry)
-                }
-            }
+            .fixedSize(horizontal: true, vertical: false)
         }
         .padding(isCompactLayout ? 12 : 16)
         .background(cardBackground)
