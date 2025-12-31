@@ -11,8 +11,7 @@ class PauseDayPlugin: NSObject, FeaturePlugin, ViewPlugin, LogicPlugin {
 
     func shouldHabitBeCompletedOn(habit: Habit, date: Date) -> Bool? {
         guard let pauseDays = loadPauseDays(for: habit) else { return nil }
-        let weekday = Weekday.from(date: date)
-        return pauseDays.pauseDays.contains(weekday) ? false : nil
+        return pauseDays.isPaused(on: date) ? false : nil
     }
 
     private func loadPauseDays(for habit: Habit) -> HabitPauseDays? {

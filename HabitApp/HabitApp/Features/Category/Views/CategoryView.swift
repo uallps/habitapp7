@@ -3,6 +3,7 @@ import SwiftData
 
 struct CreateCategoryView: View {
     @Environment(\.dismiss) var dismiss
+    @Environment(\.colorScheme) private var colorScheme
 
     @State private var name: String = ""
     @State private var description: String = ""
@@ -27,14 +28,18 @@ struct CreateCategoryView: View {
                     TextField("Nombre de la categoría", text: $name)
                         .autocorrectionDisabled()
                 }
+                .listRowBackground(cardBackground)
 
                 Section(header: Text("Descripción")) {
                     TextField("Descripción (opcional)", text: $description, axis: .vertical)
                         .lineLimit(3...6)
                 }
+                .listRowBackground(cardBackground)
+
                 Section(header: Text("Categorías existentes")) {
                     if categories.isEmpty {
-                        Text("No hay categorías creadas").foregroundStyle(.secondary)
+                        Text("No hay categorías creadas")
+                            .foregroundStyle(.secondary)
                     } else {
                         Picker("Selecciona una para eliminar", selection: $selectedCategoryToDelete) {
                             Text("Ninguna").tag(nil as Category?)
@@ -62,10 +67,14 @@ struct CreateCategoryView: View {
                         .disabled(selectedCategoryToDelete == nil)
                     }
                 }
+                .listRowBackground(cardBackground)
                 .onAppear {
                     reloadCategories()
                 }
             }
+            .scrollContentBackground(.hidden)
+            .background(backgroundColor)
+            .tint(primaryColor)
             .navigationTitle("Nueva Categoría")
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
@@ -97,5 +106,20 @@ struct CreateCategoryView: View {
             }
         }
     }
-}
 
+    private var primaryColor: Color {
+        Color(red: 242 / 255, green: 120 / 255, blue: 13 / 255)
+    }
+
+    private var backgroundColor: Color {
+        colorScheme == .dark
+            ? Color(red: 25 / 255, green: 18 / 255, blue: 14 / 255)
+            : Color(red: 248 / 255, green: 247 / 255, blue: 245 / 255)
+    }
+
+    private var cardBackground: Color {
+        colorScheme == .dark
+            ? Color(red: 38 / 255, green: 26 / 255, blue: 20 / 255)
+            : Color.white
+    }
+}
