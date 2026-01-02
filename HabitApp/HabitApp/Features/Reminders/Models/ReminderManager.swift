@@ -1,4 +1,4 @@
-﻿//
+//
 //  ReminderManager.swift
 //  HabitApp
 //
@@ -13,6 +13,9 @@ final class ReminderManager {
     static let shared = ReminderManager()
     private var modelContext: ModelContext?
     private var enableReminders: Bool = true
+    private var lastScheduledDayKey: String?
+    private var lastScheduledMessage: String?
+    private let dailyNotificationIdentifier = "daily_habits_notification"
     
     private init() {}
     
@@ -59,22 +62,32 @@ final class ReminderManager {
         do {
             let descriptor = FetchDescriptor<Habit>()
             let habits = try context.fetch(descriptor)
+            let today = Date()
+            let message = generateHabitListMessage(habits: habits, for: today)
+            let dayKey = dayKey(for: today)
+
+            if lastScheduledDayKey == dayKey, lastScheduledMessage == message {
+                if await hasPendingDailyNotification() {
+                    return
+                }
+            }
             
-            // Programar notificación con los hábitos cargados
-            await scheduleNotification(with: habits)
+            let scheduled = await scheduleNotification(message: message)
+            if scheduled {
+                lastScheduledDayKey = dayKey
+                lastScheduledMessage = message
+            }
         } catch {
             print("Error cargando hábitos para notificaciones: \(error)")
         }
     }
     
-    /// Programa la notificación diaria con los hábitos proporcionados
-    private func scheduleNotification(with habits: [Habit]) async {
+    /// Programa la notificación diaria
+    private func scheduleNotification(message: String) async -> Bool {
         await requestAuthorizationIfNeeded()
 
-        let identifier = "daily_habits_notification"
-
         await UNUserNotificationCenter.current()
-            .removePendingNotificationRequests(withIdentifiers: [identifier])
+            .removePendingNotificationRequests(withIdentifiers: [dailyNotificationIdentifier])
 
         var dateComponents = DateComponents()
         dateComponents.hour = 0
@@ -83,23 +96,35 @@ final class ReminderManager {
         let trigger = UNCalendarNotificationTrigger(dateMatching: dateComponents, repeats: true)
 
         let content = UNMutableNotificationContent()
-        content.title = "Habitos de Hoy"
-        content.body = generateHabitListMessage(habits: habits, for: Date())
+        content.title = "Hábitos de Hoy"
+        content.body = message
         content.sound = .default
         content.categoryIdentifier = "HABIT_REMINDER"
 
         let request = UNNotificationRequest(
-            identifier: identifier,
+            identifier: dailyNotificationIdentifier,
             content: content,
             trigger: trigger
         )
 
         do {
             try await UNUserNotificationCenter.current().add(request)
-            print("Notificacion diaria programada a las 00:00")
+            print("Notificación diaria programada a las 00:00")
+            return true
         } catch {
-            print("Error programando notificacion diaria: \(error)")
+            print("Error programando notificación diaria: \(error)")
+            return false
         }
+    }
+
+    private func hasPendingDailyNotification() async -> Bool {
+        let pending = await UNUserNotificationCenter.current().pendingNotificationRequests()
+        return pending.contains { $0.identifier == dailyNotificationIdentifier }
+    }
+
+    private func dayKey(for date: Date) -> String {
+        let startOfDay = Calendar.current.startOfDay(for: date)
+        return String(Int(startOfDay.timeIntervalSince1970))
     }
     
     private func generateHabitListMessage(habits: [Habit], for date: Date) -> String {
@@ -108,7 +133,7 @@ final class ReminderManager {
         }
         
         guard !todayHabits.isEmpty else {
-            return "No tienes habitos programados para hoy. Disfruta tu dia!"
+            return "No tienes hábitos programados para hoy. Disfruta tu día!"
         }
         
         let habitList = todayHabits
@@ -116,7 +141,7 @@ final class ReminderManager {
             .joined(separator: "\n")
         
         let count = todayHabits.count
-        let header = count == 1 ? "Tienes 1 habito hoy:" : "Tienes \(count) habitos hoy:"
+        let header = count == 1 ? "Tienes 1 hábito hoy:" : "Tienes \(count) hábitos hoy:"
         
         return "\(header)\n\(habitList)"
     }
@@ -124,10 +149,9 @@ final class ReminderManager {
     // MARK: - Cancellation
     
     func cancelDailyHabitNotification() async {
-        let identifier = "daily_habits_notification"
         await UNUserNotificationCenter.current()
-            .removePendingNotificationRequests(withIdentifiers: [identifier])
-        print("Notificacion diaria cancelada")
+            .removePendingNotificationRequests(withIdentifiers: [dailyNotificationIdentifier])
+        print("Notificación diaria cancelada")
     }
     
     func cancelAllNotifications() async {

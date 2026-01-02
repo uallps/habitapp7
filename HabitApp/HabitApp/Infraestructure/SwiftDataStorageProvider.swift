@@ -17,6 +17,8 @@ class SwiftDataStorageProvider: StorageProvider {
 
     private let modelContainer: ModelContainer
     private let context: ModelContext
+    private var cachedHabitIds: Set<UUID> = []
+    private var hasLoadedHabits = false
 
     init(schema: Schema) {
         do {
@@ -31,31 +33,39 @@ class SwiftDataStorageProvider: StorageProvider {
     func loadHabits() async throws -> [Habit] {
         // Con Habit como @Model, ya podemos usar FetchDescriptor<Habit>
         let descriptor = FetchDescriptor<Habit>()
-        return try context.fetch(descriptor)
+        let habits = try context.fetch(descriptor)
+        cachedHabitIds = Set(habits.map(\.id))
+        hasLoadedHabits = true
+        return habits
     }
 
     func saveHabits(habits: [Habit]) async throws {
-        // Cargamos existentes para sincronizar
-        let existingHabits = try await self.loadHabits()
-        let existingIds = Set(existingHabits.map { $0.id })
-        let newIds = Set(habits.map { $0.id })
-
-        // Borrar los que ya no están
-        for existingHabit in existingHabits where !newIds.contains(existingHabit.id) {
-            context.delete(existingHabit)
+        if !hasLoadedHabits {
+            let existingHabits = try context.fetch(FetchDescriptor<Habit>())
+            cachedHabitIds = Set(existingHabits.map(\.id))
+            hasLoadedHabits = true
         }
 
-        // Insertar los nuevos; los existentes se asume que ya están en el contexto
-        for habit in habits {
-            if existingIds.contains(habit.id) {
-                // Si quieres forzar actualización de propiedades en caso de objetos distintos,
-                // busca el existente y copia campos.
-                // Aquí asumimos que es la misma instancia o ya está gestionada por el contexto.
-            } else {
-                context.insert(habit)
+        let newIds = Set(habits.map(\.id))
+        let idsToDelete = cachedHabitIds.subtracting(newIds)
+
+        if !idsToDelete.isEmpty {
+            let idsToDeleteList = Array(idsToDelete)
+            let descriptor = FetchDescriptor<Habit>(
+                predicate: #Predicate { idsToDeleteList.contains($0.id) }
+            )
+            let habitsToDelete = try context.fetch(descriptor)
+            for habit in habitsToDelete {
+                context.delete(habit)
             }
         }
 
+        // Insertar los nuevos; los existentes se asume que ya están en el contexto
+        for habit in habits where !cachedHabitIds.contains(habit.id) {
+            context.insert(habit)
+        }
+
         try context.save()
+        cachedHabitIds = newIds
     }
 }

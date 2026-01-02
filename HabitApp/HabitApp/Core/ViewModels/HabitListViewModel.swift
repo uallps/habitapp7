@@ -4,9 +4,11 @@ import SwiftData
 
 class HabitListViewModel: ObservableObject {
     @Published var habits: [Habit] = []
-    @Published var categories: [Category] = []   // ← Lista de categorías
+    @Published var categories: [Category] = []   // Lista de categorias
 
     private let storage: StorageProvider
+    private var groupedHabitsCache: [String: [Habit]] = [:]
+    private var isGroupedCacheDirty = true
 
     // Inyección de dependencias pura, como el profesor
     init(storageProvider: StorageProvider) {
@@ -17,6 +19,7 @@ class HabitListViewModel: ObservableObject {
             do {
                 let loaded = try await storage.loadHabits()
                 self.habits = loaded
+                self.markGroupingDirty()
             } catch {
                 print("Error cargando hábitos: \(error)")
             }
@@ -26,11 +29,13 @@ class HabitListViewModel: ObservableObject {
     // Añadir categoría al sistema
     func addCategory(_ category: Category) {
         categories.append(category)
+        markGroupingDirty()
     }
     
     // Añadir hábito
     func addHabit(_ habit: Habit) {
         habits.append(habit)
+        markGroupingDirty()
         persist()
     }
     
@@ -39,6 +44,7 @@ class HabitListViewModel: ObservableObject {
             do {
                 let loaded = try await storage.loadHabits()
                 self.habits = loaded
+                self.markGroupingDirty()
             } catch {
                 print("Error recargando hábitos: \(error)")
             }
@@ -48,6 +54,7 @@ class HabitListViewModel: ObservableObject {
     func deleteHabit(_ habit: Habit) {
         if let idx = habits.firstIndex(where: { $0.id == habit.id }) {
             habits.remove(at: idx)
+            markGroupingDirty()
             persist()
         }
     }
@@ -69,7 +76,59 @@ class HabitListViewModel: ObservableObject {
     // Actualizar hábito (solo persiste, los cambios ya están aplicados en el objeto)
     func updateHabit(_ habit: Habit) {
         // El objeto ya está modificado, solo necesitamos persistir
+        markGroupingDirty()
         persist()
+    }
+
+    func groupedHabitsByCategory() -> [String: [Habit]] {
+        if !isGroupedCacheDirty {
+            return groupedHabitsCache
+        }
+
+        groupedHabitsCache = buildGroupedHabits()
+        isGroupedCacheDirty = false
+        return groupedHabitsCache
+    }
+
+    private func buildGroupedHabits() -> [String: [Habit]] {
+        let categoryNameByHabitId = buildCategoryNameMap(for: habits)
+        var groupedHabits: [String: [Habit]] = [:]
+
+        for habit in habits {
+            let categoryName = categoryNameByHabitId[habit.id] ?? "Sin categoría"
+            groupedHabits[categoryName, default: []].append(habit)
+        }
+
+        return groupedHabits
+    }
+
+    private func buildCategoryNameMap(for habits: [Habit]) -> [UUID: String] {
+        guard let context = SwiftDataContext.shared else {
+            return [:]
+        }
+
+        let habitIds = habits.map(\.id)
+        guard !habitIds.isEmpty else {
+            return [:]
+        }
+
+        let descriptor = FetchDescriptor<HabitCategoryFeature>(
+            predicate: #Predicate { habitIds.contains($0.habitId) }
+        )
+        let features = (try? context.fetch(descriptor)) ?? []
+        var categoryNames: [UUID: String] = [:]
+
+        for feature in features {
+            if let name = feature.category?.name {
+                categoryNames[feature.habitId] = name
+            }
+        }
+
+        return categoryNames
+    }
+
+    private func markGroupingDirty() {
+        isGroupedCacheDirty = true
     }
 
     private func persist() {

@@ -5,6 +5,7 @@ struct HabitModifyView: View {
     @Environment(\.dismiss) var dismiss
     @ObservedObject var viewModel: HabitListViewModel
     @EnvironmentObject private var appConfig: AppConfig
+    @Environment(\.colorScheme) private var colorScheme
     var habitToEdit: Habit?
     
     @State private var title = ""
@@ -44,6 +45,7 @@ struct HabitModifyView: View {
                         }
                     }
                 }
+                .listRowBackground(cardBackground)
                 
                 Section("Frecuencia") {
                     ForEach(Weekday.allCases, id: \.self) { day in
@@ -59,11 +61,14 @@ struct HabitModifyView: View {
                         ))
                     }
                 }
+                .listRowBackground(cardBackground)
                 
                 // 🔌 PLUGINS: Secciones de modificación (ej. Frecuencia extendida, Tipo de hábito)
                 if let context = SwiftDataContext.shared {
-                    ForEach(PluginRegistry.shared.getHabitModificationSections(habit: tempHabit, context: context).indices, id: \.self) { index in
-                        PluginRegistry.shared.getHabitModificationSections(habit: tempHabit, context: context)[index]
+                    let modificationSections =
+                        PluginRegistry.shared.getHabitModificationSections(habit: tempHabit, context: context)
+                    ForEach(modificationSections.indices, id: \.self) { index in
+                        modificationSections[index]
                     }
                 }
                 
@@ -76,8 +81,12 @@ struct HabitModifyView: View {
                             Text("Eliminar Hábito")
                         }
                     }
+                    .listRowBackground(cardBackground)
                 }
             }
+            .scrollContentBackground(.hidden)
+            .background(backgroundColor)
+            .tint(primaryColor)
             .navigationTitle(habitToEdit == nil ? "Nuevo Hábito" : "Modificar Hábito")
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
@@ -150,5 +159,20 @@ struct HabitModifyView: View {
             }
         }
     }
-}
 
+    private var primaryColor: Color {
+        Color(red: 242 / 255, green: 120 / 255, blue: 13 / 255)
+    }
+
+    private var backgroundColor: Color {
+        colorScheme == .dark
+            ? Color(red: 25 / 255, green: 18 / 255, blue: 14 / 255)
+            : Color(red: 248 / 255, green: 247 / 255, blue: 245 / 255)
+    }
+
+    private var cardBackground: Color {
+        colorScheme == .dark
+            ? Color(red: 38 / 255, green: 26 / 255, blue: 20 / 255)
+            : Color.white
+    }
+}
