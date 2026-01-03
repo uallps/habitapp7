@@ -15,13 +15,19 @@ struct HabitListView: View {
     @State private var habitToEdit: Habit?
     @State private var isAddingCategory = false
     @State private var availableCategories: [Category] = []
-    @State private var selectedCategoryId: UUID?
+    @State private var categoryFilter: CategoryFilter = .all
     @State private var showDeleteConfirmation = false
     @State private var habitToDelete: Habit?
 
     init(storageProvider: StorageProvider) {
         _viewModel = StateObject(wrappedValue: HabitListViewModel(storageProvider: storageProvider))
-    }
+}
+
+private enum CategoryFilter: Equatable {
+    case all
+    case category(UUID)
+    case uncategorized
+}
 
     var body: some View {
         let headerViews = PluginRegistry.shared.getHabitListHeaderViews()
@@ -31,6 +37,8 @@ struct HabitListView: View {
         let categoriesByHabitId = appConfig.showCategories
             ? viewModel.categoryByHabitId(for: habits)
             : [:]
+        let hasUncategorized = appConfig.showCategories &&
+            habits.contains { categoriesByHabitId[$0.id] == nil }
         let filteredHabits = applyCategoryFilter(
             habits: habits,
             categoriesByHabitId: categoriesByHabitId
@@ -59,7 +67,7 @@ struct HabitListView: View {
                             }
 
                             if appConfig.showCategories {
-                                categoryFilterView
+                                categoryFilterView(hasUncategorized: hasUncategorized)
                             }
 
                             sectionHeader("Para hoy")
@@ -149,6 +157,11 @@ struct HabitListView: View {
                 }
                 loadCategories()
             }
+            .onChange(of: hasUncategorized) { newValue in
+                if !newValue, categoryFilter == .uncategorized {
+                    categoryFilter = .all
+                }
+            }
             .onChange(of: isAddingCategory) { newValue in
                 if !newValue {
                     loadCategories()
@@ -172,9 +185,13 @@ struct HabitListView: View {
         habits: [Habit],
         categoriesByHabitId: [UUID: Category]
     ) -> [Habit] {
-        guard let selectedCategoryId = selectedCategoryId else { return habits }
-        return habits.filter { habit in
-            categoriesByHabitId[habit.id]?.id == selectedCategoryId
+        switch categoryFilter {
+        case .all:
+            return habits
+        case .uncategorized:
+            return habits.filter { categoriesByHabitId[$0.id] == nil }
+        case .category(let categoryId):
+            return habits.filter { categoriesByHabitId[$0.id]?.id == categoryId }
         }
     }
 
@@ -182,7 +199,7 @@ struct HabitListView: View {
         guard appConfig.showCategories,
               let context = SwiftDataContext.shared else {
             availableCategories = []
-            selectedCategoryId = nil
+            categoryFilter = .all
             return
         }
 
@@ -192,9 +209,9 @@ struct HabitListView: View {
             $0.name.localizedCaseInsensitiveCompare($1.name) == .orderedAscending
         }
         availableCategories = sorted
-        if let selected = selectedCategoryId,
-           !sorted.contains(where: { $0.id == selected }) {
-            selectedCategoryId = nil
+        if case let .category(selectedId) = categoryFilter,
+           !sorted.contains(where: { $0.id == selectedId }) {
+            categoryFilter = .all
         }
     }
 
@@ -297,22 +314,31 @@ struct HabitListView: View {
         }
     }
 
-    private var categoryFilterView: some View {
+    private func categoryFilterView(hasUncategorized: Bool) -> some View {
         ScrollView(.horizontal, showsIndicators: false) {
             HStack(spacing: 8) {
                 categoryChip(
                     title: "Todo",
-                    isSelected: selectedCategoryId == nil
+                    isSelected: categoryFilter == .all
                 ) {
-                    selectedCategoryId = nil
+                    categoryFilter = .all
                 }
 
                 ForEach(availableCategories, id: \.id) { category in
                     categoryChip(
                         title: category.name,
-                        isSelected: selectedCategoryId == category.id
+                        isSelected: categoryFilter == .category(category.id)
                     ) {
-                        selectedCategoryId = category.id
+                        categoryFilter = .category(category.id)
+                    }
+                }
+
+                if hasUncategorized {
+                    categoryChip(
+                        title: "Sin categoria",
+                        isSelected: categoryFilter == .uncategorized
+                    ) {
+                        categoryFilter = .uncategorized
                     }
                 }
             }
