@@ -22,7 +22,20 @@ class ExpandedFrequencyPlugin: NSObject, FeaturePlugin, ViewPlugin, LogicPlugin 
     }
     
     func onHabitSave(habit: Habit, context: ModelContext) {
-        // No action needed as View writes to context directly
+        // Invalidar caché para asegurar que se recarguen los cambios recientes
+        frequencyCache.removeValue(forKey: habit.id)
+        
+        // Si es adicción, forzamos que el tipo sea binario para evitar conflictos con NM_Type
+        if let freq = loadFrequency(for: habit), freq.type == .addiction {
+            // Intentamos buscar si existe configuración de HabitType (del plugin NM_Type)
+            // y la reseteamos a .binary para que la vista de adicción tenga prioridad.
+            let habitID = habit.id
+            let descriptor = FetchDescriptor<HabitType>(predicate: #Predicate { $0.habitID == habitID })
+            
+            if let type = try? context.fetch(descriptor).first {
+                type.type = .binary
+            }
+        }
     }
     
     // MARK: - LogicPlugin

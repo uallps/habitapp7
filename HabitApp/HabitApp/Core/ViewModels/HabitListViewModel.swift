@@ -36,7 +36,18 @@ class HabitListViewModel: ObservableObject {
     func addHabit(_ habit: Habit) {
         habits.append(habit)
         markGroupingDirty()
-        persist()
+        
+        // Persistir y luego recargar para asegurar consistencia
+        Task {
+            do {
+                try await storage.saveHabits(habits: habits)
+                await MainActor.run {
+                    self.reloadHabits()
+                }
+            } catch {
+                print("Error guardando hábitos: \(error)")
+            }
+        }
     }
     
     func reloadHabits() {
