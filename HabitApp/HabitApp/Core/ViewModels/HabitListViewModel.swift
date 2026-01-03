@@ -127,6 +127,31 @@ class HabitListViewModel: ObservableObject {
         return categoryNames
     }
 
+    func categoryByHabitId(for habits: [Habit]) -> [UUID: Category] {
+        guard let context = SwiftDataContext.shared else {
+            return [:]
+        }
+
+        let habitIds = habits.map(\.id)
+        guard !habitIds.isEmpty else {
+            return [:]
+        }
+
+        let descriptor = FetchDescriptor<HabitCategoryFeature>(
+            predicate: #Predicate { habitIds.contains($0.habitId) }
+        )
+        let features = (try? context.fetch(descriptor)) ?? []
+        var categoriesByHabitId: [UUID: Category] = [:]
+
+        for feature in features {
+            if let category = feature.category {
+                categoriesByHabitId[feature.habitId] = category
+            }
+        }
+
+        return categoriesByHabitId
+    }
+
     private func markGroupingDirty() {
         isGroupedCacheDirty = true
     }

@@ -6,6 +6,8 @@ struct HabitRowView: View {
     let toggleCompletion: () -> Void
     let onEdit: () -> Void
     let onDelete: () -> Void
+    let isCompletionEnabled: Bool
+    let isInactive: Bool
 
     @State private var showDiaryEntry = false
     @State private var showStats = false
@@ -25,13 +27,20 @@ struct HabitRowView: View {
         let isCompletedToday = habit.isCompletedToday
         let streak = habit.getStreak()
         let todayEntry = isCompletedToday ? getTodayCompletionEntry() : nil
-        let rowBackground = isCompletedToday ? completedCardBackground : cardBackground
-        let rowBorder = isCompletedToday ? completedBorderColor : borderColor
+        let rowBackground = isCompletedToday
+            ? completedCardBackground
+            : (isInactive ? inactiveCardBackground : cardBackground)
+        let rowBorder = isCompletedToday
+            ? completedBorderColor
+            : (isInactive ? inactiveBorderColor : borderColor)
         let rowPadding = isCompactLayout ? 12.0 : 16.0
+        let titleColor = (isCompletedToday || isInactive) ? secondaryTextColor : primaryTextColor
 
         return HStack(spacing: isCompactLayout ? 6 : 12) {
             if let customCompletion = customCompletion {
                 customCompletion
+                    .opacity(isCompletionEnabled ? 1 : 0.5)
+                    .allowsHitTesting(isCompletionEnabled)
             } else {
                 Button(action: toggleCompletion) {
                     Image(systemName: isCompletedToday ? "checkmark.circle.fill" : "circle")
@@ -39,12 +48,14 @@ struct HabitRowView: View {
                         .foregroundColor(isCompletedToday ? primaryColor : secondaryTextColor)
                 }
                 .buttonStyle(.plain)
+                .disabled(!isCompletionEnabled)
+                .opacity(isCompletionEnabled ? 1 : 0.5)
             }
 
             VStack(alignment: .leading, spacing: 4) {
                 Text(habit.title)
                     .font(.system(size: titleFontSize, weight: .bold))
-                    .foregroundColor(isCompletedToday ? secondaryTextColor : primaryTextColor)
+                    .foregroundColor(titleColor)
                     .strikethrough(isCompletedToday, color: secondaryTextColor)
                     .lineLimit(1)
                     .minimumScaleFactor(0.8)
@@ -117,6 +128,7 @@ struct HabitRowView: View {
             x: 0,
             y: reduceEffects ? 0 : 4
         )
+        .opacity(isInactive ? 0.7 : 1)
         .sheet(isPresented: $showDiaryEntry) {
             if let todayEntry = todayEntry {
                 DiaryEntryView(
@@ -188,6 +200,12 @@ struct HabitRowView: View {
             : Color.white
     }
 
+    private var inactiveCardBackground: Color {
+        colorScheme == .dark
+            ? taskDark.opacity(0.6)
+            : Color.white.opacity(0.7)
+    }
+
     private var completedCardBackground: Color {
         colorScheme == .dark
             ? taskDark.opacity(0.75)
@@ -198,6 +216,12 @@ struct HabitRowView: View {
         colorScheme == .dark
             ? Color.white.opacity(0.05)
             : Color.black.opacity(0.08)
+    }
+
+    private var inactiveBorderColor: Color {
+        colorScheme == .dark
+            ? Color.white.opacity(0.03)
+            : Color.black.opacity(0.05)
     }
 
     private var completedBorderColor: Color {

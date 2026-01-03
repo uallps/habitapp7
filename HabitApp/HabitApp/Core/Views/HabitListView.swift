@@ -1,5 +1,6 @@
 import Foundation
 import SwiftUI
+import SwiftData
 import UserNotifications
 
 struct HabitListView: View {
@@ -13,6 +14,8 @@ struct HabitListView: View {
     @State private var isAddingHabit = false
     @State private var habitToEdit: Habit?
     @State private var isAddingCategory = false
+    @State private var availableCategories: [Category] = []
+    @State private var selectedCategoryId: UUID?
     @State private var showDeleteConfirmation = false
     @State private var habitToDelete: Habit?
 
@@ -23,6 +26,21 @@ struct HabitListView: View {
     var body: some View {
         let headerViews = PluginRegistry.shared.getHabitListHeaderViews()
         let footerViews = PluginRegistry.shared.getHabitListFooterViews()
+        let habits = viewModel.habits
+        let today = Date()
+        let categoriesByHabitId = appConfig.showCategories
+            ? viewModel.categoryByHabitId(for: habits)
+            : [:]
+        let filteredHabits = applyCategoryFilter(
+            habits: habits,
+            categoriesByHabitId: categoriesByHabitId
+        )
+        let todayHabits = sortHabitsByTitle(
+            filteredHabits.filter { $0.shouldBeCompletedOn(date: today) }
+        )
+        let otherHabits = sortHabitsByTitle(
+            filteredHabits.filter { !$0.shouldBeCompletedOn(date: today) }
+        )
 
         NavigationStack {
             ZStack {
@@ -41,47 +59,41 @@ struct HabitListView: View {
                             }
 
                             if appConfig.showCategories {
-                                let groupedHabits = viewModel.groupedHabitsByCategory()
+                                categoryFilterView
+                            }
 
-                                ForEach(groupedHabits.keys.sorted(), id: \.self) { categoryName in
-                                    VStack(alignment: .leading, spacing: 10) {
-                                        Text(categoryName)
-                                            .font(.caption)
-                                            .foregroundColor(secondaryTextColor)
-                                            .padding(.leading, 4)
+                            sectionHeader("Para hoy")
+                            ForEach(todayHabits) { habit in
+                                HabitRowView(
+                                    habit: habit,
+                                    toggleCompletion: {
+                                        viewModel.toggleCompletion(habit: habit)
+                                    },
+                                    onEdit: {
+                                        habitToEdit = habit
+                                    },
+                                    onDelete: {
+                                        confirmDelete(habit)
+                                    },
+                                    isCompletionEnabled: true,
+                                    isInactive: false
+                                )
+                            }
 
-                                        ForEach(groupedHabits[categoryName] ?? []) { habit in
-                                            HabitRowView(
-                                                habit: habit,
-                                                toggleCompletion: {
-                                                    viewModel.toggleCompletion(habit: habit)
-                                                },
-                                                onEdit: {
-                                                    habitToEdit = habit
-                                                },
-                                                onDelete: {
-                                                    confirmDelete(habit)
-                                                }
-                                            )
-                                        }
-                                    }
-                                    .padding(.top, 6)
-                                }
-                            } else {
-                                ForEach(viewModel.habits) { habit in
-                                    HabitRowView(
-                                        habit: habit,
-                                        toggleCompletion: {
-                                            viewModel.toggleCompletion(habit: habit)
-                                        },
-                                        onEdit: {
-                                            habitToEdit = habit
-                                        },
-                                        onDelete: {
-                                            confirmDelete(habit)
-                                        }
-                                    )
-                                }
+                            sectionHeader("Otros dias")
+                            ForEach(otherHabits) { habit in
+                                HabitRowView(
+                                    habit: habit,
+                                    toggleCompletion: { },
+                                    onEdit: {
+                                        habitToEdit = habit
+                                    },
+                                    onDelete: {
+                                        confirmDelete(habit)
+                                    },
+                                    isCompletionEnabled: false,
+                                    isInactive: true
+                                )
                             }
                         }
                         .padding(.horizontal, contentPadding)
@@ -103,8 +115,10 @@ struct HabitListView: View {
             .sheet(isPresented: $isAddingCategory) {
                 CreateCategoryView { newCategory in
                     print("Categoria creada: \(newCategory.name)")
+                    loadCategories()
                 } onDelete: {
                     viewModel.reloadHabits()
+                    loadCategories()
                 }
             }
             .alert("Eliminar Habito", isPresented: $showDeleteConfirmation) {
@@ -133,6 +147,12 @@ struct HabitListView: View {
                         ReminderManager.shared.scheduleDailyHabitNotificationDebounced()
                     }
                 }
+                loadCategories()
+            }
+            .onChange(of: isAddingCategory) { newValue in
+                if !newValue {
+                    loadCategories()
+                }
             }
         }
     }
@@ -140,6 +160,42 @@ struct HabitListView: View {
     private func confirmDelete(_ habit: Habit) {
         habitToDelete = habit
         showDeleteConfirmation = true
+    }
+
+    private func sortHabitsByTitle(_ habits: [Habit]) -> [Habit] {
+        habits.sorted {
+            $0.title.localizedCaseInsensitiveCompare($1.title) == .orderedAscending
+        }
+    }
+
+    private func applyCategoryFilter(
+        habits: [Habit],
+        categoriesByHabitId: [UUID: Category]
+    ) -> [Habit] {
+        guard let selectedCategoryId = selectedCategoryId else { return habits }
+        return habits.filter { habit in
+            categoriesByHabitId[habit.id]?.id == selectedCategoryId
+        }
+    }
+
+    private func loadCategories() {
+        guard appConfig.showCategories,
+              let context = SwiftDataContext.shared else {
+            availableCategories = []
+            selectedCategoryId = nil
+            return
+        }
+
+        let descriptor = FetchDescriptor<Category>()
+        let fetched = (try? context.fetch(descriptor)) ?? []
+        let sorted = fetched.sorted {
+            $0.name.localizedCaseInsensitiveCompare($1.name) == .orderedAscending
+        }
+        availableCategories = sorted
+        if let selected = selectedCategoryId,
+           !sorted.contains(where: { $0.id == selected }) {
+            selectedCategoryId = nil
+        }
     }
 
     private var headerView: some View {
@@ -241,6 +297,59 @@ struct HabitListView: View {
         }
     }
 
+    private var categoryFilterView: some View {
+        ScrollView(.horizontal, showsIndicators: false) {
+            HStack(spacing: 8) {
+                categoryChip(
+                    title: "Todo",
+                    isSelected: selectedCategoryId == nil
+                ) {
+                    selectedCategoryId = nil
+                }
+
+                ForEach(availableCategories, id: \.id) { category in
+                    categoryChip(
+                        title: category.name,
+                        isSelected: selectedCategoryId == category.id
+                    ) {
+                        selectedCategoryId = category.id
+                    }
+                }
+            }
+            .padding(.horizontal, 2)
+        }
+        .padding(.bottom, 4)
+    }
+
+    private func categoryChip(
+        title: String,
+        isSelected: Bool,
+        action: @escaping () -> Void
+    ) -> some View {
+        Button(action: action) {
+            Text(title)
+                .font(.system(size: 14, weight: .semibold))
+                .foregroundColor(isSelected ? Color.white : primaryTextColor)
+                .padding(.horizontal, 14)
+                .padding(.vertical, 8)
+                .background(isSelected ? primaryColor : chipBackground)
+                .clipShape(Capsule())
+                .overlay(
+                    Capsule()
+                        .stroke(isSelected ? primaryColor.opacity(0.4) : chipBorderColor, lineWidth: 1)
+                )
+        }
+        .buttonStyle(.plain)
+    }
+
+    private func sectionHeader(_ title: String) -> some View {
+        Text(title)
+            .font(.headline)
+            .foregroundColor(primaryTextColor)
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .padding(.top, 8)
+    }
+
     private var createHabitButton: some View {
         Button(action: {
             isAddingHabit = true
@@ -323,6 +432,16 @@ struct HabitListView: View {
         colorScheme == .dark
             ? buttonUltraDark
             : Color.white
+    }
+
+    private var chipBackground: Color {
+        colorScheme == .dark ? taskDark : Color.white
+    }
+
+    private var chipBorderColor: Color {
+        colorScheme == .dark
+            ? Color.white.opacity(0.08)
+            : Color.black.opacity(0.08)
     }
 
     private var borderColor: Color {
