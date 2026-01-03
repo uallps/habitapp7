@@ -135,6 +135,7 @@ class HabitListViewModel: ObservableObject {
         Task {
             do {
                 try await storage.saveHabits(habits: habits)
+                ReminderManager.shared.scheduleDailyHabitNotificationDebounced()
             } catch {
                 print("Error guardando hábitos: \(error)")
             }

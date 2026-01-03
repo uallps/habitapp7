@@ -7,11 +7,12 @@ struct HabitListView: View {
     @EnvironmentObject private var appConfig: AppConfig
     @Environment(\.colorScheme) private var colorScheme
     @Environment(\.horizontalSizeClass) private var horizontalSizeClass
+    @Environment(\.accessibilityReduceTransparency) private var reduceTransparency
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
 
     @State private var isAddingHabit = false
     @State private var habitToEdit: Habit?
     @State private var isAddingCategory = false
-    @State private var categoryViewMode: CategoryViewMode = .create
     @State private var showDeleteConfirmation = false
     @State private var habitToDelete: Habit?
 
@@ -100,7 +101,7 @@ struct HabitListView: View {
                 HabitModifyView(viewModel: viewModel, habitToEdit: habit)
             }
             .sheet(isPresented: $isAddingCategory) {
-                CreateCategoryView(initialMode: categoryViewMode) { newCategory in
+                CreateCategoryView { newCategory in
                     print("Categoria creada: \(newCategory.name)")
                 } onDelete: {
                     viewModel.reloadHabits()
@@ -129,9 +130,7 @@ struct HabitListView: View {
                             enableReminders: appConfig.enableReminders
                         )
 
-                        Task {
-                            await ReminderManager.shared.scheduleDailyHabitNotification()
-                        }
+                        ReminderManager.shared.scheduleDailyHabitNotificationDebounced()
                     }
                 }
             }
@@ -174,10 +173,10 @@ struct HabitListView: View {
             alignment: .bottom
         )
         .shadow(
-            color: Color.black.opacity(colorScheme == .dark ? 0.25 : 0.08),
-            radius: 8,
+            color: reduceEffects ? .clear : Color.black.opacity(colorScheme == .dark ? 0.25 : 0.08),
+            radius: reduceEffects ? 0 : 8,
             x: 0,
-            y: 4
+            y: reduceEffects ? 0 : 4
         )
     }
 
@@ -198,7 +197,7 @@ struct HabitListView: View {
             HStack(spacing: 12) {
                 createHabitButton
                 if appConfig.showCategories {
-                    categoryMenuButton
+                    categoryButton
                 }
             }
         }
@@ -214,10 +213,10 @@ struct HabitListView: View {
             alignment: .top
         )
         .shadow(
-            color: Color.black.opacity(colorScheme == .dark ? 0.35 : 0.15),
-            radius: 16,
+            color: reduceEffects ? .clear : Color.black.opacity(colorScheme == .dark ? 0.35 : 0.15),
+            radius: reduceEffects ? 0 : 16,
             x: 0,
-            y: -6
+            y: reduceEffects ? 0 : -6
         )
     }
 
@@ -226,17 +225,19 @@ struct HabitListView: View {
             backgroundColor
                 .ignoresSafeArea()
 
-            Circle()
-                .fill(primaryColor.opacity(colorScheme == .dark ? 0.12 : 0.08))
-                .frame(width: isCompactLayout ? 360 : 460, height: isCompactLayout ? 360 : 460)
-                .blur(radius: 90)
-                .offset(x: -180, y: -260)
+            if !reduceEffects {
+                Circle()
+                    .fill(primaryColor.opacity(colorScheme == .dark ? 0.12 : 0.08))
+                    .frame(width: isCompactLayout ? 360 : 460, height: isCompactLayout ? 360 : 460)
+                    .blur(radius: 90)
+                    .offset(x: -180, y: -260)
 
-            Circle()
-                .fill(Color.blue.opacity(colorScheme == .dark ? 0.12 : 0.08))
-                .frame(width: isCompactLayout ? 300 : 360, height: isCompactLayout ? 300 : 360)
-                .blur(radius: 80)
-                .offset(x: 180, y: 220)
+                Circle()
+                    .fill(Color.blue.opacity(colorScheme == .dark ? 0.12 : 0.08))
+                    .frame(width: isCompactLayout ? 300 : 360, height: isCompactLayout ? 300 : 360)
+                    .blur(radius: 80)
+                    .offset(x: 180, y: 220)
+            }
         }
     }
 
@@ -261,21 +262,10 @@ struct HabitListView: View {
         }
     }
 
-    private var categoryMenuButton: some View {
-        Menu {
-            Button {
-                categoryViewMode = .create
-                isAddingCategory = true
-            } label: {
-                Label("Crear categoria", systemImage: "plus")
-            }
-            Button(role: .destructive) {
-                categoryViewMode = .delete
-                isAddingCategory = true
-            } label: {
-                Label("Eliminar categoria", systemImage: "trash")
-            }
-        } label: {
+    private var categoryButton: some View {
+        Button(action: {
+            isAddingCategory = true
+        }) {
             Text("Categoria")
                 .font(.system(size: 16, weight: .bold))
                 .foregroundColor(primaryTextColor)
@@ -351,6 +341,10 @@ struct HabitListView: View {
 
     private var isCompactLayout: Bool {
         horizontalSizeClass == .compact
+    }
+
+    private var reduceEffects: Bool {
+        reduceTransparency || reduceMotion || ProcessInfo.processInfo.isLowPowerModeEnabled
     }
 
     private var contentPadding: CGFloat {
