@@ -9,7 +9,6 @@ struct HabitModifyView: View {
     var habitToEdit: Habit?
     
     @State private var title = ""
-    @State private var dueDate = Date()
     @State private var priority: Priority? = nil
     @State private var selectedDays: Set<Weekday> = []
     @State private var selectedCategory: Category?
@@ -25,8 +24,6 @@ struct HabitModifyView: View {
             Form {
                 Section("Información del Hábito") {
                     TextField("Título", text: $title)
-                    
-                    DatePicker("Fecha límite", selection: $dueDate, displayedComponents: .date)
                     
                     Picker("Prioridad", selection: $priority) {
                         Text("Ninguna").tag(nil as Priority?)

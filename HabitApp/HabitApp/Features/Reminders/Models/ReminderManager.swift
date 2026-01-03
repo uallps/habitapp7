@@ -16,6 +16,7 @@ final class ReminderManager {
     private var lastScheduledDayKey: String?
     private var lastScheduledMessage: String?
     private let dailyNotificationIdentifier = "daily_habits_notification"
+    private var debounceTask: Task<Void, Never>?
     
     private init() {}
     
@@ -83,6 +84,14 @@ final class ReminderManager {
     }
     
     /// Programa la notificación diaria
+    func scheduleDailyHabitNotificationDebounced() {
+        debounceTask?.cancel()
+        debounceTask = Task { [weak self] in
+            try? await Task.sleep(nanoseconds: 500_000_000)
+            await self?.scheduleDailyHabitNotification()
+        }
+    }
+
     private func scheduleNotification(message: String) async -> Bool {
         await requestAuthorizationIfNeeded()
 

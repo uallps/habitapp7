@@ -22,7 +22,6 @@ struct CreateCategoryView: View {
     @Environment(\.colorScheme) private var colorScheme
 
     @State private var name: String = ""
-    @State private var description: String = ""
     @State private var categories: [Category] = []
     @State private var selectedCategoryToDelete: Category?
     @State private var mode: CategoryViewMode = .create
@@ -66,11 +65,6 @@ struct CreateCategoryView: View {
                     }
                     .listRowBackground(cardBackground)
 
-                    Section(header: Text("Descripcion")) {
-                        TextField("Descripcion (opcional)", text: $description, axis: .vertical)
-                            .lineLimit(3...6)
-                    }
-                    .listRowBackground(cardBackground)
                 }
 
                 if mode == .delete {
@@ -124,7 +118,7 @@ struct CreateCategoryView: View {
                         Button("Guardar") {
                             let newCategory = Category(
                                 name: name,
-                                categoryDescription: description
+                                categoryDescription: ""
                             )
                             
                             if let context = SwiftDataContext.shared {

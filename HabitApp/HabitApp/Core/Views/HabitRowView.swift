@@ -6,6 +6,8 @@ struct HabitRowView: View {
     let toggleCompletion: () -> Void
     let onEdit: () -> Void
     let onDelete: () -> Void
+    let isCompletionEnabled: Bool
+    let isInactive: Bool
 
     @State private var showDiaryEntry = false
     @State private var showStats = false
@@ -13,6 +15,8 @@ struct HabitRowView: View {
     @EnvironmentObject private var appConfig: AppConfig
     @Environment(\.colorScheme) private var colorScheme
     @Environment(\.horizontalSizeClass) private var horizontalSizeClass
+    @Environment(\.accessibilityReduceTransparency) private var reduceTransparency
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
 
     var body: some View {
         let accessoryViews = PluginRegistry.shared.getHabitRowAccessoryViews(habit: habit)
@@ -23,10 +27,20 @@ struct HabitRowView: View {
         let isCompletedToday = habit.isCompletedToday
         let streak = habit.getStreak()
         let todayEntry = isCompletedToday ? getTodayCompletionEntry() : nil
+        let rowBackground = isCompletedToday
+            ? completedCardBackground
+            : (isInactive ? inactiveCardBackground : cardBackground)
+        let rowBorder = isCompletedToday
+            ? completedBorderColor
+            : (isInactive ? inactiveBorderColor : borderColor)
+        let rowPadding = isCompactLayout ? 12.0 : 16.0
+        let titleColor = (isCompletedToday || isInactive) ? secondaryTextColor : primaryTextColor
 
         return HStack(spacing: isCompactLayout ? 6 : 12) {
             if let customCompletion = customCompletion {
                 customCompletion
+                    .opacity(isCompletionEnabled ? 1 : 0.5)
+                    .allowsHitTesting(isCompletionEnabled)
             } else {
                 Button(action: toggleCompletion) {
                     Image(systemName: isCompletedToday ? "checkmark.circle.fill" : "circle")
@@ -34,12 +48,14 @@ struct HabitRowView: View {
                         .foregroundColor(isCompletedToday ? primaryColor : secondaryTextColor)
                 }
                 .buttonStyle(.plain)
+                .disabled(!isCompletionEnabled)
+                .opacity(isCompletionEnabled ? 1 : 0.5)
             }
 
             VStack(alignment: .leading, spacing: 4) {
                 Text(habit.title)
                     .font(.system(size: titleFontSize, weight: .bold))
-                    .foregroundColor(primaryTextColor)
+                    .foregroundColor(titleColor)
                     .strikethrough(isCompletedToday, color: secondaryTextColor)
                     .lineLimit(1)
                     .minimumScaleFactor(0.8)
@@ -71,19 +87,48 @@ struct HabitRowView: View {
             }
             .fixedSize(horizontal: true, vertical: false)
         }
-        .padding(isCompactLayout ? 12 : 16)
-        .background(cardBackground)
+        .padding(rowPadding)
+        .background(rowBackground)
         .overlay(
             RoundedRectangle(cornerRadius: 16)
-                .stroke(borderColor, lineWidth: 1)
+                .stroke(rowBorder, lineWidth: 1)
         )
+        .overlay(alignment: .center) {
+            if isCompletedToday {
+                Rectangle()
+                    .fill(secondaryTextColor.opacity(colorScheme == .dark ? 0.4 : 0.35))
+                    .frame(height: 1)
+                    .frame(maxWidth: .infinity)
+                    .padding(.horizontal, rowPadding)
+                    .allowsHitTesting(false)
+            }
+        }
         .clipShape(RoundedRectangle(cornerRadius: 16))
+        .overlay(alignment: .center) {
+            if isCompletedToday {
+                HStack(spacing: isCompactLayout ? 4 : 6) {
+                    Color.clear
+                        .frame(maxWidth: .infinity)
+                    editButton
+                    deleteButton
+                    ForEach(accessoryViews.indices, id: \.self) { index in
+                        accessoryViews[index]
+                            .fixedSize(horizontal: true, vertical: false)
+                    }
+                    overflowMenu(todayEntry: todayEntry)
+                }
+                .padding(.horizontal, rowPadding)
+                .background(Color.clear)
+                .allowsHitTesting(false)
+            }
+        }
         .shadow(
-            color: Color.black.opacity(colorScheme == .dark ? 0.35 : 0.08),
-            radius: 10,
+            color: reduceEffects ? .clear : Color.black.opacity(colorScheme == .dark ? 0.35 : 0.08),
+            radius: reduceEffects ? 0 : 10,
             x: 0,
-            y: 4
+            y: reduceEffects ? 0 : 4
         )
+        .opacity(isInactive ? 0.7 : 1)
         .sheet(isPresented: $showDiaryEntry) {
             if let todayEntry = todayEntry {
                 DiaryEntryView(
@@ -155,10 +200,34 @@ struct HabitRowView: View {
             : Color.white
     }
 
+    private var inactiveCardBackground: Color {
+        colorScheme == .dark
+            ? taskDark.opacity(0.6)
+            : Color.white.opacity(0.7)
+    }
+
+    private var completedCardBackground: Color {
+        colorScheme == .dark
+            ? taskDark.opacity(0.75)
+            : Color.black.opacity(0.05)
+    }
+
     private var borderColor: Color {
         colorScheme == .dark
             ? Color.white.opacity(0.05)
             : Color.black.opacity(0.08)
+    }
+
+    private var inactiveBorderColor: Color {
+        colorScheme == .dark
+            ? Color.white.opacity(0.03)
+            : Color.black.opacity(0.05)
+    }
+
+    private var completedBorderColor: Color {
+        colorScheme == .dark
+            ? Color.white.opacity(0.03)
+            : Color.black.opacity(0.05)
     }
 
     private var primaryTextColor: Color {
@@ -173,6 +242,10 @@ struct HabitRowView: View {
 
     private var isCompactLayout: Bool {
         horizontalSizeClass == .compact
+    }
+
+    private var reduceEffects: Bool {
+        reduceTransparency || reduceMotion || ProcessInfo.processInfo.isLowPowerModeEnabled
     }
 
     private var titleFontSize: CGFloat {

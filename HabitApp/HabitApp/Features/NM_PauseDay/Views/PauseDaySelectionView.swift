@@ -9,6 +9,15 @@ struct PauseDaySelectionView: View {
     @State private var dateToAdd = Date()
     @State private var pauseDays: HabitPauseDays?
 
+    init(habitID: UUID, context: ModelContext, existingPauseDays: HabitPauseDays? = nil) {
+        self.habitID = habitID
+        self.context = context
+        _pauseDays = State(initialValue: existingPauseDays)
+        _selectedDates = State(initialValue: Set(existingPauseDays?.pauseDates.map {
+            Calendar.current.startOfDay(for: $0)
+        } ?? []))
+    }
+
     var body: some View {
         let sortedDates = selectedDates.sorted()
         let today = Calendar.current.startOfDay(for: Date())
@@ -45,7 +54,9 @@ struct PauseDaySelectionView: View {
                 .foregroundStyle(.secondary)
         }
         .onAppear {
-            loadData()
+            if pauseDays == nil {
+                loadData()
+            }
         }
     }
 
