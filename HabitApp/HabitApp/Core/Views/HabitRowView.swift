@@ -144,9 +144,8 @@ struct HabitRowView: View {
         }
     }
 
-    private func getTodayCompletionEntry() -> CompletionEntry? {
-        let today = Date()
-        return habit.completed.first { Calendar.current.isDate($0.date, inSameDayAs: today) }
+    private func getTodayCompletionEntry(on date: Date = Date()) -> CompletionEntry? {
+        return habit.completed.first { Calendar.current.isDate($0.date, inSameDayAs: date) }
     }
 
     private func priorityColor(for priority: Priority) -> Color {

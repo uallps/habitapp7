@@ -71,14 +71,14 @@ class HabitListViewModel: ObservableObject {
     }
     
     // Marcar/desmarcar completado
-    func toggleCompletion(habit: Habit) {
+    func toggleCompletion(habit: Habit, on date: Date = Date()) {
         guard let index = habits.firstIndex(where: { $0.id == habit.id }) else { return }
-        let today = Calendar.current.startOfDay(for: Date())
+        let targetDate = Calendar.current.startOfDay(for: date)
         
-        if habits[index].completed.contains(where: { Calendar.current.isDate($0.date, inSameDayAs: today) }) {
-            habits[index].completed.removeAll { Calendar.current.isDate($0.date, inSameDayAs: today) }
+        if habits[index].completed.contains(where: { Calendar.current.isDate($0.date, inSameDayAs: targetDate) }) {
+            habits[index].completed.removeAll { Calendar.current.isDate($0.date, inSameDayAs: targetDate) }
         } else {
-            let entry = CompletionEntry(date: today)
+            let entry = CompletionEntry(date: targetDate)
             habits[index].completed.append(entry)
         }
         persist()

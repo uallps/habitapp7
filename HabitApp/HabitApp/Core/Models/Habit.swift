@@ -45,12 +45,18 @@ final class Habit: Identifiable {
 
     // Propiedad derivada: ¿está completada hoy?
     var isCompletedToday: Bool {
-        let today = Date()
+        return isCompleted(on: Date())
+    }
+    
+    /// Determina si el hábito está completado en una fecha específica
+    /// - Parameter date: Fecha a verificar (por defecto: hoy)
+    /// - Returns: true si el hábito está completado en esa fecha
+    func isCompleted(on date: Date = Date()) -> Bool {
         // 🔌 PLUGINS: Permitir que un plugin determine si está completado (ej. Adicción = !entry)
-        if let pluginResult = PluginRegistry.shared.isHabitCompleted(habit: self, date: today) {
+        if let pluginResult = PluginRegistry.shared.isHabitCompleted(habit: self, date: date) {
             return pluginResult
         }
-        return completed.contains { Calendar.current.isDate($0.date, inSameDayAs: today) }
+        return completed.contains { Calendar.current.isDate($0.date, inSameDayAs: date) }
     }
 }
 

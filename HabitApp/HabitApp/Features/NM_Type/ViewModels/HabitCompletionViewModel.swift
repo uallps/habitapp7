@@ -20,7 +20,7 @@ class HabitCompletionViewModel: ObservableObject {
         loadData()
     }
     
-    func loadData() {
+    func loadData(on date: Date = Date()) {
         // Cargar Configuración
         let id = habit.id
         let typeDescriptor = FetchDescriptor<HabitType>(predicate: #Predicate { $0.habitID == id })
@@ -28,7 +28,7 @@ class HabitCompletionViewModel: ObservableObject {
         
         // Verificar si el progreso es válido para el periodo actual
         if let type = habitType {
-            let today = Calendar.current.startOfDay(for: Date())
+            let today = Calendar.current.startOfDay(for: date)
             
             if let lastDate = type.lastLogDate, isSamePeriod(lastDate: lastDate, today: today) {
                 // Es del mismo periodo (día, semana o mes), mantenemos el progreso
@@ -91,13 +91,13 @@ class HabitCompletionViewModel: ObservableObject {
         timer = nil
     }
     
-    func updateProgress(_ newValue: Double) {
+    func updateProgress(_ newValue: Double, on date: Date = Date()) {
         progress = newValue
         
         // Guardar en el modelo único
         if let type = habitType {
             type.currentValue = newValue
-            type.lastLogDate = Date()
+            type.lastLogDate = date
         }
         
         checkCompletion()

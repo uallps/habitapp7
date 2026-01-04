@@ -9,6 +9,7 @@ import SwiftUI
 struct StatsView: View {
     @StateObject var viewModel: StatsViewModel
     @Environment(\.colorScheme) private var colorScheme
+    @EnvironmentObject private var appConfig: AppConfig
     
     var body: some View {
         NavigationView {
@@ -37,34 +38,34 @@ struct StatsView: View {
                             )
                             
                             StatRow(
-                                title: "Dias activo",
-                                value: "\(viewModel.totalDaysActive) dias"
+                                title: viewModel.totalPeriodsActiveLabel + " activo",
+                                value: "\(viewModel.totalDaysActive) \(viewModel.totalPeriodsActiveLabel)"
                             )
                             
                             StatRow(
-                                title: "Dias cumplidos",
-                                value: "\(viewModel.totalDaysCompleted) dias"
+                                title: viewModel.totalPeriodsCompletedLabel + " cumplidos",
+                                value: "\(viewModel.totalDaysCompleted) \(viewModel.totalPeriodsCompletedLabel)"
                             )
                             
                             StatRow(
                                 title: "Porcentaje de completitud",
                                 value: String(format: "%.1f%%", viewModel.completionPercentage)
                             )
-                            
-                            StatRow(
-                                title: "Racha actual",
-                                value: "\(viewModel.currentStreak) dias"
-                            )
-                            
-                            StatRow(
-                                title: "Racha mas larga",
-                                value: "\(viewModel.longestStreak) dias"
-                            )
-                            
+                            if appConfig.enableStreaks  {
+                                
+                                StatRow(
+                                    title: "Racha mas larga",
+                                    value: "\(viewModel.longestStreak) \(viewModel.streakLabel)"
+                                )
+                                
+                            }
+
                             StatRow(
                                 title: "Dia(s) mas cumplido",
                                 value: formatWeekdays(viewModel.mostCompletedWeekdays)
                             )
+
+                            
                             
                             StatRow(
                                 title: "Dia(s) menos cumplido",

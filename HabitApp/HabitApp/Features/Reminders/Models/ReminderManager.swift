@@ -48,7 +48,7 @@ final class ReminderManager {
     // MARK: - Daily Habit Notification
     
     /// Carga los hábitos y programa la notificación diaria a las 00:00
-    func scheduleDailyHabitNotification() async {
+    func scheduleDailyHabitNotification(for date: Date = Date()) async {
         guard enableReminders else {
             print("Reminders deshabilitados en AppConfig")
             return
@@ -63,9 +63,8 @@ final class ReminderManager {
         do {
             let descriptor = FetchDescriptor<Habit>()
             let habits = try context.fetch(descriptor)
-            let today = Date()
-            let message = generateHabitListMessage(habits: habits, for: today)
-            let dayKey = dayKey(for: today)
+            let message = generateHabitListMessage(habits: habits, for: date)
+            let dayKey = dayKey(for: date)
 
             if lastScheduledDayKey == dayKey, lastScheduledMessage == message {
                 if await hasPendingDailyNotification() {
