@@ -54,9 +54,6 @@ class AppConfig: ObservableObject {
     var enableStreaks: Bool { false }
     #endif
 
-    @AppStorage("storageType")
-    var storageType: StorageType = .swiftData
-
     // MARK: - Storage Provider
     
     private lazy var swiftDataProvider: SwiftDataStorageProvider = {
@@ -112,18 +109,6 @@ class AppConfig: ObservableObject {
     }()
 
     var storageProvider: StorageProvider {
-        switch storageType {
-        case .swiftData:
-            return swiftDataProvider
-        case .json:
-            return JSONStorageProvider.shared
-        }
+        swiftDataProvider
     }
-}
-
-enum StorageType: String, CaseIterable, Identifiable {
-    case swiftData = "SwiftData Storage"
-    case json = "JSON Storage"
-
-    var id: String { self.rawValue }
 }
