@@ -43,12 +43,9 @@ private enum CategoryFilter: Equatable {
             habits: habits,
             categoriesByHabitId: categoriesByHabitId
         )
-        let todayHabits = sortHabitsByTitle(
-            filteredHabits.filter { $0.shouldBeCompletedOn(date: today) }
-        )
-        let otherHabits = sortHabitsByTitle(
-            filteredHabits.filter { !$0.shouldBeCompletedOn(date: today) }
-        )
+        let splitHabits = viewModel.splitHabitsForToday(filteredHabits, on: today)
+        let todayHabits = splitHabits.today
+        let otherHabits = splitHabits.other
 
         NavigationStack {
             ZStack {
@@ -173,12 +170,6 @@ private enum CategoryFilter: Equatable {
     private func confirmDelete(_ habit: Habit) {
         habitToDelete = habit
         showDeleteConfirmation = true
-    }
-
-    private func sortHabitsByTitle(_ habits: [Habit]) -> [Habit] {
-        habits.sorted {
-            $0.title.localizedCaseInsensitiveCompare($1.title) == .orderedAscending
-        }
     }
 
     private func applyCategoryFilter(

@@ -26,7 +26,8 @@ struct HabitRowView: View {
         )
         let isCompletedToday = habit.isCompletedToday
         let streak = habit.getStreak()
-        let todayEntry = isCompletedToday ? getTodayCompletionEntry() : nil
+        let shouldLoadTodayEntry = appConfig.enableDiary && isCompletedToday
+        let todayEntry = shouldLoadTodayEntry ? getTodayCompletionEntry() : nil
         let rowBackground = isCompletedToday
             ? completedCardBackground
             : (isInactive ? inactiveCardBackground : cardBackground)
