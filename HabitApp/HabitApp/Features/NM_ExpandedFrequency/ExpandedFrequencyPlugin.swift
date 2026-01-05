@@ -38,6 +38,18 @@ class ExpandedFrequencyPlugin: NSObject, FeaturePlugin, ViewPlugin, LogicPlugin 
         }
     }
     
+    func invalidateCache(for habitId: UUID) {
+        frequencyCache.removeValue(forKey: habitId)
+    }
+
+    func updateCache(for habitId: UUID, frequency: ExpandedFrequency?) {
+        if let frequency {
+            frequencyCache[habitId] = frequency
+        } else {
+            frequencyCache.removeValue(forKey: habitId)
+        }
+    }
+
     // MARK: - LogicPlugin
     
     func shouldHabitBeCompletedOn(habit: Habit, date: Date) -> Bool? {
@@ -309,7 +321,7 @@ class ExpandedFrequencyPlugin: NSObject, FeaturePlugin, ViewPlugin, LogicPlugin 
     }
 
     private func loadFrequency(for habit: Habit) -> ExpandedFrequency? {
-        guard let context = habit.modelContext else { return nil }
+        guard let context = habit.modelContext ?? SwiftDataContext.shared else { return nil }
 
         if let cached = frequencyCache[habit.id] {
             return cached
