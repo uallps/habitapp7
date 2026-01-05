@@ -6,14 +6,20 @@ class PauseDayPlugin: NSObject, FeaturePlugin, ViewPlugin, LogicPlugin, Calendar
     var models: [any PersistentModel.Type] { [HabitPauseDays.self] }
     private var pauseDaysCache: [UUID: HabitPauseDays] = [:]
 
+    // MARK: - ViewPlugin
+
     func habitRowAccessoryView(habit: Habit) -> AnyView? {
         AnyView(PauseDayRowButton(habit: habit))
     }
+
+    // MARK: - LogicPlugin
 
     func shouldHabitBeCompletedOn(habit: Habit, date: Date) -> Bool? {
         guard let pauseDays = loadPauseDays(for: habit) else { return nil }
         return pauseDays.isPaused(on: date) ? false : nil
     }
+
+    // MARK: - CalendarPauseDayStyleProvider
 
     func calendarDayStyle(for habit: Habit, date: Date) -> CalendarDayStyle? {
         guard let pauseDays = loadPauseDays(for: habit),
@@ -28,6 +34,8 @@ class PauseDayPlugin: NSObject, FeaturePlugin, ViewPlugin, LogicPlugin, Calendar
             opacity: nil
         )
     }
+
+    // MARK: - Private
 
     private func loadPauseDays(for habit: Habit) -> HabitPauseDays? {
         guard let context = habit.modelContext ?? SwiftDataContext.shared else { return nil }
