@@ -57,7 +57,6 @@ struct HabitRowView: View {
                 Text(habit.title)
                     .font(.system(size: titleFontSize, weight: .bold))
                     .foregroundColor(titleColor)
-                    .strikethrough(isCompletedToday, color: secondaryTextColor)
                     .lineLimit(1)
                     .minimumScaleFactor(0.8)
                     .truncationMode(.tail)
