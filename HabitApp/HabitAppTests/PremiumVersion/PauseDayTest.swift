@@ -8,7 +8,7 @@
 import XCTest
 @testable import HabitApp
 
-#if ENABLE_PAUSE_DAY
+#if PAUSE_DAY_FEATURE
 
 final class PauseDayTest: XCTestCase {
     

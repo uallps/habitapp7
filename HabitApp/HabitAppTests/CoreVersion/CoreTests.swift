@@ -46,7 +46,7 @@ final class CoreTests: XCTestCase {
     
     func testCategoryFeatureNotAvailable() {
         // En la versión Core, las categorías NO deben estar disponibles
-        #if ENABLE_CATEGORIES
+        #if CATEGORY_FEATURE
             XCTFail("Categories should NOT be available in Core version")
         #else
             XCTAssertTrue(true, "Categories correctly disabled in Core version")
@@ -55,7 +55,7 @@ final class CoreTests: XCTestCase {
     
     func testDiaryFeatureNotAvailable() {
         // En la versión Core, el diario NO debe estar disponible
-        #if ENABLE_DIARY
+        #if DIARY_FEATURE
             XCTFail("Diary should NOT be available in Core version")
         #else
             XCTAssertTrue(true, "Diary correctly disabled in Core version")
@@ -64,7 +64,7 @@ final class CoreTests: XCTestCase {
     
     func testStatsFeatureNotAvailable() {
         // En la versión Core, las estadísticas NO deben estar disponibles
-        #if ENABLE_STATS
+        #if STATS_FEATURE
             XCTFail("Stats should NOT be available in Core version")
         #else
             XCTAssertTrue(true, "Stats correctly disabled in Core version")
@@ -73,7 +73,7 @@ final class CoreTests: XCTestCase {
     
     func testStreaksFeatureNotAvailable() {
         // En la versión Core, las rachas NO deben estar disponibles
-        #if ENABLE_STREAKS
+        #if STREAKS_FEATURE
             XCTFail("Streaks should NOT be available in Core version")
         #else
             XCTAssertTrue(true, "Streaks correctly disabled in Core version")
@@ -82,7 +82,7 @@ final class CoreTests: XCTestCase {
     
     func testRemindersFeatureNotAvailable() {
         // En la versión Core, los recordatorios NO deben estar disponibles
-        #if ENABLE_REMINDERS
+        #if REMINDERS_FEATURE
             XCTFail("Reminders should NOT be available in Core version")
         #else
             XCTAssertTrue(true, "Reminders correctly disabled in Core version")
@@ -92,7 +92,7 @@ final class CoreTests: XCTestCase {
     // MARK: - Test de Features Premium NO Disponibles
     
     func testExpandedFrequencyNotAvailable() {
-        #if ENABLE_EXPANDED_FREQUENCY
+        #if EXPANDED_FREQUENCY_FEATURE
             XCTFail("Expanded Frequency should NOT be available in Core version")
         #else
             XCTAssertTrue(true, "Expanded Frequency correctly disabled in Core version")
@@ -100,7 +100,7 @@ final class CoreTests: XCTestCase {
     }
     
     func testPauseDayNotAvailable() {
-        #if ENABLE_PAUSE_DAY
+        #if PAUSE_DAY_FEATURE
             XCTFail("Pause Day should NOT be available in Core version")
         #else
             XCTAssertTrue(true, "Pause Day correctly disabled in Core version")
@@ -108,7 +108,7 @@ final class CoreTests: XCTestCase {
     }
     
     func testHabitTypeNotAvailable() {
-        #if ENABLE_HABIT_TYPE
+        #if HABIT_TYPE_FEATURE
             XCTFail("Habit Type should NOT be available in Core version")
         #else
             XCTAssertTrue(true, "Habit Type correctly disabled in Core version")

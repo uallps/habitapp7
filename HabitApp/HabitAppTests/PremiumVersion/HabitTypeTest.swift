@@ -8,7 +8,7 @@
 import XCTest
 @testable import HabitApp
 
-#if ENABLE_HABIT_TYPE
+#if HABIT_TYPE_FEATURE
 
 final class HabitTypeTest: XCTestCase {
     

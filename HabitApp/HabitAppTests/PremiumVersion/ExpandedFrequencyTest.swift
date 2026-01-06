@@ -8,7 +8,7 @@
 import XCTest
 @testable import HabitApp
 
-#if ENABLE_EXPANDED_FREQUENCY
+#if EXPANDED_FREQUENCY_FEATURE
 
 final class ExpandedFrequencyTest: XCTestCase {
     

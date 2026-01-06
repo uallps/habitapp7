@@ -18,7 +18,7 @@ final class PremiumTests: XCTestCase {
     // MARK: - Test de Features Standard Disponibles
     
     func testStandardFeaturesAvailable() {
-        #if ENABLE_CATEGORIES && ENABLE_DIARY && ENABLE_STATS && ENABLE_STREAKS && ENABLE_REMINDERS
+        #if CATEGORY_FEATURE && DIARY_FEATURE && STATS_FEATURE && STREAKS_FEATURE && REMINDERS_FEATURE
             XCTAssertTrue(true, "All standard features correctly enabled in Premium version")
         #else
             XCTFail("All standard features SHOULD be available in Premium version")
@@ -28,7 +28,7 @@ final class PremiumTests: XCTestCase {
     // MARK: - Test de Features Premium Disponibles
     
     func testExpandedFrequencyAvailable() {
-        #if ENABLE_EXPANDED_FREQUENCY
+        #if EXPANDED_FREQUENCY_FEATURE
             // Verificar que ExpandedFrequency está disponible
             let habit = Habit(title: "Test", frequency: [.monday])
             // El plugin debería estar registrado y funcionando
@@ -39,7 +39,7 @@ final class PremiumTests: XCTestCase {
     }
     
     func testPauseDayAvailable() {
-        #if ENABLE_PAUSE_DAY
+        #if PAUSE_DAY_FEATURE
             // Verificar que PauseDay está disponible
             let habit = Habit(title: "Test", frequency: [.monday])
             // El plugin debería permitir pausar días
@@ -50,7 +50,7 @@ final class PremiumTests: XCTestCase {
     }
     
     func testHabitTypeAvailable() {
-        #if ENABLE_HABIT_TYPE
+        #if HABIT_TYPE_FEATURE
             // Verificar que Habit Type está disponible
             let habit = Habit(title: "Test", frequency: [.monday])
             // El plugin de tipos debería estar disponible
@@ -66,24 +66,24 @@ final class PremiumTests: XCTestCase {
         // Verificar que todas las features están disponibles y funcionan juntas
         let habit = Habit(title: "Premium Habit", frequency: [.monday, .wednesday, .friday])
         
-        #if ENABLE_CATEGORIES
+        #if CATEGORY_FEATURE
             let category = Category(name: "Premium", categoryDescription: "Premium category")
             habit.category = category
             XCTAssertNotNil(habit.category)
         #endif
         
-        #if ENABLE_DIARY
+        #if DIARY_FEATURE
             let entry = CompletionEntry(date: Date())
             entry.setNote("Premium note")
             XCTAssertTrue(entry.hasNote)
         #endif
         
-        #if ENABLE_STREAKS
+        #if STREAKS_FEATURE
             habit.setStreak(10)
             XCTAssertEqual(habit.getStreak(), 10)
         #endif
         
-        #if ENABLE_STATS
+        #if STATS_FEATURE
             let statsVM = StatsViewModel(habit: habit)
             XCTAssertNotNil(statsVM)
         #endif
@@ -92,7 +92,7 @@ final class PremiumTests: XCTestCase {
     }
     
     func testPluginRegistryHasAllPlugins() {
-        #if ENABLE_EXPANDED_FREQUENCY || ENABLE_PAUSE_DAY || ENABLE_HABIT_TYPE
+        #if EXPANDED_FREQUENCY_FEATURE || PAUSE_DAY_FEATURE || HABIT_TYPE_FEATURE
             let registry = PluginRegistry.shared
             
             // En la versión Premium, deberían estar registrados todos los plugins
@@ -106,7 +106,7 @@ final class PremiumTests: XCTestCase {
     // MARK: - Test de Características Premium Específicas
     
     func testExpandedFrequencyPlugin() {
-        #if ENABLE_EXPANDED_FREQUENCY
+        #if EXPANDED_FREQUENCY_FEATURE
             // Probar funcionalidad específica de frecuencia expandida
             // Por ejemplo: frecuencias personalizadas más allá de días de la semana
             XCTAssertTrue(true, "Expanded Frequency plugin working")
@@ -114,7 +114,7 @@ final class PremiumTests: XCTestCase {
     }
     
     func testPauseDayPlugin() {
-        #if ENABLE_PAUSE_DAY
+        #if PAUSE_DAY_FEATURE
             // Probar funcionalidad de pausa de días
             let habit = Habit(title: "Test", frequency: [.monday, .wednesday])
             // Debería poder pausar días específicos
@@ -123,7 +123,7 @@ final class PremiumTests: XCTestCase {
     }
     
     func testHabitTypePlugin() {
-        #if ENABLE_HABIT_TYPE
+        #if HABIT_TYPE_FEATURE
             // Probar funcionalidad de tipos de hábitos
             // Por ejemplo: hábitos de construcción vs eliminación
             XCTAssertTrue(true, "Habit Type plugin working")
