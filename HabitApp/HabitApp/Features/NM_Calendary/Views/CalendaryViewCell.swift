@@ -12,10 +12,10 @@ struct CalendarDayCell: View {
         let day = Calendar.current.component(.day, from: date)
 
         ZStack {
-            // Fondo marcado
+            // Fondo marcado (naranja más claro)
             if isMarked {
                 Circle()
-                    .fill(Color.accentColor.opacity(0.18))
+                    .fill(Color.orange.opacity(0.5)) // color de fondo de los días marcados (más claro)
                     .frame(width: 34, height: 34)
             }
 

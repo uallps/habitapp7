@@ -21,16 +21,22 @@ final class CalendarPlugin: NSObject, ViewPlugin, FeaturePlugin {
 
 private struct CalendarFooterButton: View {
     @State private var isPresented = false
-
+    
     var body: some View {
         Button {
             isPresented = true
         } label: {
-            Label("Calendario", systemImage: "calendar")
-                .font(.headline)
-                .padding(.horizontal, 16)
-                .padding(.vertical, 10)
-                .background(.thinMaterial, in: Capsule())
+            Label {
+                Text("Calendario")
+                    .foregroundColor(.orange) // texto en naranja
+            } icon: {
+                Image(systemName: "calendar")
+                    .foregroundColor(.black) // símbolo en negro
+            }
+            .font(.headline)
+            .padding(.horizontal, 16)
+            .padding(.vertical, 10)
+            .background(.thinMaterial, in: Capsule())
         }
         .sheet(isPresented: $isPresented) {
             CalendarView()

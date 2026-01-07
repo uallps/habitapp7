@@ -58,6 +58,7 @@ struct CalendarView: View {
             } label: {
                 Image(systemName: "chevron.left")
                     .font(.headline)
+                    .foregroundColor(.orange) // botón anterior en naranja
             }
 
             Spacer()
@@ -72,6 +73,7 @@ struct CalendarView: View {
             } label: {
                 Image(systemName: "chevron.right")
                     .font(.headline)
+                    .foregroundColor(.orange) // botón siguiente en naranja
             }
         }
         .accessibilityElement(children: .combine)
