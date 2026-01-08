@@ -145,7 +145,7 @@ struct HuggingFaceClient {
     }
 
     private func parseLines(from text: String) -> [SuggestedHabitDraft] {
-        let lines = text.split(whereSeparator: \_.isNewline)
+        let lines = text.split(whereSeparator: \.isNewline)
         var items: [SuggestedHabitDraft] = []
 
         for lineSub in lines {
@@ -213,3 +213,5 @@ private struct HFGeneratedText: Decodable {
 private struct HFErrorResponse: Decodable {
     let error: String
 }
+
+
