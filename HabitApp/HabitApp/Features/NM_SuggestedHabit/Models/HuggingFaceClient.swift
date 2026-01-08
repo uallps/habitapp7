@@ -23,9 +23,24 @@ enum HuggingFaceError: LocalizedError {
 struct HuggingFaceConfig {
     nonisolated static let userDefaultsTokenKey = "huggingFaceApiToken"
     nonisolated static let infoPlistTokenKey = "HUGGINGFACE_API_TOKEN"
-    nonisolated static let defaultModelId = "mistralai/Mistral-7B-Instruct-v0.2"
+    nonisolated static let modelIdKey = "HUGGINGFACE_MODEL_ID"
+    // Put your token here for local testing only. Do not commit it.
+    nonisolated static let hardcodedToken = "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"
+    nonisolated static let defaultModelId = "deepseek-ai/DeepSeek-R1-Distill-Qwen-1.5B:nscale"
 
     nonisolated static func resolveApiToken() -> String? {
+        let hardcoded = hardcodedToken.trimmingCharacters(in: .whitespacesAndNewlines)
+        if !hardcoded.isEmpty {
+            return hardcoded
+        }
+
+        if let envToken = ProcessInfo.processInfo.environment[infoPlistTokenKey] {
+            let trimmed = envToken.trimmingCharacters(in: .whitespacesAndNewlines)
+            if !trimmed.isEmpty {
+                return trimmed
+            }
+        }
+
         if let token = Bundle.main.object(forInfoDictionaryKey: infoPlistTokenKey) as? String {
             let trimmed = token.trimmingCharacters(in: .whitespacesAndNewlines)
             if !trimmed.isEmpty {
@@ -42,6 +57,24 @@ struct HuggingFaceConfig {
 
         return nil
     }
+
+    nonisolated static func resolveModelId() -> String {
+        if let envModel = ProcessInfo.processInfo.environment[modelIdKey] {
+            let trimmed = envModel.trimmingCharacters(in: .whitespacesAndNewlines)
+            if !trimmed.isEmpty {
+                return trimmed
+            }
+        }
+
+        if let plistModel = Bundle.main.object(forInfoDictionaryKey: modelIdKey) as? String {
+            let trimmed = plistModel.trimmingCharacters(in: .whitespacesAndNewlines)
+            if !trimmed.isEmpty {
+                return trimmed
+            }
+        }
+
+        return defaultModelId
+    }
 }
 
 struct HuggingFaceClient {
@@ -50,7 +83,7 @@ struct HuggingFaceClient {
     private let session: URLSession
 
     init(
-        modelId: String = HuggingFaceConfig.defaultModelId,
+        modelId: String = HuggingFaceConfig.resolveModelId(),
         apiToken: String? = HuggingFaceConfig.resolveApiToken(),
         session: URLSession = .shared
     ) throws {
@@ -63,19 +96,24 @@ struct HuggingFaceClient {
         self.session = session
     }
 
-    func generateHabitSuggestions(count: Int, focus: String?) async throws -> [SuggestedHabitDraft] {
+    func generateHabitSuggestions(count: Int, focus: String?) async throws -> (modelId: String, drafts: [SuggestedHabitDraft]) {
+        let drafts = try await requestSuggestions(modelId: modelId, count: count, focus: focus)
+        return (modelId, drafts)
+    }
+
+    private func requestSuggestions(modelId: String, count: Int, focus: String?) async throws -> [SuggestedHabitDraft] {
         let prompt = buildPrompt(count: count, focus: focus)
-        let requestBody = HFRequest(
-            inputs: prompt,
-            parameters: HFParameters(
-                maxNewTokens: 320,
-                temperature: 0.7,
-                returnFullText: false
-            ),
-            options: HFOptions(waitForModel: true, useCache: true)
+        let requestBody = HFChatRequest(
+            model: modelId,
+            messages: [
+                HFChatMessage(role: "system", content: "You are a helpful habit coach."),
+                HFChatMessage(role: "user", content: prompt)
+            ],
+            temperature: 0.7,
+            maxTokens: 320
         )
 
-        var request = URLRequest(url: modelURL())
+        var request = URLRequest(url: chatURL())
         request.httpMethod = "POST"
         request.setValue("application/json", forHTTPHeaderField: "Content-Type")
         request.setValue("application/json", forHTTPHeaderField: "Accept")
@@ -99,13 +137,9 @@ struct HuggingFaceClient {
             throw HuggingFaceError.server("HTTP \(httpResponse.statusCode)")
         }
 
-        if let generated = try? JSONDecoder().decode([HFGeneratedText].self, from: data),
-           let text = generated.first?.generated_text {
+        if let response = try? JSONDecoder().decode(HFChatResponse.self, from: data),
+           let text = response.choices.first?.message.content {
             return parseGeneratedText(text, expectedCount: count)
-        }
-
-        if let single = try? JSONDecoder().decode(HFGeneratedText.self, from: data) {
-            return parseGeneratedText(single.generated_text, expectedCount: count)
         }
 
         if let error = decodeServerError(from: data) {
@@ -119,8 +153,8 @@ struct HuggingFaceClient {
         throw HuggingFaceError.decodingFailed
     }
 
-    private func modelURL() -> URL {
-        URL(string: "https://router.huggingface.co/hf-inference/models/\(modelId)")!
+    private func chatURL() -> URL {
+        URL(string: "https://router.huggingface.co/v1/chat/completions")!
     }
 
     private func buildPrompt(count: Int, focus: String?) -> String {
@@ -217,26 +251,35 @@ struct HuggingFaceClient {
     }
 }
 
-private struct HFRequest: Encodable {
-    let inputs: String
-    let parameters: HFParameters
-    let options: HFOptions
-}
-
-private struct HFParameters: Encodable {
-    let maxNewTokens: Int
+private struct HFChatRequest: Encodable {
+    let model: String
+    let messages: [HFChatMessage]
     let temperature: Double
-    let returnFullText: Bool
+    let maxTokens: Int
 
     enum CodingKeys: String, CodingKey {
-        case maxNewTokens = "max_new_tokens"
+        case model
+        case messages
         case temperature
-        case returnFullText = "return_full_text"
+        case maxTokens = "max_tokens"
     }
 }
 
-private struct HFGeneratedText: Decodable {
-    let generated_text: String
+private struct HFChatMessage: Encodable {
+    let role: String
+    let content: String
+}
+
+private struct HFChatResponse: Decodable {
+    let choices: [HFChatChoice]
+}
+
+private struct HFChatChoice: Decodable {
+    let message: HFChatMessageContent
+}
+
+private struct HFChatMessageContent: Decodable {
+    let content: String
 }
 
 private struct HFErrorResponse: Decodable {
@@ -269,14 +312,3 @@ private struct HFErrorResponse: Decodable {
         let message: String
     }
 }
-
-private struct HFOptions: Encodable {
-    let waitForModel: Bool
-    let useCache: Bool
-
-    enum CodingKeys: String, CodingKey {
-        case waitForModel = "wait_for_model"
-        case useCache = "use_cache"
-    }
-}
-

@@ -209,7 +209,7 @@ final class SuggestedHabitViewModel: ObservableObject {
     private let context: ModelContext?
     private let modelId: String
 
-    init(context: ModelContext?, modelId: String = HuggingFaceConfig.defaultModelId) {
+    init(context: ModelContext?, modelId: String = HuggingFaceConfig.resolveModelId()) {
         self.context = context
         self.modelId = modelId
     }
@@ -230,16 +230,16 @@ final class SuggestedHabitViewModel: ObservableObject {
         do {
             let client = try HuggingFaceClient(modelId: modelId)
             let trimmedFocus = focus.trimmingCharacters(in: .whitespacesAndNewlines)
-            let drafts = try await client.generateHabitSuggestions(
+            let response = try await client.generateHabitSuggestions(
                 count: 6,
                 focus: trimmedFocus.isEmpty ? nil : trimmedFocus
             )
 
-            let newSuggestions = drafts.map {
+            let newSuggestions = response.drafts.map {
                 SuggestedHabitSuggestion(
                     title: $0.title,
                     details: $0.details,
-                    sourceModel: modelId
+                    sourceModel: response.modelId
                 )
             }
 
