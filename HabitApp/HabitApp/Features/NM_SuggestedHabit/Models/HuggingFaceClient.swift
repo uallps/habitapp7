@@ -97,12 +97,38 @@ struct HuggingFaceClient {
     }
 
     func generateHabitSuggestions(count: Int, focus: String?) async throws -> (modelId: String, drafts: [SuggestedHabitDraft]) {
-        let drafts = try await requestSuggestions(modelId: modelId, count: count, focus: focus)
+        var drafts: [SuggestedHabitDraft] = []
+        var usedTitles: [String] = []
+
+        for _ in 0..<count {
+            let draft = try await requestSingleHabit(
+                modelId: modelId,
+                focus: focus,
+                avoidTitles: usedTitles
+            )
+            drafts.append(draft)
+            usedTitles.append(draft.title)
+        }
+
         return (modelId, drafts)
     }
 
-    private func requestSuggestions(modelId: String, count: Int, focus: String?) async throws -> [SuggestedHabitDraft] {
-        let prompt = buildPrompt(count: count, focus: focus)
+    private func requestSingleHabit(
+        modelId: String,
+        focus: String?,
+        avoidTitles: [String]
+    ) async throws -> SuggestedHabitDraft {
+        let prompt = buildSinglePrompt(focus: focus, avoidTitles: avoidTitles)
+        let text = try await requestChat(prompt: prompt, modelId: modelId)
+        let items = parseGeneratedText(text, expectedCount: 1)
+
+        guard let first = items.first else {
+            throw HuggingFaceError.decodingFailed
+        }
+        return first
+    }
+
+    private func requestChat(prompt: String, modelId: String) async throws -> String {
         let requestBody = HFChatRequest(
             model: modelId,
             messages: [
@@ -139,7 +165,7 @@ struct HuggingFaceClient {
 
         if let response = try? JSONDecoder().decode(HFChatResponse.self, from: data),
            let text = response.choices.first?.message.content {
-            return parseGeneratedText(text, expectedCount: count)
+            return text
         }
 
         if let error = decodeServerError(from: data) {
@@ -173,6 +199,27 @@ struct HuggingFaceClient {
         return prompt
     }
 
+    private func buildSinglePrompt(focus: String?, avoidTitles: [String]) -> String {
+        var prompt = "Generate ONE habit suggestion in Spanish. "
+        prompt += "Return ONLY a raw JSON object (no markdown) with keys "
+        prompt += "\"title\", \"details\", and \"frequency\". "
+        prompt += "The \"details\" should be a short description. "
+        prompt += "The \"frequency\" should be a short string like \"Diaria\", "
+        prompt += "\"Semanal\", \"3 veces/semana\", or \"Lunes a Viernes\". "
+        prompt += "Keep the title short and practical."
+
+        if let focus, !focus.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
+            prompt += " Focus on: \(focus)."
+        }
+
+        if !avoidTitles.isEmpty {
+            let joined = avoidTitles.joined(separator: ", ")
+            prompt += " Avoid these titles: \(joined)."
+        }
+
+        return prompt
+    }
+
     private func parseGeneratedText(_ text: String, expectedCount: Int) -> [SuggestedHabitDraft] {
         let cleaned = sanitizeGeneratedText(text)
         if let jsonItems = decodeJSONItems(from: cleaned) {
@@ -188,6 +235,9 @@ struct HuggingFaceClient {
         if let data = trimmed.data(using: .utf8) {
             if let direct = try? JSONDecoder().decode([SuggestedHabitDraft].self, from: data) {
                 return direct
+            }
+            if let single = try? JSONDecoder().decode(SuggestedHabitDraft.self, from: data) {
+                return [single]
             }
             if let wrapped = try? JSONDecoder().decode(HFHabitsWrapper.self, from: data) {
                 return wrapped.habits
@@ -207,6 +257,9 @@ struct HuggingFaceClient {
 
         if let direct = try? JSONDecoder().decode([SuggestedHabitDraft].self, from: data) {
             return direct
+        }
+        if let single = try? JSONDecoder().decode(SuggestedHabitDraft.self, from: data) {
+            return [single]
         }
         if let wrapped = try? JSONDecoder().decode(HFHabitsWrapper.self, from: data) {
             return wrapped.habits

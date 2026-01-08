@@ -235,7 +235,7 @@ final class SuggestedHabitViewModel: ObservableObject {
             let client = try HuggingFaceClient(modelId: modelId)
             let trimmedFocus = focus.trimmingCharacters(in: .whitespacesAndNewlines)
             let response = try await client.generateHabitSuggestions(
-                count: 6,
+                count: 4,
                 focus: trimmedFocus.isEmpty ? nil : trimmedFocus
             )
 
