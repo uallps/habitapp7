@@ -152,6 +152,10 @@ struct SuggestedHabitSwipeView: View {
                     .font(.body)
                     .foregroundColor(primaryTextColor)
 
+                Text("Frecuencia: \(suggestion.frequency)")
+                    .font(.footnote)
+                    .foregroundColor(secondaryTextColor)
+
                 Spacer()
 
                 Text("Model: \(suggestion.sourceModel)")
@@ -239,6 +243,7 @@ final class SuggestedHabitViewModel: ObservableObject {
                 SuggestedHabitSuggestion(
                     title: $0.title,
                     details: $0.details,
+                    frequency: $0.frequency ?? "Flexible",
                     sourceModel: response.modelId
                 )
             }

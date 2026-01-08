@@ -158,8 +158,12 @@ struct HuggingFaceClient {
     }
 
     private func buildPrompt(count: Int, focus: String?) -> String {
-        var prompt = "You are a habit coach. Generate \(count) habit suggestions in Spanish. "
-        prompt += "Return ONLY a JSON array of objects with keys \"title\" and \"details\". "
+        var prompt = "Generate \(count) habit suggestions in Spanish. "
+        prompt += "Return ONLY a raw JSON array (no markdown) of objects with keys "
+        prompt += "\"title\", \"details\", and \"frequency\". "
+        prompt += "The \"details\" should be a short description. "
+        prompt += "The \"frequency\" should be a short string like \"Diaria\", "
+        prompt += "\"Semanal\", \"3 veces/semana\", or \"Lunes a Viernes\". "
         prompt += "Keep titles short and practical."
 
         if let focus, !focus.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
@@ -170,15 +174,26 @@ struct HuggingFaceClient {
     }
 
     private func parseGeneratedText(_ text: String, expectedCount: Int) -> [SuggestedHabitDraft] {
-        if let jsonItems = decodeJSONItems(from: text) {
+        let cleaned = sanitizeGeneratedText(text)
+        if let jsonItems = decodeJSONItems(from: cleaned) {
             return trim(items: jsonItems, expectedCount: expectedCount)
         }
 
-        let fallbackItems = parseLines(from: text)
+        let fallbackItems = parseLines(from: cleaned)
         return trim(items: fallbackItems, expectedCount: expectedCount)
     }
 
     private func decodeJSONItems(from text: String) -> [SuggestedHabitDraft]? {
+        let trimmed = text.trimmingCharacters(in: .whitespacesAndNewlines)
+        if let data = trimmed.data(using: .utf8) {
+            if let direct = try? JSONDecoder().decode([SuggestedHabitDraft].self, from: data) {
+                return direct
+            }
+            if let wrapped = try? JSONDecoder().decode(HFHabitsWrapper.self, from: data) {
+                return wrapped.habits
+            }
+        }
+
         guard let start = text.firstIndex(of: "["),
               let end = text.lastIndex(of: "]"),
               start < end else {
@@ -190,7 +205,13 @@ struct HuggingFaceClient {
             return nil
         }
 
-        return try? JSONDecoder().decode([SuggestedHabitDraft].self, from: data)
+        if let direct = try? JSONDecoder().decode([SuggestedHabitDraft].self, from: data) {
+            return direct
+        }
+        if let wrapped = try? JSONDecoder().decode(HFHabitsWrapper.self, from: data) {
+            return wrapped.habits
+        }
+        return nil
     }
 
     private func parseLines(from text: String) -> [SuggestedHabitDraft] {
@@ -202,15 +223,38 @@ struct HuggingFaceClient {
             let cleaned = rawLine.trimmingCharacters(in: CharacterSet(charactersIn: "-*0123456789. "))
             guard !cleaned.isEmpty else { continue }
 
+            let dashParts = cleaned.split(separator: "-", maxSplits: 2).map {
+                $0.trimmingCharacters(in: .whitespacesAndNewlines)
+            }
+            if dashParts.count == 3 {
+                let title = dashParts[0]
+                let details = dashParts[1]
+                let frequency = dashParts[2]
+                if !title.isEmpty {
+                    items.append(
+                        SuggestedHabitDraft(title: title, details: details, frequency: frequency)
+                    )
+                }
+                continue
+            }
+
             let parts = cleaned.split(separator: ":", maxSplits: 1)
             if parts.count == 2 {
                 let title = String(parts[0]).trimmingCharacters(in: .whitespacesAndNewlines)
                 let details = String(parts[1]).trimmingCharacters(in: .whitespacesAndNewlines)
                 if !title.isEmpty {
-                    items.append(SuggestedHabitDraft(title: title, details: details))
+                    items.append(
+                        SuggestedHabitDraft(title: title, details: details, frequency: nil)
+                    )
                 }
             } else {
-                items.append(SuggestedHabitDraft(title: cleaned, details: "Generated habit suggestion."))
+                items.append(
+                    SuggestedHabitDraft(
+                        title: cleaned,
+                        details: "Generated habit suggestion.",
+                        frequency: nil
+                    )
+                )
             }
         }
 
@@ -223,11 +267,20 @@ struct HuggingFaceClient {
         for item in items {
             let title = item.title.trimmingCharacters(in: .whitespacesAndNewlines)
             let details = item.details.trimmingCharacters(in: .whitespacesAndNewlines)
+            let frequency = (item.frequency ?? "Flexible")
+                .trimmingCharacters(in: .whitespacesAndNewlines)
 
             guard !title.isEmpty else { continue }
 
             let normalizedDetails = details.isEmpty ? "Generated habit suggestion." : details
-            result.append(SuggestedHabitDraft(title: title, details: normalizedDetails))
+            let normalizedFrequency = frequency.isEmpty ? "Flexible" : frequency
+            result.append(
+                SuggestedHabitDraft(
+                    title: title,
+                    details: normalizedDetails,
+                    frequency: normalizedFrequency
+                )
+            )
         }
 
         if result.count > expectedCount {
@@ -235,6 +288,28 @@ struct HuggingFaceClient {
         }
 
         return result
+    }
+
+    private func sanitizeGeneratedText(_ text: String) -> String {
+        let trimmed = text.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard let firstFence = trimmed.range(of: "```") else {
+            return trimmed
+        }
+        guard let lastFence = trimmed.range(
+            of: "```",
+            options: .backwards,
+            range: firstFence.upperBound..<trimmed.endIndex
+        ) else {
+            return trimmed
+        }
+
+        var inner = String(trimmed[firstFence.upperBound..<lastFence.lowerBound])
+        inner = inner.trimmingCharacters(in: .whitespacesAndNewlines)
+        if inner.hasPrefix("json") {
+            inner = String(inner.dropFirst(4))
+            inner = inner.trimmingCharacters(in: .whitespacesAndNewlines)
+        }
+        return inner
     }
 
     private func decodeServerError(from data: Data) -> String? {
@@ -280,6 +355,10 @@ private struct HFChatChoice: Decodable {
 
 private struct HFChatMessageContent: Decodable {
     let content: String
+}
+
+private struct HFHabitsWrapper: Decodable {
+    let habits: [SuggestedHabitDraft]
 }
 
 private struct HFErrorResponse: Decodable {
