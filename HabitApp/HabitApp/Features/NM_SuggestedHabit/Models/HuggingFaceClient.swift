@@ -96,7 +96,11 @@ struct HuggingFaceClient {
         self.session = session
     }
 
-    func generateHabitSuggestions(count: Int, focus: String?) async throws -> (modelId: String, drafts: [SuggestedHabitDraft]) {
+    func generateHabitSuggestions(
+        count: Int,
+        focus: String?,
+        avoidTitles: [String] = []
+    ) async throws -> (modelId: String, drafts: [SuggestedHabitDraft]) {
         var drafts: [SuggestedHabitDraft] = []
         var usedTitles: [String] = []
 
@@ -104,7 +108,7 @@ struct HuggingFaceClient {
             let draft = try await requestSingleHabit(
                 modelId: modelId,
                 focus: focus,
-                avoidTitles: usedTitles
+                avoidTitles: usedTitles + avoidTitles
             )
             drafts.append(draft)
             usedTitles.append(draft.title)

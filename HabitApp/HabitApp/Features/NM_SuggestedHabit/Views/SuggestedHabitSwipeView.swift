@@ -36,6 +36,11 @@ struct SuggestedHabitSwipeView: View {
                     await viewModel.loadInitialIfNeeded()
                 }
             }
+            .onChange(of: apiToken) { _ in
+                Task {
+                    await viewModel.retryIfEmpty()
+                }
+            }
         }
     }
 
@@ -187,6 +192,21 @@ final class SuggestedHabitViewModel: ObservableObject {
     private let context: ModelContext?
     private let modelId: String
     private var hasLoadedInitial = false
+    private let categories = [
+        "salud",
+        "productividad",
+        "actividad fisica",
+        "estudio",
+        "descanso",
+        "social",
+        "hogar",
+        "bienestar",
+        "finanzas",
+        "creatividad"
+    ]
+    private var categoryIndex = 0
+    private var recentTitles: [String] = []
+    private let maxRecentTitles = 24
 
     init(context: ModelContext?, modelId: String = HuggingFaceConfig.resolveModelId()) {
         self.context = context
@@ -197,6 +217,13 @@ final class SuggestedHabitViewModel: ObservableObject {
         guard !hasLoadedInitial else { return }
         hasLoadedInitial = true
         await loadNext()
+    }
+
+    func retryIfEmpty() async {
+        guard suggestions.isEmpty else { return }
+        hasLoadedInitial = false
+        errorMessage = nil
+        await loadInitialIfNeeded()
     }
 
     func loadNextIfNeeded(currentId: UUID) async {
@@ -211,17 +238,49 @@ final class SuggestedHabitViewModel: ObservableObject {
 
         do {
             let client = try HuggingFaceClient(modelId: modelId)
-            let response = try await client.generateHabitSuggestions(count: 1, focus: nil)
+            var attempts = 0
+            var lastDraft: SuggestedHabitDraft?
+            var lastModelId = modelId
+            var isDuplicate = false
 
-            guard let draft = response.drafts.first else {
+            while attempts < 3 {
+                let category = nextCategory()
+                let response = try await client.generateHabitSuggestions(
+                    count: 1,
+                    focus: category,
+                    avoidTitles: recentTitles
+                )
+                lastModelId = response.modelId
+                guard let draft = response.drafts.first else {
+                    attempts += 1
+                    continue
+                }
+
+                lastDraft = draft
+                let titleKey = normalizeTitle(draft.title)
+                if !recentTitles.contains(titleKey) {
+                    trackTitle(titleKey)
+                    isDuplicate = false
+                    break
+                }
+
+                isDuplicate = true
+                attempts += 1
+            }
+
+            guard let draft = lastDraft else {
                 throw HuggingFaceError.decodingFailed
+            }
+
+            if isDuplicate {
+                trackTitle(normalizeTitle(draft.title))
             }
 
             let newSuggestion = SuggestedHabitSuggestion(
                 title: draft.title,
                 details: draft.details,
                 frequency: draft.frequency ?? "Flexible",
-                sourceModel: response.modelId
+                sourceModel: lastModelId
             )
 
             suggestions.append(newSuggestion)
@@ -235,6 +294,23 @@ final class SuggestedHabitViewModel: ObservableObject {
         }
 
         isLoading = false
+    }
+
+    private func nextCategory() -> String {
+        let category = categories[categoryIndex % categories.count]
+        categoryIndex += 1
+        return category
+    }
+
+    private func normalizeTitle(_ title: String) -> String {
+        title.trimmingCharacters(in: .whitespacesAndNewlines).lowercased()
+    }
+
+    private func trackTitle(_ title: String) {
+        recentTitles.append(title)
+        if recentTitles.count > maxRecentTitles {
+            recentTitles.removeFirst(recentTitles.count - maxRecentTitles)
+        }
     }
 }
 
