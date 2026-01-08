@@ -1,12 +1,12 @@
 import SwiftUI
 import SwiftData
 import Combine
+
 struct SuggestedHabitSwipeView: View {
     @Environment(\.dismiss) private var dismiss
     @Environment(\.colorScheme) private var colorScheme
     @AppStorage(HuggingFaceConfig.userDefaultsTokenKey) private var apiToken: String = ""
 
-    @State private var focusText = ""
     @StateObject private var viewModel: SuggestedHabitViewModel
 
     init() {
@@ -18,9 +18,7 @@ struct SuggestedHabitSwipeView: View {
             VStack(spacing: 16) {
                 header
                 tokenSection
-                focusSection
                 content
-                actionBar
             }
             .padding()
             .background(backgroundColor.ignoresSafeArea())
@@ -34,7 +32,9 @@ struct SuggestedHabitSwipeView: View {
                 }
             }
             .onAppear {
-                viewModel.loadCached()
+                Task {
+                    await viewModel.loadInitialIfNeeded()
+                }
             }
         }
     }
@@ -63,65 +63,39 @@ struct SuggestedHabitSwipeView: View {
         }
     }
 
-    private var focusSection: some View {
-        VStack(alignment: .leading, spacing: 6) {
-            Text("Tema opcional")
-                .font(.footnote)
-                .foregroundColor(secondaryTextColor)
-
-            TextField("Ej: salud, estudio, productividad", text: $focusText)
-                .textFieldStyle(.roundedBorder)
-        }
-        .frame(maxWidth: .infinity, alignment: .leading)
-    }
-
     @ViewBuilder
     private var content: some View {
-        if viewModel.isLoading {
-            ProgressView("Generando sugerencias...")
-                .frame(maxWidth: .infinity, minHeight: 220)
-        } else if let errorMessage = viewModel.errorMessage {
-            Text(errorMessage)
-                .font(.footnote)
-                .foregroundColor(.red)
-                .frame(maxWidth: .infinity, minHeight: 220)
-        } else if viewModel.suggestions.isEmpty {
-            Text("Sin sugerencias aun. Pulsa Generar para obtener ideas.")
-                .font(.footnote)
-                .foregroundColor(secondaryTextColor)
-                .frame(maxWidth: .infinity, minHeight: 220)
-        } else {
-            TabView {
+        ScrollView(.vertical, showsIndicators: false) {
+            LazyVStack(spacing: 16) {
+                if let errorMessage = viewModel.errorMessage {
+                    Text(errorMessage)
+                        .font(.footnote)
+                        .foregroundColor(.red)
+                        .frame(maxWidth: .infinity, minHeight: 120)
+                }
+
                 ForEach(viewModel.suggestions) { suggestion in
                     SuggestedHabitCardView(suggestion: suggestion)
                         .padding(.horizontal, 4)
+                        .onAppear {
+                            Task {
+                                await viewModel.loadNextIfNeeded(currentId: suggestion.id)
+                            }
+                        }
+                }
+
+                if viewModel.isLoading {
+                    ProgressView("Cargando otro habito...")
+                        .padding(.vertical, 8)
+                } else if viewModel.suggestions.isEmpty {
+                    Text("Cargando habitos sugeridos...")
+                        .font(.footnote)
+                        .foregroundColor(secondaryTextColor)
+                        .frame(maxWidth: .infinity, minHeight: 120)
                 }
             }
-            .frame(height: 260)
-            .tabViewStyle(.page(indexDisplayMode: .automatic))
+            .padding(.bottom, 8)
         }
-    }
-
-    private var actionBar: some View {
-        Button {
-            Task {
-                await viewModel.generateSuggestions(focus: focusText)
-            }
-        } label: {
-            Label("Generar", systemImage: "sparkles")
-                .font(.system(size: 16, weight: .bold))
-                .foregroundColor(.white)
-                .frame(maxWidth: .infinity)
-                .padding(.vertical, 12)
-                .background(primaryColor)
-                .clipShape(RoundedRectangle(cornerRadius: 16))
-        }
-        .buttonStyle(.plain)
-        .disabled(apiToken.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty || viewModel.isLoading)
-    }
-
-    private var primaryColor: Color {
-        Color(red: 242 / 255, green: 120 / 255, blue: 13 / 255)
     }
 
     private var backgroundColor: Color {
@@ -212,54 +186,50 @@ final class SuggestedHabitViewModel: ObservableObject {
 
     private let context: ModelContext?
     private let modelId: String
+    private var hasLoadedInitial = false
 
     init(context: ModelContext?, modelId: String = HuggingFaceConfig.resolveModelId()) {
         self.context = context
         self.modelId = modelId
     }
 
-    func loadCached() {
-        guard let context else { return }
-
-        let descriptor = FetchDescriptor<SuggestedHabitSuggestion>(
-            sortBy: [SortDescriptor(\.createdAt, order: .reverse)]
-        )
-        suggestions = (try? context.fetch(descriptor)) ?? []
+    func loadInitialIfNeeded() async {
+        guard !hasLoadedInitial else { return }
+        hasLoadedInitial = true
+        await loadNext()
     }
 
-    func generateSuggestions(focus: String) async {
+    func loadNextIfNeeded(currentId: UUID) async {
+        guard let lastId = suggestions.last?.id, lastId == currentId else { return }
+        await loadNext()
+    }
+
+    private func loadNext() async {
+        guard !isLoading else { return }
         isLoading = true
         errorMessage = nil
 
         do {
             let client = try HuggingFaceClient(modelId: modelId)
-            let trimmedFocus = focus.trimmingCharacters(in: .whitespacesAndNewlines)
-            let response = try await client.generateHabitSuggestions(
-                count: 4,
-                focus: trimmedFocus.isEmpty ? nil : trimmedFocus
+            let response = try await client.generateHabitSuggestions(count: 1, focus: nil)
+
+            guard let draft = response.drafts.first else {
+                throw HuggingFaceError.decodingFailed
+            }
+
+            let newSuggestion = SuggestedHabitSuggestion(
+                title: draft.title,
+                details: draft.details,
+                frequency: draft.frequency ?? "Flexible",
+                sourceModel: response.modelId
             )
 
-            let newSuggestions = response.drafts.map {
-                SuggestedHabitSuggestion(
-                    title: $0.title,
-                    details: $0.details,
-                    frequency: $0.frequency ?? "Flexible",
-                    sourceModel: response.modelId
-                )
-            }
+            suggestions.append(newSuggestion)
 
             if let context {
-                let existing = (try? context.fetch(FetchDescriptor<SuggestedHabitSuggestion>())) ?? []
-                for item in existing {
-                    context.delete(item)
-                }
-                for item in newSuggestions {
-                    context.insert(item)
-                }
+                context.insert(newSuggestion)
                 try? context.save()
             }
-
-            suggestions = newSuggestions
         } catch {
             errorMessage = error.localizedDescription
         }
