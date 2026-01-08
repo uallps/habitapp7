@@ -192,6 +192,7 @@ final class SuggestedHabitViewModel: ObservableObject {
     private let context: ModelContext?
     private let modelId: String
     private var hasLoadedInitial = false
+    private var lastRequestedId: UUID?
     private let categories = [
         "salud",
         "productividad",
@@ -228,6 +229,7 @@ final class SuggestedHabitViewModel: ObservableObject {
 
     func loadNextIfNeeded(currentId: UUID) async {
         guard let lastId = suggestions.last?.id, lastId == currentId else { return }
+        guard canLoadNext(for: lastId) else { return }
         await loadNext()
     }
 
@@ -238,55 +240,73 @@ final class SuggestedHabitViewModel: ObservableObject {
 
         do {
             let client = try HuggingFaceClient(modelId: modelId)
-            var attempts = 0
-            var lastDraft: SuggestedHabitDraft?
+            var batch: [SuggestedHabitSuggestion] = []
+            var batchTitles: [String] = []
             var lastModelId = modelId
-            var isDuplicate = false
 
-            while attempts < 3 {
-                let category = nextCategory()
-                let response = try await client.generateHabitSuggestions(
-                    count: 1,
-                    focus: category,
-                    avoidTitles: recentTitles
-                )
-                lastModelId = response.modelId
-                guard let draft = response.drafts.first else {
+            for _ in 0..<3 {
+                var attempts = 0
+                var lastDraft: SuggestedHabitDraft?
+                var isDuplicate = false
+
+                while attempts < 3 {
+                    let category = nextCategory()
+                    let response = try await client.generateHabitSuggestions(
+                        count: 1,
+                        focus: category,
+                        avoidTitles: recentTitles + batchTitles
+                    )
+                    lastModelId = response.modelId
+                    guard let draft = response.drafts.first else {
+                        attempts += 1
+                        continue
+                    }
+
+                    lastDraft = draft
+                    let titleKey = normalizeTitle(draft.title)
+                    if !recentTitles.contains(titleKey) && !batchTitles.contains(titleKey) {
+                        batchTitles.append(titleKey)
+                        trackTitle(titleKey)
+                        isDuplicate = false
+                        break
+                    }
+
+                    isDuplicate = true
                     attempts += 1
+                }
+
+                guard let draft = lastDraft else {
                     continue
                 }
 
-                lastDraft = draft
-                let titleKey = normalizeTitle(draft.title)
-                if !recentTitles.contains(titleKey) {
-                    trackTitle(titleKey)
-                    isDuplicate = false
-                    break
+                if isDuplicate {
+                    let titleKey = normalizeTitle(draft.title)
+                    if !batchTitles.contains(titleKey) {
+                        batchTitles.append(titleKey)
+                        trackTitle(titleKey)
+                    }
                 }
 
-                isDuplicate = true
-                attempts += 1
+                batch.append(
+                    SuggestedHabitSuggestion(
+                        title: draft.title,
+                        details: draft.details,
+                        frequency: draft.frequency ?? "Flexible",
+                        sourceModel: lastModelId
+                    )
+                )
             }
 
-            guard let draft = lastDraft else {
+            guard !batch.isEmpty else {
                 throw HuggingFaceError.decodingFailed
             }
 
-            if isDuplicate {
-                trackTitle(normalizeTitle(draft.title))
-            }
-
-            let newSuggestion = SuggestedHabitSuggestion(
-                title: draft.title,
-                details: draft.details,
-                frequency: draft.frequency ?? "Flexible",
-                sourceModel: lastModelId
-            )
-
-            suggestions.append(newSuggestion)
+            suggestions.append(contentsOf: batch)
 
             if let context {
-                context.insert(newSuggestion)
+                for item in batch {
+                    context.insert(item)
+                }
                 try? context.save()
             }
         } catch {
@@ -294,6 +314,14 @@ final class SuggestedHabitViewModel: ObservableObject {
         }
 
         isLoading = false
+    }
+
+    private func canLoadNext(for id: UUID) -> Bool {
+        if let lastRequestedId, lastRequestedId == id {
+            return false
+        }
+        lastRequestedId = id
+        return true
     }
 
     private func nextCategory() -> String {
