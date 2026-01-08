@@ -71,12 +71,14 @@ struct HuggingFaceClient {
                 maxNewTokens: 320,
                 temperature: 0.7,
                 returnFullText: false
-            )
+            ),
+            options: HFOptions(waitForModel: true, useCache: true)
         )
 
         var request = URLRequest(url: modelURL())
         request.httpMethod = "POST"
         request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+        request.setValue("application/json", forHTTPHeaderField: "Accept")
         request.setValue("Bearer \(apiToken)", forHTTPHeaderField: "Authorization")
         request.httpBody = try JSONEncoder().encode(requestBody)
 
@@ -86,10 +88,15 @@ struct HuggingFaceClient {
         }
 
         if httpResponse.statusCode >= 400 {
-            if let error = try? JSONDecoder().decode(HFErrorResponse.self, from: data) {
-                throw HuggingFaceError.server(error.error)
+            if let error = decodeServerError(from: data) {
+                throw HuggingFaceError.server(error)
             }
-            throw HuggingFaceError.invalidResponse
+
+            if let body = decodeBodyText(from: data) {
+                throw HuggingFaceError.server("HTTP \(httpResponse.statusCode): \(body)")
+            }
+
+            throw HuggingFaceError.server("HTTP \(httpResponse.statusCode)")
         }
 
         if let generated = try? JSONDecoder().decode([HFGeneratedText].self, from: data),
@@ -97,15 +104,23 @@ struct HuggingFaceClient {
             return parseGeneratedText(text, expectedCount: count)
         }
 
-        if let error = try? JSONDecoder().decode(HFErrorResponse.self, from: data) {
-            throw HuggingFaceError.server(error.error)
+        if let single = try? JSONDecoder().decode(HFGeneratedText.self, from: data) {
+            return parseGeneratedText(single.generated_text, expectedCount: count)
+        }
+
+        if let error = decodeServerError(from: data) {
+            throw HuggingFaceError.server(error)
+        }
+
+        if let body = decodeBodyText(from: data) {
+            throw HuggingFaceError.server("Unexpected response: \(body)")
         }
 
         throw HuggingFaceError.decodingFailed
     }
 
     private func modelURL() -> URL {
-        URL(string: "https://api-inference.huggingface.co/models/\(modelId)")!
+        URL(string: "https://router.huggingface.co/hf-inference/models/\(modelId)")!
     }
 
     private func buildPrompt(count: Int, focus: String?) -> String {
@@ -187,11 +202,25 @@ struct HuggingFaceClient {
 
         return result
     }
+
+    private func decodeServerError(from data: Data) -> String? {
+        if let error = try? JSONDecoder().decode(HFErrorResponse.self, from: data) {
+            return error.error
+        }
+        return nil
+    }
+
+    private func decodeBodyText(from data: Data) -> String? {
+        guard let raw = String(data: data, encoding: .utf8) else { return nil }
+        let trimmed = raw.trimmingCharacters(in: .whitespacesAndNewlines)
+        return trimmed.isEmpty ? nil : trimmed
+    }
 }
 
 private struct HFRequest: Encodable {
     let inputs: String
     let parameters: HFParameters
+    let options: HFOptions
 }
 
 private struct HFParameters: Encodable {
@@ -212,7 +241,42 @@ private struct HFGeneratedText: Decodable {
 
 private struct HFErrorResponse: Decodable {
     let error: String
+
+    private enum CodingKeys: String, CodingKey {
+        case error
+    }
+
+    init(from decoder: Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        if let message = try? container.decode(String.self, forKey: .error) {
+            error = message
+            return
+        }
+
+        if let detail = try? container.decode(HFErrorDetail.self, forKey: .error) {
+            error = detail.message
+            return
+        }
+
+        throw DecodingError.dataCorruptedError(
+            forKey: .error,
+            in: container,
+            debugDescription: "Missing error message"
+        )
+    }
+
+    private struct HFErrorDetail: Decodable {
+        let message: String
+    }
 }
 
+private struct HFOptions: Encodable {
+    let waitForModel: Bool
+    let useCache: Bool
 
+    enum CodingKeys: String, CodingKey {
+        case waitForModel = "wait_for_model"
+        case useCache = "use_cache"
+    }
+}
 
