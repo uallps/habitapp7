@@ -26,7 +26,7 @@ struct HuggingFaceConfig {
     nonisolated static let modelIdKey = "HUGGINGFACE_MODEL_ID"
     // Put your token here for local testing only. Do not commit it.
     nonisolated static let hardcodedToken = "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"
-    nonisolated static let defaultModelId = "deepseek-ai/DeepSeek-R1-Distill-Qwen-1.5B:nscale"
+    nonisolated static let defaultModelId = "meta-llama/Llama-3.1-8B-Instruct:novita"
 
     nonisolated static func resolveApiToken() -> String? {
         let hardcoded = hardcodedToken.trimmingCharacters(in: .whitespacesAndNewlines)
