@@ -21,11 +21,11 @@ enum HuggingFaceError: LocalizedError {
 }
 
 struct HuggingFaceConfig {
-    static let userDefaultsTokenKey = "huggingFaceApiToken"
-    static let infoPlistTokenKey = "HUGGINGFACE_API_TOKEN"
-    static let defaultModelId = "mistralai/Mistral-7B-Instruct-v0.2"
+    nonisolated static let userDefaultsTokenKey = "huggingFaceApiToken"
+    nonisolated static let infoPlistTokenKey = "HUGGINGFACE_API_TOKEN"
+    nonisolated static let defaultModelId = "mistralai/Mistral-7B-Instruct-v0.2"
 
-    static func resolveApiToken() -> String? {
+    nonisolated static func resolveApiToken() -> String? {
         if let token = Bundle.main.object(forInfoDictionaryKey: infoPlistTokenKey) as? String {
             let trimmed = token.trimmingCharacters(in: .whitespacesAndNewlines)
             if !trimmed.isEmpty {
@@ -213,5 +213,6 @@ private struct HFGeneratedText: Decodable {
 private struct HFErrorResponse: Decodable {
     let error: String
 }
+
 
 

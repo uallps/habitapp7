@@ -22,18 +22,19 @@ class JSONStorageProvider: StorageProvider {
             return []
         }
         
-        let data = try Data(contentsOf: fileURL)
+        _ = try Data(contentsOf: fileURL)
         let decoder = JSONDecoder()
         decoder.dateDecodingStrategy = .iso8601
         
-        // Por ahora devolvemos array vacío ya que Habit con @Model no es Codable
-        // En una implementación completa necesitarías DTOs
-        print("⚠️ JSON Storage no implementado completamente - usando SwiftData")
+        // Por ahora devolvemos array vac??o ya que Habit con @Model no es Codable
+        // En una implementaci??n completa necesitar??as DTOs
+        print("?????? JSON Storage no implementado completamente - usando SwiftData")
         return []
     }
     
     func saveHabits(habits: [Habit]) async throws {
         // Por ahora no hace nada ya que Habit con @Model no es Codable
-        print("⚠️ JSON Storage no implementado completamente - usando SwiftData")
+        print("?????? JSON Storage no implementado completamente - usando SwiftData")
     }
 }
+
