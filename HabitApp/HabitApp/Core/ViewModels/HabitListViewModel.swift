@@ -89,6 +89,9 @@ class HabitListViewModel: ObservableObject {
     func updateHabit(_ habit: Habit) {
         markGroupingDirty()
         markCategoryCacheDirty()
+        if let index = habits.firstIndex(where: { $0.id == habit.id }) {
+            habits[index] = habit
+        }
         persist()
     }
 

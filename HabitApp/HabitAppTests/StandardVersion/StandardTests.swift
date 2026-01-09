@@ -26,7 +26,7 @@ final class StandardTests: XCTestCase {
     // MARK: - Test de Features Disponibles
     
     func testCategoriesAvailable() {
-        #if ENABLE_CATEGORIES
+        #if CATEGORY_FEATURE
             let category = Category(name: "Test", categoryDescription: "Test")
             XCTAssertEqual(category.name, "Test")
             XCTAssertTrue(true, "Categories correctly enabled in Standard version")
@@ -36,7 +36,7 @@ final class StandardTests: XCTestCase {
     }
     
     func testDiaryAvailable() {
-        #if ENABLE_DIARY
+        #if DIARY_FEATURE
             let entry = CompletionEntry(date: Date())
             let diaryFeature = DiaryNoteFeature(completionEntryId: entry.id, note: "Test")
             XCTAssertEqual(diaryFeature.note, "Test")
@@ -47,7 +47,7 @@ final class StandardTests: XCTestCase {
     }
     
     func testStatsAvailable() {
-        #if ENABLE_STATS
+        #if STATS_FEATURE
             let habit = Habit(title: "Test", frequency: [.monday])
             let statsVM = StatsViewModel(habit: habit)
             XCTAssertNotNil(statsVM)
@@ -58,7 +58,7 @@ final class StandardTests: XCTestCase {
     }
     
     func testStreaksAvailable() {
-        #if ENABLE_STREAKS
+        #if STREAKS_FEATURE
             let habit = Habit(title: "Test", frequency: [.monday])
             habit.setStreak(5)
             XCTAssertEqual(habit.getStreak(), 5)
@@ -69,7 +69,7 @@ final class StandardTests: XCTestCase {
     }
     
     func testRemindersAvailable() {
-        #if ENABLE_REMINDERS
+        #if REMINDERS_FEATURE
             let manager = ReminderManager.shared
             XCTAssertNotNil(manager)
             XCTAssertTrue(true, "Reminders correctly enabled in Standard version")
@@ -81,7 +81,7 @@ final class StandardTests: XCTestCase {
     // MARK: - Test de Features Premium NO Disponibles
     
     func testExpandedFrequencyNotAvailable() {
-        #if ENABLE_EXPANDED_FREQUENCY
+        #if EXPANDED_FREQUENCY_FEATURE
             XCTFail("Expanded Frequency should NOT be available in Standard version")
         #else
             XCTAssertTrue(true, "Expanded Frequency correctly disabled in Standard version")
@@ -89,7 +89,7 @@ final class StandardTests: XCTestCase {
     }
     
     func testPauseDayNotAvailable() {
-        #if ENABLE_PAUSE_DAY
+        #if PAUSE_DAY_FEATURE
             XCTFail("Pause Day should NOT be available in Standard version")
         #else
             XCTAssertTrue(true, "Pause Day correctly disabled in Standard version")
@@ -97,7 +97,7 @@ final class StandardTests: XCTestCase {
     }
     
     func testHabitTypeNotAvailable() {
-        #if ENABLE_HABIT_TYPE
+        #if HABIT_TYPE_FEATURE
             XCTFail("Habit Type should NOT be available in Standard version")
         #else
             XCTAssertTrue(true, "Habit Type correctly disabled in Standard version")
@@ -107,7 +107,7 @@ final class StandardTests: XCTestCase {
     // MARK: - Test de Funcionalidad Integrada
     
     func testCategoryIntegrationWithHabit() async {
-        #if ENABLE_CATEGORIES
+        #if CATEGORY_FEATURE
             let habit = Habit(title: "Test Habit", frequency: [.monday])
             let category = Category(name: "Health", categoryDescription: "Health habits")
             
@@ -119,7 +119,7 @@ final class StandardTests: XCTestCase {
     }
     
     func testDiaryIntegrationWithCompletion() {
-        #if ENABLE_DIARY
+        #if DIARY_FEATURE
             let entry = CompletionEntry(date: Date())
             entry.setNote("Completed successfully")
             

@@ -5,7 +5,7 @@ enum FrequencyType: String, Codable, CaseIterable {
     case daily = "Diaria"
     case weekly = "Semanal"
     case monthly = "Mensual"
-    case addiction = "Adicción"
+    case addiction = "Adiccion"
 }
 
 @Model
