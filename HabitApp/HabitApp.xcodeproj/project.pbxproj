@@ -7,6 +7,13 @@
 	objects = {
 
 /* Begin PBXContainerItemProxy section */
+		35B691832F1068A70027EC7A /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 354924942EA9492500A3BFCC /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 3549249B2EA9492500A3BFCC;
+			remoteInfo = HabitApp;
+		};
 		35EC42F32F0D9C6000FA119B /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
 			containerPortal = 354924942EA9492500A3BFCC /* Project object */;
@@ -21,47 +28,155 @@
 			remoteGlobalIDString = 35EC42D92F0D982A00FA119B;
 			remoteInfo = "HabitApp-Standard";
 		};
-		35EC43182F0D9CAA00FA119B /* PBXContainerItemProxy */ = {
-			isa = PBXContainerItemProxy;
-			containerPortal = 354924942EA9492500A3BFCC /* Project object */;
-			proxyType = 1;
-			remoteGlobalIDString = 35EC42E22F0D982C00FA119B;
-			remoteInfo = "HabitApp-Premium";
-		};
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXFileReference section */
 		3549249C2EA9492500A3BFCC /* HabitApp.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = HabitApp.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		35EC42D72F0D982800FA119B /* HabitApp-Core.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "HabitApp-Core.app"; sourceTree = BUILT_PRODUCTS_DIR; };
 		35EC42E02F0D982A00FA119B /* HabitApp-Standard.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "HabitApp-Standard.app"; sourceTree = BUILT_PRODUCTS_DIR; };
-		35EC42E92F0D982C00FA119B /* HabitApp-Premium.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "HabitApp-Premium.app"; sourceTree = BUILT_PRODUCTS_DIR; };
 		35EC42EF2F0D9C6000FA119B /* HabitAppCoreTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = HabitAppCoreTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		35EC43072F0D9C8D00FA119B /* HabitAppStandardTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = HabitAppStandardTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		35EC43142F0D9CAA00FA119B /* HabitAppPremiumTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = HabitAppPremiumTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
+		35B6936E2F106C260027EC7A /* Exceptions for "HabitAppTests" folder in "HabitApp" target */ = {
+			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
+			membershipExceptions = (
+				Common/HabitAppTest.swift,
+				Common/HabitListViewModelTest.swift,
+				Common/HabitTest.swift,
+				CoreUITests/CoreUITests.swift,
+				CoreVersion/CoreTests.swift,
+				PremiumUITests/PremiumUITests.swift,
+				PremiumVersion/ExpandedFrequencyTest.swift,
+				PremiumVersion/HabitTypeTest.swift,
+				PremiumVersion/PauseDayTest.swift,
+				PremiumVersion/PremiumTests.swift,
+				StandardUITests/CategoryUITests.swift,
+				StandardUITests/StandardUITests.swift,
+				StandardVersion/CategoryTest.swift,
+				StandardVersion/DiaryTest.swift,
+				StandardVersion/DiaryViewModelTest.swift,
+				StandardVersion/ReminderManagerTest.swift,
+				StandardVersion/StandardTests.swift,
+				StandardVersion/StatsViewModelTest.swift,
+				StandardVersion/StreakTest.swift,
+			);
+			target = 3549249B2EA9492500A3BFCC /* HabitApp */;
+		};
+		35B6936F2F106C260027EC7A /* Exceptions for "HabitAppTests" folder in "HabitApp-Core" target */ = {
+			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
+			membershipExceptions = (
+				Common/HabitAppTest.swift,
+				Common/HabitListViewModelTest.swift,
+				Common/HabitTest.swift,
+				CoreUITests/CoreUITests.swift,
+				CoreVersion/CoreTests.swift,
+				PremiumUITests/PremiumUITests.swift,
+				PremiumVersion/ExpandedFrequencyTest.swift,
+				PremiumVersion/HabitTypeTest.swift,
+				PremiumVersion/PauseDayTest.swift,
+				PremiumVersion/PremiumTests.swift,
+				StandardUITests/CategoryUITests.swift,
+				StandardUITests/StandardUITests.swift,
+				StandardVersion/CategoryTest.swift,
+				StandardVersion/DiaryTest.swift,
+				StandardVersion/DiaryViewModelTest.swift,
+				StandardVersion/ReminderManagerTest.swift,
+				StandardVersion/StandardTests.swift,
+				StandardVersion/StatsViewModelTest.swift,
+				StandardVersion/StreakTest.swift,
+			);
+			target = 35EC42D02F0D982800FA119B /* HabitApp-Core */;
+		};
+		35B693702F106C260027EC7A /* Exceptions for "HabitAppTests" folder in "HabitApp-Standard" target */ = {
+			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
+			membershipExceptions = (
+				Common/HabitAppTest.swift,
+				Common/HabitListViewModelTest.swift,
+				Common/HabitTest.swift,
+				CoreUITests/CoreUITests.swift,
+				CoreVersion/CoreTests.swift,
+				PremiumUITests/PremiumUITests.swift,
+				PremiumVersion/ExpandedFrequencyTest.swift,
+				PremiumVersion/HabitTypeTest.swift,
+				PremiumVersion/PauseDayTest.swift,
+				PremiumVersion/PremiumTests.swift,
+				StandardUITests/CategoryUITests.swift,
+				StandardUITests/StandardUITests.swift,
+				StandardVersion/CategoryTest.swift,
+				StandardVersion/DiaryTest.swift,
+				StandardVersion/DiaryViewModelTest.swift,
+				StandardVersion/ReminderManagerTest.swift,
+				StandardVersion/StandardTests.swift,
+				StandardVersion/StatsViewModelTest.swift,
+				StandardVersion/StreakTest.swift,
+			);
+			target = 35EC42D92F0D982A00FA119B /* HabitApp-Standard */;
+		};
+		35B693712F106C260027EC7A /* Exceptions for "HabitAppTests" folder in "HabitAppCoreTests" target */ = {
+			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
+			membershipExceptions = (
+				Common/HabitAppTest.swift,
+				Common/HabitListViewModelTest.swift,
+				Common/HabitTest.swift,
+				CoreUITests/CoreUITests.swift,
+				CoreVersion/CoreTests.swift,
+			);
+			target = 35EC42EE2F0D9C6000FA119B /* HabitAppCoreTests */;
+		};
+		35B693722F106C260027EC7A /* Exceptions for "HabitAppTests" folder in "HabitAppStandardTests" target */ = {
+			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
+			membershipExceptions = (
+				Common/HabitAppTest.swift,
+				Common/HabitListViewModelTest.swift,
+				Common/HabitTest.swift,
+				CoreUITests/CoreUITests.swift,
+				CoreVersion/CoreTests.swift,
+				StandardUITests/CategoryUITests.swift,
+				StandardUITests/StandardUITests.swift,
+				StandardVersion/CategoryTest.swift,
+				StandardVersion/DiaryTest.swift,
+				StandardVersion/DiaryViewModelTest.swift,
+				StandardVersion/ReminderManagerTest.swift,
+				StandardVersion/StandardTests.swift,
+				StandardVersion/StatsViewModelTest.swift,
+				StandardVersion/StreakTest.swift,
+			);
+			target = 35EC43062F0D9C8D00FA119B /* HabitAppStandardTests */;
+		};
+		35B693732F106C260027EC7A /* Exceptions for "HabitAppTests" folder in "HabitAppPremiumTests" target */ = {
+			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
+			membershipExceptions = (
+				Common/HabitAppTest.swift,
+				Common/HabitListViewModelTest.swift,
+				Common/HabitTest.swift,
+				CoreUITests/CoreUITests.swift,
+				CoreVersion/CoreTests.swift,
+				PremiumUITests/PremiumUITests.swift,
+				PremiumVersion/ExpandedFrequencyTest.swift,
+				PremiumVersion/HabitTypeTest.swift,
+				PremiumVersion/PauseDayTest.swift,
+				PremiumVersion/PremiumTests.swift,
+				StandardUITests/CategoryUITests.swift,
+				StandardUITests/StandardUITests.swift,
+				StandardVersion/CategoryTest.swift,
+				StandardVersion/DiaryTest.swift,
+				StandardVersion/DiaryViewModelTest.swift,
+				StandardVersion/ReminderManagerTest.swift,
+				StandardVersion/StandardTests.swift,
+				StandardVersion/StatsViewModelTest.swift,
+				StandardVersion/StreakTest.swift,
+			);
+			target = 35EC43132F0D9CAA00FA119B /* HabitAppPremiumTests */;
+		};
 		35EC42D82F0D982900FA119B /* Exceptions for "HabitApp" folder in "HabitApp-Core" target */ = {
 			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
 			membershipExceptions = (
-				Application/AppConfig.swift,
-				Application/HabitApp.swift,
 				Assets.xcassets,
-				Core/Models/CompletionEntry.swift,
-				Core/Models/Habit.swift,
-				Core/ViewModels/HabitListViewModel.swift,
-				Core/Views/HabitListView.swift,
-				Core/Views/HabitModifyView.swift,
-				Core/Views/HabitRowView.swift,
 				Features/Category/CAMBIOS_REALIZADOS.md,
-				Features/Category/Models/Category.swift,
-				Features/Category/Models/HabitCategoryFeature.swift,
-				Features/Category/Models/HabitExtendedCategory.swift,
 				Features/Category/USAGE_GUIDE.md,
-				Features/Category/Views/CategoryView.swift,
-				Features/Diary/Models/Diary.swift,
-				Features/Diary/ViewModels/DiaryViewModel.swift,
-				Features/Diary/Views/DiaryEntryView.swift,
 				Features/NM_ExpandedFrequency/ExpandedFrequencyPlugin.swift,
 				Features/NM_ExpandedFrequency/Explicacion.txt,
 				Features/NM_ExpandedFrequency/Models/ExpandedFrequency.swift,
@@ -80,42 +195,15 @@
 				Features/NM_Type/ViewModels/HabitTypeViewModel.swift,
 				Features/NM_Type/Views/HabitTypeCompletionView.swift,
 				Features/NM_Type/Views/HabitTypeSelectionView.swift,
-				Features/Reminders/Models/NotificationDelegate.swift,
-				Features/Reminders/Models/ReminderManager.swift,
-				Features/Stats/ViewModels/StatsViewModel.swift,
-				Features/Stats/Views/StatsView.swift,
-				Features/Streaks/Models/Streak.swift,
-				Infraestructure/Plugins/FeaturePlugin.swift,
-				Infraestructure/Plugins/LogicPlugin.swift,
-				Infraestructure/Plugins/PluginDiscovery.swift,
-				Infraestructure/Plugins/PluginRegistry.swift,
-				Infraestructure/Plugins/ViewPlugin.swift,
-				Infraestructure/StorageProvider.swift,
-				Infraestructure/SwiftDataStorageProvider.swift,
 			);
 			target = 35EC42D02F0D982800FA119B /* HabitApp-Core */;
 		};
 		35EC42E12F0D982A00FA119B /* Exceptions for "HabitApp" folder in "HabitApp-Standard" target */ = {
 			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
 			membershipExceptions = (
-				Application/AppConfig.swift,
-				Application/HabitApp.swift,
 				Assets.xcassets,
-				Core/Models/CompletionEntry.swift,
-				Core/Models/Habit.swift,
-				Core/ViewModels/HabitListViewModel.swift,
-				Core/Views/HabitListView.swift,
-				Core/Views/HabitModifyView.swift,
-				Core/Views/HabitRowView.swift,
 				Features/Category/CAMBIOS_REALIZADOS.md,
-				Features/Category/Models/Category.swift,
-				Features/Category/Models/HabitCategoryFeature.swift,
-				Features/Category/Models/HabitExtendedCategory.swift,
 				Features/Category/USAGE_GUIDE.md,
-				Features/Category/Views/CategoryView.swift,
-				Features/Diary/Models/Diary.swift,
-				Features/Diary/ViewModels/DiaryViewModel.swift,
-				Features/Diary/Views/DiaryEntryView.swift,
 				Features/NM_ExpandedFrequency/ExpandedFrequencyPlugin.swift,
 				Features/NM_ExpandedFrequency/Explicacion.txt,
 				Features/NM_ExpandedFrequency/Models/ExpandedFrequency.swift,
@@ -134,101 +222,51 @@
 				Features/NM_Type/ViewModels/HabitTypeViewModel.swift,
 				Features/NM_Type/Views/HabitTypeCompletionView.swift,
 				Features/NM_Type/Views/HabitTypeSelectionView.swift,
-				Features/Reminders/Models/NotificationDelegate.swift,
-				Features/Reminders/Models/ReminderManager.swift,
-				Features/Stats/ViewModels/StatsViewModel.swift,
-				Features/Stats/Views/StatsView.swift,
-				Features/Streaks/Models/Streak.swift,
-				Infraestructure/Plugins/FeaturePlugin.swift,
-				Infraestructure/Plugins/LogicPlugin.swift,
-				Infraestructure/Plugins/PluginDiscovery.swift,
-				Infraestructure/Plugins/PluginRegistry.swift,
-				Infraestructure/Plugins/ViewPlugin.swift,
-				Infraestructure/StorageProvider.swift,
-				Infraestructure/SwiftDataStorageProvider.swift,
 			);
 			target = 35EC42D92F0D982A00FA119B /* HabitApp-Standard */;
 		};
-		35EC42EA2F0D982C00FA119B /* Exceptions for "HabitApp" folder in "HabitApp-Premium" target */ = {
-			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
-			membershipExceptions = (
-				Application/AppConfig.swift,
-				Application/HabitApp.swift,
-				Assets.xcassets,
-				Core/Models/CompletionEntry.swift,
-				Core/Models/Habit.swift,
-				Core/ViewModels/HabitListViewModel.swift,
-				Core/Views/HabitListView.swift,
-				Core/Views/HabitModifyView.swift,
-				Core/Views/HabitRowView.swift,
-				Features/Category/CAMBIOS_REALIZADOS.md,
-				Features/Category/Models/Category.swift,
-				Features/Category/Models/HabitCategoryFeature.swift,
-				Features/Category/Models/HabitExtendedCategory.swift,
-				Features/Category/USAGE_GUIDE.md,
-				Features/Category/Views/CategoryView.swift,
-				Features/Diary/Models/Diary.swift,
-				Features/Diary/ViewModels/DiaryViewModel.swift,
-				Features/Diary/Views/DiaryEntryView.swift,
-				Features/NM_ExpandedFrequency/ExpandedFrequencyPlugin.swift,
-				Features/NM_ExpandedFrequency/Explicacion.txt,
-				Features/NM_ExpandedFrequency/Models/ExpandedFrequency.swift,
-				Features/NM_ExpandedFrequency/ViewModels/ExpandedFrequencyViewModel.swift,
-				Features/NM_ExpandedFrequency/Views/AddictionCompletionView.swift,
-				Features/NM_ExpandedFrequency/Views/FrequencySelectionView.swift,
-				Features/NM_PauseDay/CalendarPauseDayStyleProvider.swift,
-				Features/NM_PauseDay/Models/PauseDays.swift,
-				Features/NM_PauseDay/PauseDayPlugin.swift,
-				Features/NM_PauseDay/ViewModels/PauseDayViewModel.swift,
-				Features/NM_PauseDay/Views/PauseDayRowButton.swift,
-				Features/NM_PauseDay/Views/PauseDaySelectionView.swift,
-				Features/NM_Type/HabitTypePlugin.swift,
-				Features/NM_Type/Models/HabitType.swift,
-				Features/NM_Type/ViewModels/HabitCompletionViewModel.swift,
-				Features/NM_Type/ViewModels/HabitTypeViewModel.swift,
-				Features/NM_Type/Views/HabitTypeCompletionView.swift,
-				Features/NM_Type/Views/HabitTypeSelectionView.swift,
-				Features/Reminders/Models/NotificationDelegate.swift,
-				Features/Reminders/Models/ReminderManager.swift,
-				Features/Stats/ViewModels/StatsViewModel.swift,
-				Features/Stats/Views/StatsView.swift,
-				Features/Streaks/Models/Streak.swift,
-				Infraestructure/Plugins/FeaturePlugin.swift,
-				Infraestructure/Plugins/LogicPlugin.swift,
-				Infraestructure/Plugins/PluginDiscovery.swift,
-				Infraestructure/Plugins/PluginRegistry.swift,
-				Infraestructure/Plugins/ViewPlugin.swift,
-				Infraestructure/StorageProvider.swift,
-				Infraestructure/SwiftDataStorageProvider.swift,
-			);
-			target = 35EC42E22F0D982C00FA119B /* HabitApp-Premium */;
-		};
 /* End PBXFileSystemSynchronizedBuildFileExceptionSet section */
+
+/* Begin PBXFileSystemSynchronizedGroupBuildPhaseMembershipExceptionSet section */
+		35B691802F1065C00027EC7A /* Exceptions for "HabitApp" folder in "Compile Sources" phase from "HabitApp-Standard" target */ = {
+			isa = PBXFileSystemSynchronizedGroupBuildPhaseMembershipExceptionSet;
+			buildPhase = 35EC42DA2F0D982A00FA119B /* Sources */;
+			membershipExceptions = (
+				Assets.xcassets,
+			);
+		};
+		35B691822F1065C90027EC7A /* Exceptions for "HabitApp" folder in "Compile Sources" phase from "HabitApp-Core" target */ = {
+			isa = PBXFileSystemSynchronizedGroupBuildPhaseMembershipExceptionSet;
+			buildPhase = 35EC42D12F0D982800FA119B /* Sources */;
+			membershipExceptions = (
+				Assets.xcassets,
+			);
+		};
+/* End PBXFileSystemSynchronizedGroupBuildPhaseMembershipExceptionSet section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
 		3549249E2EA9492500A3BFCC /* HabitApp */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
 			exceptions = (
 				35EC42D82F0D982900FA119B /* Exceptions for "HabitApp" folder in "HabitApp-Core" target */,
+				35B691822F1065C90027EC7A /* Exceptions for "HabitApp" folder in "Compile Sources" phase from "HabitApp-Core" target */,
 				35EC42E12F0D982A00FA119B /* Exceptions for "HabitApp" folder in "HabitApp-Standard" target */,
-				35EC42EA2F0D982C00FA119B /* Exceptions for "HabitApp" folder in "HabitApp-Premium" target */,
+				35B691802F1065C00027EC7A /* Exceptions for "HabitApp" folder in "Compile Sources" phase from "HabitApp-Standard" target */,
 			);
 			path = HabitApp;
 			sourceTree = "<group>";
 		};
-		35EC42F02F0D9C6000FA119B /* HabitAppCoreTests */ = {
+		35B693412F106C260027EC7A /* HabitAppTests */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
-			path = HabitAppCoreTests;
-			sourceTree = "<group>";
-		};
-		35EC43082F0D9C8D00FA119B /* HabitAppStandardTests */ = {
-			isa = PBXFileSystemSynchronizedRootGroup;
-			path = HabitAppStandardTests;
-			sourceTree = "<group>";
-		};
-		35EC43152F0D9CAA00FA119B /* HabitAppPremiumTests */ = {
-			isa = PBXFileSystemSynchronizedRootGroup;
-			path = HabitAppPremiumTests;
+			exceptions = (
+				35B6936E2F106C260027EC7A /* Exceptions for "HabitAppTests" folder in "HabitApp" target */,
+				35B6936F2F106C260027EC7A /* Exceptions for "HabitAppTests" folder in "HabitApp-Core" target */,
+				35B693702F106C260027EC7A /* Exceptions for "HabitAppTests" folder in "HabitApp-Standard" target */,
+				35B693712F106C260027EC7A /* Exceptions for "HabitAppTests" folder in "HabitAppCoreTests" target */,
+				35B693722F106C260027EC7A /* Exceptions for "HabitAppTests" folder in "HabitAppStandardTests" target */,
+				35B693732F106C260027EC7A /* Exceptions for "HabitAppTests" folder in "HabitAppPremiumTests" target */,
+			);
+			path = HabitAppTests;
 			sourceTree = "<group>";
 		};
 /* End PBXFileSystemSynchronizedRootGroup section */
@@ -249,13 +287,6 @@
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 		35EC42DB2F0D982A00FA119B /* Frameworks */ = {
-			isa = PBXFrameworksBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-		};
-		35EC42E42F0D982C00FA119B /* Frameworks */ = {
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
@@ -290,9 +321,7 @@
 			isa = PBXGroup;
 			children = (
 				3549249E2EA9492500A3BFCC /* HabitApp */,
-				35EC42F02F0D9C6000FA119B /* HabitAppCoreTests */,
-				35EC43082F0D9C8D00FA119B /* HabitAppStandardTests */,
-				35EC43152F0D9CAA00FA119B /* HabitAppPremiumTests */,
+				35B693412F106C260027EC7A /* HabitAppTests */,
 				3549249D2EA9492500A3BFCC /* Products */,
 			);
 			sourceTree = "<group>";
@@ -303,7 +332,6 @@
 				3549249C2EA9492500A3BFCC /* HabitApp.app */,
 				35EC42D72F0D982800FA119B /* HabitApp-Core.app */,
 				35EC42E02F0D982A00FA119B /* HabitApp-Standard.app */,
-				35EC42E92F0D982C00FA119B /* HabitApp-Premium.app */,
 				35EC42EF2F0D9C6000FA119B /* HabitAppCoreTests.xctest */,
 				35EC43072F0D9C8D00FA119B /* HabitAppStandardTests.xctest */,
 				35EC43142F0D9CAA00FA119B /* HabitAppPremiumTests.xctest */,
@@ -328,6 +356,7 @@
 			);
 			fileSystemSynchronizedGroups = (
 				3549249E2EA9492500A3BFCC /* HabitApp */,
+				35B693412F106C260027EC7A /* HabitAppTests */,
 			);
 			name = HabitApp;
 			packageProductDependencies = (
@@ -350,6 +379,7 @@
 			);
 			fileSystemSynchronizedGroups = (
 				3549249E2EA9492500A3BFCC /* HabitApp */,
+				35B693412F106C260027EC7A /* HabitAppTests */,
 			);
 			name = "HabitApp-Core";
 			packageProductDependencies = (
@@ -372,34 +402,13 @@
 			);
 			fileSystemSynchronizedGroups = (
 				3549249E2EA9492500A3BFCC /* HabitApp */,
+				35B693412F106C260027EC7A /* HabitAppTests */,
 			);
 			name = "HabitApp-Standard";
 			packageProductDependencies = (
 			);
 			productName = HabitApp;
 			productReference = 35EC42E02F0D982A00FA119B /* HabitApp-Standard.app */;
-			productType = "com.apple.product-type.application";
-		};
-		35EC42E22F0D982C00FA119B /* HabitApp-Premium */ = {
-			isa = PBXNativeTarget;
-			buildConfigurationList = 35EC42E62F0D982C00FA119B /* Build configuration list for PBXNativeTarget "HabitApp-Premium" */;
-			buildPhases = (
-				35EC42E32F0D982C00FA119B /* Sources */,
-				35EC42E42F0D982C00FA119B /* Frameworks */,
-				35EC42E52F0D982C00FA119B /* Resources */,
-			);
-			buildRules = (
-			);
-			dependencies = (
-			);
-			fileSystemSynchronizedGroups = (
-				3549249E2EA9492500A3BFCC /* HabitApp */,
-			);
-			name = "HabitApp-Premium";
-			packageProductDependencies = (
-			);
-			productName = HabitApp;
-			productReference = 35EC42E92F0D982C00FA119B /* HabitApp-Premium.app */;
 			productType = "com.apple.product-type.application";
 		};
 		35EC42EE2F0D9C6000FA119B /* HabitAppCoreTests */ = {
@@ -414,9 +423,6 @@
 			);
 			dependencies = (
 				35EC42F42F0D9C6000FA119B /* PBXTargetDependency */,
-			);
-			fileSystemSynchronizedGroups = (
-				35EC42F02F0D9C6000FA119B /* HabitAppCoreTests */,
 			);
 			name = HabitAppCoreTests;
 			packageProductDependencies = (
@@ -438,9 +444,6 @@
 			dependencies = (
 				35EC430C2F0D9C8D00FA119B /* PBXTargetDependency */,
 			);
-			fileSystemSynchronizedGroups = (
-				35EC43082F0D9C8D00FA119B /* HabitAppStandardTests */,
-			);
 			name = HabitAppStandardTests;
 			packageProductDependencies = (
 			);
@@ -459,10 +462,7 @@
 			buildRules = (
 			);
 			dependencies = (
-				35EC43192F0D9CAA00FA119B /* PBXTargetDependency */,
-			);
-			fileSystemSynchronizedGroups = (
-				35EC43152F0D9CAA00FA119B /* HabitAppPremiumTests */,
+				35B691842F1068A70027EC7A /* PBXTargetDependency */,
 			);
 			name = HabitAppPremiumTests;
 			packageProductDependencies = (
@@ -494,7 +494,7 @@
 					};
 					35EC43132F0D9CAA00FA119B = {
 						CreatedOnToolsVersion = 26.0;
-						TestTargetID = 35EC42E22F0D982C00FA119B;
+						TestTargetID = 3549249B2EA9492500A3BFCC;
 					};
 				};
 			};
@@ -515,7 +515,6 @@
 				3549249B2EA9492500A3BFCC /* HabitApp */,
 				35EC42D02F0D982800FA119B /* HabitApp-Core */,
 				35EC42D92F0D982A00FA119B /* HabitApp-Standard */,
-				35EC42E22F0D982C00FA119B /* HabitApp-Premium */,
 				35EC42EE2F0D9C6000FA119B /* HabitAppCoreTests */,
 				35EC43062F0D9C8D00FA119B /* HabitAppStandardTests */,
 				35EC43132F0D9CAA00FA119B /* HabitAppPremiumTests */,
@@ -539,13 +538,6 @@
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 		35EC42DC2F0D982A00FA119B /* Resources */ = {
-			isa = PBXResourcesBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-		};
-		35EC42E52F0D982C00FA119B /* Resources */ = {
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
@@ -597,13 +589,6 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
-		35EC42E32F0D982C00FA119B /* Sources */ = {
-			isa = PBXSourcesBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-		};
 		35EC42EB2F0D9C6000FA119B /* Sources */ = {
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
@@ -628,6 +613,11 @@
 /* End PBXSourcesBuildPhase section */
 
 /* Begin PBXTargetDependency section */
+		35B691842F1068A70027EC7A /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 3549249B2EA9492500A3BFCC /* HabitApp */;
+			targetProxy = 35B691832F1068A70027EC7A /* PBXContainerItemProxy */;
+		};
 		35EC42F42F0D9C6000FA119B /* PBXTargetDependency */ = {
 			isa = PBXTargetDependency;
 			target = 35EC42D02F0D982800FA119B /* HabitApp-Core */;
@@ -637,11 +627,6 @@
 			isa = PBXTargetDependency;
 			target = 35EC42D92F0D982A00FA119B /* HabitApp-Standard */;
 			targetProxy = 35EC430B2F0D9C8D00FA119B /* PBXContainerItemProxy */;
-		};
-		35EC43192F0D9CAA00FA119B /* PBXTargetDependency */ = {
-			isa = PBXTargetDependency;
-			target = 35EC42E22F0D982C00FA119B /* HabitApp-Premium */;
-			targetProxy = 35EC43182F0D9CAA00FA119B /* PBXContainerItemProxy */;
 		};
 /* End PBXTargetDependency section */
 
@@ -959,70 +944,6 @@
 			};
 			name = Release;
 		};
-		35EC42E72F0D982C00FA119B /* Debug */ = {
-			isa = XCBuildConfiguration;
-			buildSettings = {
-				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
-				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
-				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 1;
-				ENABLE_PREVIEWS = YES;
-				GENERATE_INFOPLIST_FILE = YES;
-				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
-				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
-				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
-				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
-				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone = "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
-				LD_RUNPATH_SEARCH_PATHS = (
-					"$(inherited)",
-					"@executable_path/Frameworks",
-				);
-				MARKETING_VERSION = 1.0;
-				PRODUCT_BUNDLE_IDENTIFIER = es.ual.HabitApp;
-				PRODUCT_NAME = "$(TARGET_NAME)";
-				STRING_CATALOG_GENERATE_SYMBOLS = YES;
-				SWIFT_ACTIVE_COMPILATION_CONDITIONS = "DEBUG $(inherited) DIARY_FEATURE CATEGORY_FEATURE REMINDERS_FEATURE STATS_FEATURE STREAKS_FEATURE EXPANDED_FREQUENCY_FEATURE PAUSE_DAY_FEATURE HABIT_TYPE_FEATURE";
-				"SWIFT_ACTIVE_COMPILATION_CONDITIONS[arch=*]" = "DEBUG $(inherited) DIARY_FEATURE CATEGORY_FEATURE REMINDERS_FEATURE STATS_FEATURE STREAKS_FEATURE EXPANDED_FREQUENCY_FEATURE PAUSE_DAY_FEATURE  HABIT_TYPE_FEATURE";
-				SWIFT_APPROACHABLE_CONCURRENCY = YES;
-				SWIFT_DEFAULT_ACTOR_ISOLATION = MainActor;
-				SWIFT_EMIT_LOC_STRINGS = YES;
-				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
-				SWIFT_VERSION = 5.0;
-				TARGETED_DEVICE_FAMILY = "1,2";
-			};
-			name = Debug;
-		};
-		35EC42E82F0D982C00FA119B /* Release */ = {
-			isa = XCBuildConfiguration;
-			buildSettings = {
-				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
-				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
-				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 1;
-				ENABLE_PREVIEWS = YES;
-				GENERATE_INFOPLIST_FILE = YES;
-				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
-				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
-				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
-				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
-				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone = "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
-				LD_RUNPATH_SEARCH_PATHS = (
-					"$(inherited)",
-					"@executable_path/Frameworks",
-				);
-				MARKETING_VERSION = 1.0;
-				PRODUCT_BUNDLE_IDENTIFIER = es.ual.HabitApp;
-				PRODUCT_NAME = "$(TARGET_NAME)";
-				STRING_CATALOG_GENERATE_SYMBOLS = YES;
-				SWIFT_APPROACHABLE_CONCURRENCY = YES;
-				SWIFT_DEFAULT_ACTOR_ISOLATION = MainActor;
-				SWIFT_EMIT_LOC_STRINGS = YES;
-				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
-				SWIFT_VERSION = 5.0;
-				TARGETED_DEVICE_FAMILY = "1,2";
-			};
-			name = Release;
-		};
 		35EC42F62F0D9C6000FA119B /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
@@ -1121,7 +1042,7 @@
 				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
 				SWIFT_VERSION = 5.0;
 				TARGETED_DEVICE_FAMILY = "1,2";
-				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/HabitApp-Premium.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/HabitApp-Premium";
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/HabitApp.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/HabitApp";
 			};
 			name = Debug;
 		};
@@ -1141,7 +1062,7 @@
 				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
 				SWIFT_VERSION = 5.0;
 				TARGETED_DEVICE_FAMILY = "1,2";
-				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/HabitApp-Premium.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/HabitApp-Premium";
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/HabitApp.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/HabitApp";
 			};
 			name = Release;
 		};
@@ -1180,15 +1101,6 @@
 			buildConfigurations = (
 				35EC42DE2F0D982A00FA119B /* Debug */,
 				35EC42DF2F0D982A00FA119B /* Release */,
-			);
-			defaultConfigurationIsVisible = 0;
-			defaultConfigurationName = Release;
-		};
-		35EC42E62F0D982C00FA119B /* Build configuration list for PBXNativeTarget "HabitApp-Premium" */ = {
-			isa = XCConfigurationList;
-			buildConfigurations = (
-				35EC42E72F0D982C00FA119B /* Debug */,
-				35EC42E82F0D982C00FA119B /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
