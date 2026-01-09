@@ -8,7 +8,7 @@ final class Habit: Identifiable {
 
     // Propiedades básicas
     var title: String
-
+    var endDate: Date?
     // Almacenamos el rawValue de Priority para compatibilidad con SwiftData
     private var priorityRaw: String?
     // API amigable para priority
