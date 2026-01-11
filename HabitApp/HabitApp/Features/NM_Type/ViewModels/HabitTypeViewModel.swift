@@ -6,42 +6,51 @@ class HabitTypeViewModel: ObservableObject {
     var habitID: UUID
     var context: ModelContext
     
-    @Published var selectedType: HabitCompletionType = .binary
-    @Published var targetValue: String = ""
-    @Published var unit: String = ""
+    @Published var selectedType: HabitCompletionType
+    @Published var targetValue: String
+    @Published var unit: String
     
     // Variables auxiliares para el Timer Picker
-    @Published var selectedMinutes: Int = 0
-    @Published var selectedSeconds: Int = 0
+    @Published var selectedMinutes: Int
+    @Published var selectedSeconds: Int
     
     private var habitTypeModel: HabitType?
     
     init(habitID: UUID, context: ModelContext) {
         self.habitID = habitID
         self.context = context
-        loadData()
-    }
-    
-    func loadData() {
+        
+        // Cargar datos ANTES de inicializar @Published properties
         let id = habitID
         let descriptor = FetchDescriptor<HabitType>(predicate: #Predicate { $0.habitID == id })
         
         if let existing = try? context.fetch(descriptor).first {
-            habitTypeModel = existing
-            selectedType = existing.type
+            self.habitTypeModel = existing
+            self.selectedType = existing.type
+            
             if let val = existing.targetValue {
-                targetValue = String(format: "%.0f", val)
+                self.targetValue = String(format: "%.0f", val)
                 
                 // Cargar minutos y segundos
                 let totalSeconds = Int(val)
-                selectedMinutes = totalSeconds / 60
-                selectedSeconds = totalSeconds % 60
+                self.selectedMinutes = totalSeconds / 60
+                self.selectedSeconds = totalSeconds % 60
+            } else {
+                self.targetValue = ""
+                self.selectedMinutes = 0
+                self.selectedSeconds = 0
             }
-            unit = existing.unit ?? ""
+            
+            self.unit = existing.unit ?? ""
         } else {
             let new = HabitType(habitID: habitID)
             context.insert(new)
-            habitTypeModel = new
+            self.habitTypeModel = new
+            self.selectedType = .binary
+            self.targetValue = ""
+            self.unit = ""
+            self.selectedMinutes = 0
+            self.selectedSeconds = 0
         }
     }
     
