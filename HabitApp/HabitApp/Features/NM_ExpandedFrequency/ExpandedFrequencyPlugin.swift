@@ -56,9 +56,15 @@ class ExpandedFrequencyPlugin: NSObject, FeaturePlugin, ViewPlugin, LogicPlugin 
         if let freq = loadFrequency(for: habit) {
             switch freq.type {
             case .daily:
-                return nil // Use default logic
-            case .weekly, .monthly, .addiction:
-                return true // Show every day
+                return nil // Usa lógica por defecto
+                
+            case .weekly, .monthly:
+                // Si ya está completado en el periodo, ocultarlo
+                // Si NO está completado, mostrarlo (no delegar a frecuencia)
+                return isHabitCompleted(habit: habit, date: date) == true ? false : true
+                
+            case .addiction:
+                return true // Siempre visible
             }
         }
         
