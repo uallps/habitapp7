@@ -21,6 +21,20 @@
                ReferencedContainer = "container:HabitApp.xcodeproj">
             </BuildableReference>
          </BuildActionEntry>
+         <BuildActionEntry
+            buildForTesting = "YES"
+            buildForRunning = "NO"
+            buildForProfiling = "NO"
+            buildForArchiving = "NO"
+            buildForAnalyzing = "NO">
+            <BuildableReference
+               BuildableIdentifier = "primary"
+               BlueprintIdentifier = "35EC43132F0D9CAA00FA119B"
+               BuildableName = "HabitAppPremiumTests.xctest"
+               BlueprintName = "HabitAppPremiumTests"
+               ReferencedContainer = "container:HabitApp.xcodeproj">
+            </BuildableReference>
+         </BuildActionEntry>
       </BuildActionEntries>
    </BuildAction>
    <TestAction

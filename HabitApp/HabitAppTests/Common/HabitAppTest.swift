@@ -4,7 +4,15 @@
 //
 
 import XCTest
+#if canImport(HabitApp_Premium)
+@testable import HabitApp_Premium
+#elseif canImport(HabitApp_Standard)
+@testable import HabitApp_Standard
+#elseif canImport(HabitApp_Core)
+@testable import HabitApp_Core
+#else
 @testable import HabitApp
+#endif
 
 final class HabitAppTest: XCTestCase {
     

@@ -15,9 +15,9 @@
             buildForAnalyzing = "YES">
             <BuildableReference
                BuildableIdentifier = "primary"
-               BlueprintIdentifier = "35EC42D02F0D982800FA119B"
-               BuildableName = "HabitApp-Core.app"
-               BlueprintName = "HabitApp-Core"
+               BlueprintIdentifier = "35EC42D92F0D982A00FA119B"
+               BuildableName = "HabitApp-Standard.app"
+               BlueprintName = "HabitApp-Standard"
                ReferencedContainer = "container:HabitApp.xcodeproj">
             </BuildableReference>
          </BuildActionEntry>
@@ -29,9 +29,9 @@
             buildForAnalyzing = "NO">
             <BuildableReference
                BuildableIdentifier = "primary"
-               BlueprintIdentifier = "35EC42EE2F0D9C6000FA119B"
-               BuildableName = "HabitAppCoreTests.xctest"
-               BlueprintName = "HabitAppCoreTests"
+               BlueprintIdentifier = "35EC43062F0D9C8D00FA119B"
+               BuildableName = "HabitAppStandardTests.xctest"
+               BlueprintName = "HabitAppStandardTests"
                ReferencedContainer = "container:HabitApp.xcodeproj">
             </BuildableReference>
          </BuildActionEntry>
@@ -49,9 +49,9 @@
             parallelizable = "YES">
             <BuildableReference
                BuildableIdentifier = "primary"
-               BlueprintIdentifier = "35EC42EE2F0D9C6000FA119B"
-               BuildableName = "HabitAppCoreTests.xctest"
-               BlueprintName = "HabitAppCoreTests"
+               BlueprintIdentifier = "35EC43062F0D9C8D00FA119B"
+               BuildableName = "HabitAppStandardTests.xctest"
+               BlueprintName = "HabitAppStandardTests"
                ReferencedContainer = "container:HabitApp.xcodeproj">
             </BuildableReference>
          </TestableReference>
@@ -71,9 +71,9 @@
          runnableDebuggingMode = "0">
          <BuildableReference
             BuildableIdentifier = "primary"
-            BlueprintIdentifier = "35EC42D02F0D982800FA119B"
-            BuildableName = "HabitApp-Core.app"
-            BlueprintName = "HabitApp-Core"
+            BlueprintIdentifier = "35EC42D92F0D982A00FA119B"
+            BuildableName = "HabitApp-Standard.app"
+            BlueprintName = "HabitApp-Standard"
             ReferencedContainer = "container:HabitApp.xcodeproj">
          </BuildableReference>
       </BuildableProductRunnable>
@@ -88,9 +88,9 @@
          runnableDebuggingMode = "0">
          <BuildableReference
             BuildableIdentifier = "primary"
-            BlueprintIdentifier = "35EC42D02F0D982800FA119B"
-            BuildableName = "HabitApp-Core.app"
-            BlueprintName = "HabitApp-Core"
+            BlueprintIdentifier = "35EC42D92F0D982A00FA119B"
+            BuildableName = "HabitApp-Standard.app"
+            BlueprintName = "HabitApp-Standard"
             ReferencedContainer = "container:HabitApp.xcodeproj">
          </BuildableReference>
       </BuildableProductRunnable>

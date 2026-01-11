@@ -32,6 +32,10 @@
 
 /* Begin PBXFileReference section */
 		3549249C2EA9492500A3BFCC /* HabitApp.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = HabitApp.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		35B6B2612F13E6130027EC7A /* Desktop */ = {isa = PBXFileReference; lastKnownFileType = folder; name = Desktop; path = ../../..; sourceTree = "<group>"; };
+		35B6B2622F13E61D0027EC7A /* habitapp7 */ = {isa = PBXFileReference; lastKnownFileType = folder; name = habitapp7; path = ../..; sourceTree = "<group>"; };
+		35B6B2632F13E6340027EC7A /* Common */ = {isa = PBXFileReference; lastKnownFileType = folder; name = Common; path = HabitAppTests/Common; sourceTree = "<group>"; };
+		35B6B2642F13E6560027EC7A /* __MACOSX */ = {isa = PBXFileReference; lastKnownFileType = folder; name = __MACOSX; path = ../../__MACOSX; sourceTree = "<group>"; };
 		35EC42D72F0D982800FA119B /* HabitApp-Core.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "HabitApp-Core.app"; sourceTree = BUILT_PRODUCTS_DIR; };
 		35EC42E02F0D982A00FA119B /* HabitApp-Standard.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "HabitApp-Standard.app"; sourceTree = BUILT_PRODUCTS_DIR; };
 		35EC42EF2F0D9C6000FA119B /* HabitAppCoreTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = HabitAppCoreTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -320,6 +324,10 @@
 		354924932EA9492500A3BFCC = {
 			isa = PBXGroup;
 			children = (
+				35B6B2642F13E6560027EC7A /* __MACOSX */,
+				35B6B2632F13E6340027EC7A /* Common */,
+				35B6B2622F13E61D0027EC7A /* habitapp7 */,
+				35B6B2612F13E6130027EC7A /* Desktop */,
 				3549249E2EA9492500A3BFCC /* HabitApp */,
 				35B693412F106C260027EC7A /* HabitAppTests */,
 				3549249D2EA9492500A3BFCC /* Products */,
