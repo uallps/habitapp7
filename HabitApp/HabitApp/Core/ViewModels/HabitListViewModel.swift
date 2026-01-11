@@ -90,7 +90,9 @@ class HabitListViewModel: ObservableObject {
         markGroupingDirty()
         markCategoryCacheDirty()
         if let index = habits.firstIndex(where: { $0.id == habit.id }) {
-            habits[index] = habit
+            var updatedHabits = habits
+            updatedHabits[index] = habit
+            habits = updatedHabits
         }
         persist()
     }

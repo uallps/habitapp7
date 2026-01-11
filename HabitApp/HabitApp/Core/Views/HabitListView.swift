@@ -83,6 +83,7 @@ private enum CategoryFilter: Equatable {
                                     isCompletionEnabled: true,
                                     isInactive: false
                                 )
+                                .id("today-\(habit.id)")
                             }
 
                             sectionHeader("Otros dias")
@@ -99,6 +100,7 @@ private enum CategoryFilter: Equatable {
                                     isCompletionEnabled: false,
                                     isInactive: true
                                 )
+                                .id("other-\(habit.id)")
                             }
                         }
                         .padding(.horizontal, contentPadding)

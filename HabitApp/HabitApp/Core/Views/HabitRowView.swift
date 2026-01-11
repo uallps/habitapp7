@@ -25,23 +25,25 @@ struct HabitRowView: View {
             toggleAction: toggleCompletion
         )
         let isCompletedToday = habit.isCompletedToday
+        let shouldShowCompleted = isCompletedToday
         let streak = habit.getStreak()
         let shouldLoadTodayEntry = appConfig.enableDiary && isCompletedToday
         let todayEntry = shouldLoadTodayEntry ? getTodayCompletionEntry() : nil
-        let rowBackground = isCompletedToday
-            ? completedCardBackground
-            : (isInactive ? inactiveCardBackground : cardBackground)
-        let rowBorder = isCompletedToday
-            ? completedBorderColor
-            : (isInactive ? inactiveBorderColor : borderColor)
+        let rowBackground = isInactive
+            ? inactiveCardBackground
+            : (isCompletedToday ? completedCardBackground : cardBackground)
+        let rowBorder = isInactive
+            ? inactiveBorderColor
+            : (isCompletedToday ? completedBorderColor : borderColor)
         let rowPadding = isCompactLayout ? 12.0 : 16.0
-        let titleColor = (isCompletedToday || isInactive) ? secondaryTextColor : primaryTextColor
+        let titleColor = (shouldShowCompleted || isInactive) ? secondaryTextColor : primaryTextColor
 
         return HStack(spacing: isCompactLayout ? 6 : 12) {
             if let customCompletion = customCompletion {
                 customCompletion
                     .opacity(isCompletionEnabled ? 1 : 0.5)
                     .allowsHitTesting(isCompletionEnabled)
+                    .disabled(!isCompletionEnabled)
             } else {
                 Button(action: toggleCompletion) {
                     Image(systemName: isCompletedToday ? "checkmark.circle.fill" : "circle")
@@ -94,7 +96,7 @@ struct HabitRowView: View {
                 .stroke(rowBorder, lineWidth: 1)
         )
         .overlay(alignment: .center) {
-            if isCompletedToday {
+            if shouldShowCompleted {
                 Rectangle()
                     .fill(secondaryTextColor.opacity(colorScheme == .dark ? 0.4 : 0.35))
                     .frame(height: 1)
@@ -105,7 +107,7 @@ struct HabitRowView: View {
         }
         .clipShape(RoundedRectangle(cornerRadius: 16))
         .overlay(alignment: .center) {
-            if isCompletedToday {
+            if shouldShowCompleted {
                 HStack(spacing: isCompactLayout ? 4 : 6) {
                     Color.clear
                         .frame(maxWidth: .infinity)
@@ -128,7 +130,7 @@ struct HabitRowView: View {
             x: 0,
             y: reduceEffects ? 0 : 4
         )
-        .opacity(isInactive ? 0.7 : 1)
+        .opacity(isInactive ? 0.85 : 1)
         .sheet(isPresented: $showDiaryEntry) {
             if let todayEntry = todayEntry {
                 DiaryEntryView(
@@ -201,8 +203,8 @@ struct HabitRowView: View {
 
     private var inactiveCardBackground: Color {
         colorScheme == .dark
-            ? taskDark.opacity(0.6)
-            : Color.white.opacity(0.7)
+            ? Color(red: 30 / 255, green: 20 / 255, blue: 15 / 255)
+            : Color(red: 240 / 255, green: 234 / 255, blue: 230 / 255)
     }
 
     private var completedCardBackground: Color {
