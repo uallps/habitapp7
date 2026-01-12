@@ -29,7 +29,7 @@
             buildForAnalyzing = "NO">
             <BuildableReference
                BuildableIdentifier = "primary"
-               BlueprintIdentifier = "35EC43062F0D9C8D00FA119B"
+               BlueprintIdentifier = "35DAFEA62F156285009FAACC"
                BuildableName = "HabitAppStandardTests.xctest"
                BlueprintName = "HabitAppStandardTests"
                ReferencedContainer = "container:HabitApp.xcodeproj">
@@ -49,7 +49,7 @@
             parallelizable = "YES">
             <BuildableReference
                BuildableIdentifier = "primary"
-               BlueprintIdentifier = "35EC43062F0D9C8D00FA119B"
+               BlueprintIdentifier = "35DAFEA62F156285009FAACC"
                BuildableName = "HabitAppStandardTests.xctest"
                BlueprintName = "HabitAppStandardTests"
                ReferencedContainer = "container:HabitApp.xcodeproj">

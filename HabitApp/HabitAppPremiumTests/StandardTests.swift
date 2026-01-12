@@ -7,7 +7,7 @@
 
 import XCTest
 import SwiftData
-@testable import HabitApp_Premium
+@testable import HabitApp
 
 /// Tests de funcionalidad Standard ejecutados en Premium
 /// Verifica que las features Standard sigan funcionando en Premium

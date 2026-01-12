@@ -68,86 +68,64 @@
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
-		35B6936E2F106C260027EC7A /* Exceptions for "HabitAppTests" folder in "HabitApp" target */ = {
+		353E0CF72F15779500617E29 /* Exceptions for "HabitAppTestsAux" folder in "HabitAppPremiumTests" target */ = {
 			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
 			membershipExceptions = (
-				Common/HabitAppTest.swift,
-				Common/HabitListViewModelTest.swift,
-				Common/HabitTest.swift,
-				Common/SwiftDataTestCase.swift,
-				Common/SwiftDataTestStack.swift,
-				CoreUITests/CoreUITests.swift,
-				CoreVersion/CoreTests.swift,
-				PremiumUITests/PremiumUITests.swift,
-				PremiumVersion/ExpandedFrequencyTest.swift,
-				PremiumVersion/HabitTypeTest.swift,
-				PremiumVersion/PauseDayTest.swift,
-				PremiumVersion/PremiumTests.swift,
-				StandardUITests/CategoryUITests.swift,
-				StandardUITests/StandardUITests.swift,
-				StandardVersion/CategoryTest.swift,
-				StandardVersion/DiaryTest.swift,
-				StandardVersion/DiaryViewModelTest.swift,
-				StandardVersion/ReminderManagerTest.swift,
-				StandardVersion/StandardTests.swift,
-				StandardVersion/StatsViewModelTest.swift,
-				StandardVersion/StreakTest.swift,
+				MockStorageProvider.swift,
+				SwiftDataTestCase.swift,
+				SwiftDataTestStack.swift,
+				Unit/CoreTestSuite.swift,
+				Unit/StandardTestSuite.swift,
 			);
-			target = 3549249B2EA9492500A3BFCC /* HabitApp */;
+			target = 35DAFE992F156219009FAACC /* HabitAppPremiumTests */;
 		};
-		35B6936F2F106C260027EC7A /* Exceptions for "HabitAppTests" folder in "HabitApp-Core" target */ = {
+		353E0CF82F15779500617E29 /* Exceptions for "HabitAppTestsAux" folder in "HabitAppStandardTests" target */ = {
 			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
 			membershipExceptions = (
-				Common/HabitAppTest.swift,
-				Common/HabitListViewModelTest.swift,
-				Common/HabitTest.swift,
-				Common/SwiftDataTestCase.swift,
-				Common/SwiftDataTestStack.swift,
-				CoreUITests/CoreUITests.swift,
-				CoreVersion/CoreTests.swift,
-				PremiumUITests/PremiumUITests.swift,
-				PremiumVersion/ExpandedFrequencyTest.swift,
-				PremiumVersion/HabitTypeTest.swift,
-				PremiumVersion/PauseDayTest.swift,
-				PremiumVersion/PremiumTests.swift,
-				StandardUITests/CategoryUITests.swift,
-				StandardUITests/StandardUITests.swift,
-				StandardVersion/CategoryTest.swift,
-				StandardVersion/DiaryTest.swift,
-				StandardVersion/DiaryViewModelTest.swift,
-				StandardVersion/ReminderManagerTest.swift,
-				StandardVersion/StandardTests.swift,
-				StandardVersion/StatsViewModelTest.swift,
-				StandardVersion/StreakTest.swift,
+				MockStorageProvider.swift,
+				SwiftDataTestCase.swift,
+				SwiftDataTestStack.swift,
+				Unit/CoreTestSuite.swift,
+				Unit/StandardTestSuite.swift,
 			);
-			target = 35EC42D02F0D982800FA119B /* HabitApp-Core */;
+			target = 35DAFEA62F156285009FAACC /* HabitAppStandardTests */;
 		};
-		35B693702F106C260027EC7A /* Exceptions for "HabitAppTests" folder in "HabitApp-Standard" target */ = {
+		353E0CF92F15779500617E29 /* Exceptions for "HabitAppTestsAux" folder in "HabitAppCoreTests" target */ = {
 			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
 			membershipExceptions = (
-				Common/HabitAppTest.swift,
-				Common/HabitListViewModelTest.swift,
-				Common/HabitTest.swift,
-				Common/SwiftDataTestCase.swift,
-				Common/SwiftDataTestStack.swift,
-				CoreUITests/CoreUITests.swift,
-				CoreVersion/CoreTests.swift,
-				PremiumUITests/PremiumUITests.swift,
-				PremiumVersion/ExpandedFrequencyTest.swift,
-				PremiumVersion/HabitTypeTest.swift,
-				PremiumVersion/PauseDayTest.swift,
-				PremiumVersion/PremiumTests.swift,
-				StandardUITests/CategoryUITests.swift,
-				StandardUITests/StandardUITests.swift,
-				StandardVersion/CategoryTest.swift,
-				StandardVersion/DiaryTest.swift,
-				StandardVersion/DiaryViewModelTest.swift,
-				StandardVersion/ReminderManagerTest.swift,
-				StandardVersion/StandardTests.swift,
-				StandardVersion/StatsViewModelTest.swift,
-				StandardVersion/StreakTest.swift,
+				MockStorageProvider.swift,
+				SwiftDataTestCase.swift,
+				SwiftDataTestStack.swift,
+				Unit/CoreTestSuite.swift,
 			);
-			target = 35EC42D92F0D982A00FA119B /* HabitApp-Standard */;
+			target = 35DAFEB32F1562E4009FAACC /* HabitAppCoreTests */;
+		};
+		353E0D082F1577D200617E29 /* Exceptions for "HabitAppTestsAux" folder in "HabitAppPremiumUITests" target */ = {
+			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
+			membershipExceptions = (
+				UI/UIElements.swift,
+				UI/UITestBase.swift,
+				UI/UIWorkflows.swift,
+			);
+			target = 35DAFE6C2F15601D009FAACC /* HabitAppPremiumUITests */;
+		};
+		353E0D092F1577D200617E29 /* Exceptions for "HabitAppTestsAux" folder in "HabitAppStandardUITests" target */ = {
+			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
+			membershipExceptions = (
+				UI/UIElements.swift,
+				UI/UITestBase.swift,
+				UI/UIWorkflows.swift,
+			);
+			target = 35DAFE7B2F1560B4009FAACC /* HabitAppStandardUITests */;
+		};
+		353E0D0A2F1577D200617E29 /* Exceptions for "HabitAppTestsAux" folder in "HabitAppCoreUITests" target */ = {
+			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
+			membershipExceptions = (
+				UI/UIElements.swift,
+				UI/UITestBase.swift,
+				UI/UIWorkflows.swift,
+			);
+			target = 35DAFE8A2F156110009FAACC /* HabitAppCoreUITests */;
 		};
 		35EC42D82F0D982900FA119B /* Exceptions for "HabitApp" folder in "HabitApp-Core" target */ = {
 			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
@@ -223,6 +201,19 @@
 /* End PBXFileSystemSynchronizedGroupBuildPhaseMembershipExceptionSet section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
+		353E0CF32F1575EF00617E29 /* HabitAppTestsAux */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			exceptions = (
+				353E0D082F1577D200617E29 /* Exceptions for "HabitAppTestsAux" folder in "HabitAppPremiumUITests" target */,
+				353E0D092F1577D200617E29 /* Exceptions for "HabitAppTestsAux" folder in "HabitAppStandardUITests" target */,
+				353E0D0A2F1577D200617E29 /* Exceptions for "HabitAppTestsAux" folder in "HabitAppCoreUITests" target */,
+				353E0CF72F15779500617E29 /* Exceptions for "HabitAppTestsAux" folder in "HabitAppPremiumTests" target */,
+				353E0CF82F15779500617E29 /* Exceptions for "HabitAppTestsAux" folder in "HabitAppStandardTests" target */,
+				353E0CF92F15779500617E29 /* Exceptions for "HabitAppTestsAux" folder in "HabitAppCoreTests" target */,
+			);
+			path = HabitAppTestsAux;
+			sourceTree = "<group>";
+		};
 		3549249E2EA9492500A3BFCC /* HabitApp */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
 			exceptions = (
@@ -236,11 +227,6 @@
 		};
 		35B693412F106C260027EC7A /* HabitAppTests */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
-			exceptions = (
-				35B6936E2F106C260027EC7A /* Exceptions for "HabitAppTests" folder in "HabitApp" target */,
-				35B6936F2F106C260027EC7A /* Exceptions for "HabitAppTests" folder in "HabitApp-Core" target */,
-				35B693702F106C260027EC7A /* Exceptions for "HabitAppTests" folder in "HabitApp-Standard" target */,
-			);
 			path = HabitAppTests;
 			sourceTree = "<group>";
 		};
@@ -346,6 +332,7 @@
 		354924932EA9492500A3BFCC = {
 			isa = PBXGroup;
 			children = (
+				353E0CF32F1575EF00617E29 /* HabitAppTestsAux */,
 				35B6B2642F13E6560027EC7A /* __MACOSX */,
 				35B6B2632F13E6340027EC7A /* Common */,
 				35B6B2622F13E61D0027EC7A /* habitapp7 */,
@@ -961,8 +948,8 @@
 				PRODUCT_BUNDLE_IDENTIFIER = es.ual.HabitApp;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				STRING_CATALOG_GENERATE_SYMBOLS = YES;
-				SWIFT_ACTIVE_COMPILATION_CONDITIONS = "DEBUG $(inherited) PREMIUM_VERSION CATEGORY_FEATURE DIARY_FEATURE REMINDERS_FEATURE STATS_FEATURE STREAKS_FEATURE EXPANDED_FREQUENCY_FEATURE PAUSE_DAY_FEATURE HABIT_TYPE_FEATURE";
-				"SWIFT_ACTIVE_COMPILATION_CONDITIONS[arch=*]" = "DEBUG $(inherited) PREMIUM_VERSION CATEGORY_FEATURE DIARY_FEATURE REMINDERS_FEATURE STATS_FEATURE STREAKS_FEATURE EXPANDED_FREQUENCY_FEATURE PAUSE_DAY_FEATURE HABIT_TYPE_FEATURE";
+				SWIFT_ACTIVE_COMPILATION_CONDITIONS = "DEBUG CATEGORY_FEATURE DIARY_FEATURE REMINDERS_FEATURE STATS_FEATURE STREAKS_FEATURE";
+				"SWIFT_ACTIVE_COMPILATION_CONDITIONS[arch=*]" = "DEBUG CATEGORY_FEATURE DIARY_FEATURE REMINDERS_FEATURE STATS_FEATURE STREAKS_FEATURE";
 				SWIFT_APPROACHABLE_CONCURRENCY = YES;
 				SWIFT_DEFAULT_ACTOR_ISOLATION = MainActor;
 				SWIFT_EMIT_LOC_STRINGS = YES;
@@ -994,7 +981,7 @@
 				PRODUCT_BUNDLE_IDENTIFIER = es.ual.HabitApp;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				STRING_CATALOG_GENERATE_SYMBOLS = YES;
-				SWIFT_ACTIVE_COMPILATION_CONDITIONS = "$(inherited) PREMIUM_VERSION CATEGORY_FEATURE DIARY_FEATURE REMINDERS_FEATURE STATS_FEATURE STREAKS_FEATURE EXPANDED_FREQUENCY_FEATURE PAUSE_DAY_FEATURE HABIT_TYPE_FEATURE";
+				SWIFT_ACTIVE_COMPILATION_CONDITIONS = "CATEGORY_FEATURE DIARY_FEATURE REMINDERS_FEATURE STATS_FEATURE STREAKS_FEATURE";
 				SWIFT_APPROACHABLE_CONCURRENCY = YES;
 				SWIFT_DEFAULT_ACTOR_ISOLATION = MainActor;
 				SWIFT_EMIT_LOC_STRINGS = YES;
@@ -1092,7 +1079,7 @@
 				PRODUCT_BUNDLE_IDENTIFIER = ual.HabitAppCoreUITests;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				STRING_CATALOG_GENERATE_SYMBOLS = NO;
-				SWIFT_ACTIVE_COMPILATION_CONDITIONS = "DEBUG $(inherited)";
+				SWIFT_ACTIVE_COMPILATION_CONDITIONS = DEBUG;
 				SWIFT_APPROACHABLE_CONCURRENCY = YES;
 				SWIFT_EMIT_LOC_STRINGS = NO;
 				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
@@ -1214,7 +1201,7 @@
 				PRODUCT_BUNDLE_IDENTIFIER = ual.HabitAppCoreTests;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				STRING_CATALOG_GENERATE_SYMBOLS = NO;
-				SWIFT_ACTIVE_COMPILATION_CONDITIONS = "DEBUG $(inherited)";
+				SWIFT_ACTIVE_COMPILATION_CONDITIONS = DEBUG;
 				SWIFT_APPROACHABLE_CONCURRENCY = YES;
 				SWIFT_EMIT_LOC_STRINGS = NO;
 				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
@@ -1267,8 +1254,8 @@
 				PRODUCT_BUNDLE_IDENTIFIER = es.ual.HabitApp;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				STRING_CATALOG_GENERATE_SYMBOLS = YES;
-				SWIFT_ACTIVE_COMPILATION_CONDITIONS = "DEBUG $(inherited) CORE_VERSION";
-				"SWIFT_ACTIVE_COMPILATION_CONDITIONS[arch=*]" = "DEBUG $(inherited) CORE_VERSION";
+				SWIFT_ACTIVE_COMPILATION_CONDITIONS = DEBUG;
+				"SWIFT_ACTIVE_COMPILATION_CONDITIONS[arch=*]" = "";
 				SWIFT_APPROACHABLE_CONCURRENCY = YES;
 				SWIFT_DEFAULT_ACTOR_ISOLATION = MainActor;
 				SWIFT_EMIT_LOC_STRINGS = YES;
@@ -1300,7 +1287,7 @@
 				PRODUCT_BUNDLE_IDENTIFIER = es.ual.HabitApp;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				STRING_CATALOG_GENERATE_SYMBOLS = YES;
-				SWIFT_ACTIVE_COMPILATION_CONDITIONS = "$(inherited) CORE_VERSION";
+				SWIFT_ACTIVE_COMPILATION_CONDITIONS = "$(inherited)";
 				SWIFT_APPROACHABLE_CONCURRENCY = YES;
 				SWIFT_DEFAULT_ACTOR_ISOLATION = MainActor;
 				SWIFT_EMIT_LOC_STRINGS = YES;
@@ -1333,8 +1320,8 @@
 				PRODUCT_BUNDLE_IDENTIFIER = es.ual.HabitApp;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				STRING_CATALOG_GENERATE_SYMBOLS = YES;
-				SWIFT_ACTIVE_COMPILATION_CONDITIONS = "DEBUG $(inherited) STANDARD_VERSION DIARY_FEATURE CATEGORY_FEATURE REMINDERS_FEATURE STATS_FEATURE STREAKS_FEATURE";
-				"SWIFT_ACTIVE_COMPILATION_CONDITIONS[arch=*]" = "DEBUG $(inherited) STANDARD_VERSION DIARY_FEATURE CATEGORY_FEATURE REMINDERS_FEATURE STATS_FEATURE STREAKS_FEATURE";
+				SWIFT_ACTIVE_COMPILATION_CONDITIONS = "DEBUG DIARY_FEATURE CATEGORY_FEATURE REMINDERS_FEATURE STATS_FEATURE STREAKS_FEATURE";
+				"SWIFT_ACTIVE_COMPILATION_CONDITIONS[arch=*]" = "DEBUG DIARY_FEATURE CATEGORY_FEATURE REMINDERS_FEATURE STATS_FEATURE STREAKS_FEATURE";
 				SWIFT_APPROACHABLE_CONCURRENCY = YES;
 				SWIFT_DEFAULT_ACTOR_ISOLATION = MainActor;
 				SWIFT_EMIT_LOC_STRINGS = YES;
@@ -1366,7 +1353,7 @@
 				PRODUCT_BUNDLE_IDENTIFIER = es.ual.HabitApp;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				STRING_CATALOG_GENERATE_SYMBOLS = YES;
-				SWIFT_ACTIVE_COMPILATION_CONDITIONS = "$(inherited) STANDARD_VERSION DIARY_FEATURE CATEGORY_FEATURE REMINDERS_FEATURE STATS_FEATURE STREAKS_FEATURE";
+				SWIFT_ACTIVE_COMPILATION_CONDITIONS = "DIARY_FEATURE CATEGORY_FEATURE REMINDERS_FEATURE STATS_FEATURE STREAKS_FEATURE";
 				SWIFT_APPROACHABLE_CONCURRENCY = YES;
 				SWIFT_DEFAULT_ACTOR_ISOLATION = MainActor;
 				SWIFT_EMIT_LOC_STRINGS = YES;

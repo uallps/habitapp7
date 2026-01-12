@@ -10,14 +10,15 @@
 
 import Testing
 import SwiftData
+import Foundation
 
 // Import condicional según el target que compile
-#if canImport(HabitApp_Premium)
-@testable import HabitApp_Premium
+#if canImport(HabitApp)
+@testable import HabitApp
 #elseif canImport(HabitApp_Standard)
 @testable import HabitApp_Standard
-#else
-@testable import HabitApp
+#elseif canImport(HabitApp_Core)
+@testable import HabitApp_Core
 #endif
 
 /// Tests de funcionalidad Standard
@@ -47,6 +48,7 @@ struct StandardTestSuite {
     }
 
     @Test("Streaks feature is available")
+    @MainActor
     func streaksAvailable() throws {
         let context = SwiftDataTestStack.makeContext()
         let habit = Habit(title: "Test", frequency: [.monday])
@@ -66,7 +68,7 @@ struct StandardTestSuite {
     // MARK: - Test de Funcionalidad Integrada
 
     @Test("Category integration with Habit")
-    func categoryIntegrationWithHabit() throws {
+    @MainActor    func categoryIntegrationWithHabit() throws {
         let context = SwiftDataTestStack.makeContext()
         let habit = Habit(title: "Test Habit", frequency: [.monday])
         let category = Category(name: "Health", categoryDescription: "Health habits")
@@ -81,6 +83,7 @@ struct StandardTestSuite {
     }
 
     @Test("Diary integration with CompletionEntry")
+    @MainActor
     func diaryIntegrationWithCompletion() throws {
         let context = SwiftDataTestStack.makeContext()
         let entry = CompletionEntry(date: Date())

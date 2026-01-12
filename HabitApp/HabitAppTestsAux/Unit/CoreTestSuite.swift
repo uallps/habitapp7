@@ -10,17 +10,17 @@
 //
 
 import Testing
+import Foundation
 
 // Import condicional según el target que compile
-#if canImport(HabitApp_Premium)
-@testable import HabitApp_Premium
+#if canImport(HabitApp)
+@testable import HabitApp
 #elseif canImport(HabitApp_Standard)
 @testable import HabitApp_Standard
 #elseif canImport(HabitApp_Core)
 @testable import HabitApp_Core
-#else
-@testable import HabitApp
 #endif
+
 
 /// Tests de funcionalidad Core
 /// Este archivo es compartido por Core, Standard y Premium

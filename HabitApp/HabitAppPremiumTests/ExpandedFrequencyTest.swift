@@ -6,7 +6,7 @@
 //
 
 import XCTest
-@testable import HabitApp_Premium
+@testable import HabitApp
 
 final class ExpandedFrequencyTest: XCTestCase {
 

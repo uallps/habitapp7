@@ -5,20 +5,13 @@
 
 import Foundation
 import SwiftData
-#if CORE_VERSION
-@testable import HabitApp_Core
-#elseif STANDARD_VERSION
-@testable import HabitApp_Standard
-#elseif PREMIUM_VERSION
-@testable import HabitApp_Premium
-#elseif canImport(HabitApp_Premium)
-@testable import HabitApp_Premium
+
+#if canImport(HabitApp)
+@testable import HabitApp
 #elseif canImport(HabitApp_Standard)
 @testable import HabitApp_Standard
 #elseif canImport(HabitApp_Core)
 @testable import HabitApp_Core
-#else
-@testable import HabitApp
 #endif
 
 @MainActor

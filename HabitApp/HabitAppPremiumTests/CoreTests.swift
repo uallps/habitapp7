@@ -6,7 +6,7 @@
 //
 
 import XCTest
-@testable import HabitApp_Premium
+@testable import HabitApp
 
 /// Tests de funcionalidad Core ejecutados en Premium
 /// Verifica que las funcionalidades básicas sigan funcionando en Premium

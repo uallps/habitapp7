@@ -7,7 +7,7 @@
 
 import XCTest
 import SwiftData
-@testable import HabitApp_Premium
+@testable import HabitApp
 
 /// Tests que deben ejecutarse en la version PREMIUM
 /// Esta version incluye TODO:
