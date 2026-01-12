@@ -83,6 +83,9 @@ class HabitListViewModel: ObservableObject {
             let entry = CompletionEntry(date: targetDate)
             habits[index].completed.append(entry)
         }
+#if STREAKS_FEATURE
+        habits[index].checkAndUpdateStreak(on: targetDate)
+#endif
         persist()
     }
 

@@ -4,6 +4,7 @@
 //
 
 import XCTest
+import SwiftData
 #if CORE_VERSION
 @testable import HabitApp_Core
 #elseif STANDARD_VERSION
@@ -20,7 +21,34 @@ import XCTest
 @testable import HabitApp
 #endif
 
-final class StreakTest: XCTestCase {
+final class StreakTest: SwiftDataTestCase {
+    private var context: ModelContext?
+    private var container: ModelContainer?
+
+    private func makeInMemoryContext() throws -> ModelContext {
+        let context = SwiftDataTestStack.makeContext()
+        container = SwiftDataTestStack.container
+        return context
+    }
+
+    private func makeEntry(date: Date = Date()) -> CompletionEntry {
+        let entry = CompletionEntry(date: date)
+        context?.insert(entry)
+        return entry
+    }
+
+    override func setUpWithError() throws {
+        try super.setUpWithError()
+        context = try makeInMemoryContext()
+    }
+
+    override func tearDown() {
+        context = nil
+        container = nil
+        SwiftDataContext.shared = nil
+        SwiftDataContext.sharedContainer = nil
+        super.tearDown()
+    }
     
     // MARK: - Test de HabitStreakFeature inicializacion
     
@@ -325,7 +353,7 @@ final class StreakTest: XCTestCase {
         habit.setNextDay(today)
         habit.setStreak(0)
         
-        let entry = CompletionEntry(date: today)
+        let entry = makeEntry(date: today)
         habit.completed.append(entry)
         
         // Act
@@ -346,7 +374,7 @@ final class StreakTest: XCTestCase {
         habit.setStreak(5)
         habit.setMaxStreak(5)
         
-        let entry = CompletionEntry(date: today)
+        let entry = makeEntry(date: today)
         habit.completed.append(entry)
         
         // Act
@@ -367,7 +395,7 @@ final class StreakTest: XCTestCase {
         habit.setStreak(3)
         habit.setMaxStreak(10)
         
-        let entry = CompletionEntry(date: today)
+        let entry = makeEntry(date: today)
         habit.completed.append(entry)
         
         // Act

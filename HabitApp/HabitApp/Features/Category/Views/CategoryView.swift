@@ -101,6 +101,7 @@ struct CreateCategoryView: View {
                 }
             }
             .scrollContentBackground(.hidden)
+            .accessibilityIdentifier("CreateCategoryView")
             .background(backgroundColor)
             .tint(primaryColor)
             .navigationTitle("Categoria")

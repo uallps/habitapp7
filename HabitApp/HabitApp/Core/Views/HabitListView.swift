@@ -109,6 +109,7 @@ private enum CategoryFilter: Equatable {
                     }
                 }
             }
+            .accessibilityIdentifier("HabitListView")
             .safeAreaInset(edge: .bottom) {
                 bottomBarView(footerViews: footerViews)
             }
@@ -407,6 +408,7 @@ private enum CategoryFilter: Equatable {
                 .lineLimit(1)
                 .minimumScaleFactor(0.8)
         }
+        .accessibilityIdentifier("CreateCategoryButton")
     }
 
     private var primaryColor: Color {

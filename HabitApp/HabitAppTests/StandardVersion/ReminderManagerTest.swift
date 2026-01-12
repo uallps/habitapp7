@@ -5,6 +5,7 @@
 
 import XCTest
 import UserNotifications
+import SwiftData
 #if CORE_VERSION
 @testable import HabitApp_Core
 #elseif STANDARD_VERSION
@@ -21,21 +22,39 @@ import UserNotifications
 @testable import HabitApp
 #endif
 
-final class ReminderManagerTest: XCTestCase {
+@MainActor
+final class ReminderManagerTest: SwiftDataTestCase {
     
     var reminderManager: ReminderManager!
+    private var context: ModelContext?
+    private var container: ModelContainer?
+
+    private func makeInMemoryContext() throws -> ModelContext {
+        let context = SwiftDataTestStack.makeContext()
+        container = SwiftDataTestStack.container
+        return context
+    }
     
-    override func setUp() {
-        super.setUp()
+    override func setUpWithError() throws {
+        try super.setUpWithError()
         reminderManager = ReminderManager.shared
+        context = try makeInMemoryContext()
+        if let context {
+            reminderManager.configure(modelContext: context, enableReminders: true)
+        }
     }
     
     override func tearDown() {
         // Limpiar notificaciones despues de cada test
+        let manager = reminderManager
         Task {
-            await reminderManager.cancelAllNotifications()
+            await manager?.cancelAllNotifications()
         }
         reminderManager = nil
+        context = nil
+        container = nil
+        SwiftDataContext.shared = nil
+        SwiftDataContext.sharedContainer = nil
         super.tearDown()
     }
     

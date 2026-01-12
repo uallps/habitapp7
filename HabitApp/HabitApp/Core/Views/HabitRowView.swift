@@ -131,6 +131,8 @@ struct HabitRowView: View {
             y: reduceEffects ? 0 : 4
         )
         .opacity(isInactive ? 0.85 : 1)
+        .accessibilityIdentifier("HabitRowView")
+        .accessibilityAddTraits(.isButton)
         .sheet(isPresented: $showDiaryEntry) {
             if let todayEntry = todayEntry {
                 DiaryEntryView(

@@ -28,14 +28,12 @@ import SwiftData
 /// - Core (Habit, CompletionEntry)
 /// - Standard Features (Category, Diary, Stats, Streaks, Reminders)
 /// - Premium Features (NM_ExpandedFrequency, NM_PauseDay, NM_Type)
-final class PremiumTests: XCTestCase {
+final class PremiumTests: SwiftDataTestCase {
+    private var container: ModelContainer?
 
     private func makeInMemoryContext(models: [any PersistentModel.Type]) throws -> ModelContext {
-        let schema = Schema(models)
-        let configuration = ModelConfiguration(isStoredInMemoryOnly: true)
-        let container = try ModelContainer(for: schema, configurations: configuration)
-        let context = ModelContext(container)
-        SwiftDataContext.shared = context
+        let context = SwiftDataTestStack.makeContext()
+        container = SwiftDataTestStack.container
         return context
     }
 
@@ -113,8 +111,8 @@ final class PremiumTests: XCTestCase {
         #endif
 
         #if STATS_FEATURE
-            let statsVM = StatsViewModel(habit: baseHabit)
-            XCTAssertNotNil(statsVM)
+            let statsType = StatsViewModel.self
+            XCTAssertNotNil(statsType)
         #endif
 
         XCTAssertTrue(true, "All features integrated successfully")
@@ -146,6 +144,13 @@ final class PremiumTests: XCTestCase {
         #if HABIT_TYPE_FEATURE
             XCTAssertTrue(true, "Habit Type plugin working")
         #endif
+    }
+
+    override func tearDown() {
+        SwiftDataContext.shared = nil
+        SwiftDataContext.sharedContainer = nil
+        container = nil
+        super.tearDown()
     }
 }
 

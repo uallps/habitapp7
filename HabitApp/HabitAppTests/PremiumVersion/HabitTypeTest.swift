@@ -26,14 +26,12 @@ import SwiftData
 #if HABIT_TYPE_FEATURE
 
 @MainActor
-final class HabitTypeTest: XCTestCase {
+final class HabitTypeTest: SwiftDataTestCase {
+    private var container: ModelContainer?
 
     private func makeInMemoryContext(models: [any PersistentModel.Type]) throws -> ModelContext {
-        let schema = Schema(models)
-        let configuration = ModelConfiguration(isStoredInMemoryOnly: true)
-        let container = try ModelContainer(for: schema, configurations: configuration)
-        let context = ModelContext(container)
-        SwiftDataContext.shared = context
+        let context = SwiftDataTestStack.makeContext()
+        container = SwiftDataTestStack.container
         return context
     }
 
@@ -143,11 +141,18 @@ final class HabitTypeTest: XCTestCase {
 
         XCTAssertTrue(hasPlugin, "HabitTypePlugin should be registered")
     }
+
+    override func tearDown() {
+        SwiftDataContext.shared = nil
+        SwiftDataContext.sharedContainer = nil
+        container = nil
+        super.tearDown()
+    }
 }
 
 #else
 
-final class HabitTypeTest: XCTestCase {
+final class HabitTypeTest: SwiftDataTestCase {
     func testHabitTypeNotAvailable() {
         XCTAssertTrue(true, "HabitType correctly disabled in non-Premium versions")
     }

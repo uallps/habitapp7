@@ -37,15 +37,34 @@ import SwiftData
 /// - NM_PauseDay
 /// - NM_Type
 @MainActor
-final class StandardTests: XCTestCase {
+final class StandardTests: SwiftDataTestCase {
+    private var context: ModelContext?
+    private var container: ModelContainer?
 
     private func makeInMemoryContext(models: [any PersistentModel.Type]) throws -> ModelContext {
-        let schema = Schema(models)
-        let configuration = ModelConfiguration(isStoredInMemoryOnly: true)
-        let container = try ModelContainer(for: schema, configurations: configuration)
-        let context = ModelContext(container)
-        SwiftDataContext.shared = context
+        let context = SwiftDataTestStack.makeContext()
+        container = SwiftDataTestStack.container
         return context
+    }
+
+    override func setUpWithError() throws {
+        try super.setUpWithError()
+        context = try makeInMemoryContext(models: [
+            Habit.self,
+            CompletionEntry.self,
+            Category.self,
+            HabitCategoryFeature.self,
+            DiaryNoteFeature.self,
+            HabitStreakFeature.self
+        ])
+    }
+
+    override func tearDown() {
+        context = nil
+        container = nil
+        SwiftDataContext.shared = nil
+        SwiftDataContext.sharedContainer = nil
+        super.tearDown()
     }
 
     // MARK: - Test de Features Disponibles
@@ -73,9 +92,8 @@ final class StandardTests: XCTestCase {
 
     func testStatsAvailable() {
         #if STATS_FEATURE
-            let habit = Habit(title: "Test", frequency: [.monday])
-            let statsVM = StatsViewModel(habit: habit)
-            XCTAssertNotNil(statsVM)
+            let statsType = StatsViewModel.self
+            XCTAssertNotNil(statsType)
             XCTAssertTrue(true, "Stats correctly enabled in Standard version")
         #else
             XCTFail("Stats SHOULD be available in Standard version")

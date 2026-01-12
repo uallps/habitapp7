@@ -1,4 +1,4 @@
-﻿//
+//
 //  HabitExtendedCategory.swift
 //  HabitApp
 //
@@ -9,7 +9,7 @@ import Foundation
 import SwiftData
 
 /// Modelo intermedio que relaciona Habit con Category
-/// Esta clase permite almacenar la relaciÃ³n en SwiftData
+/// Esta clase permite almacenar la relación en SwiftData
 @Model
 final class HabitCategoryFeature {
     var habitId: UUID
@@ -29,7 +29,7 @@ extension Habit {
         return self.modelContext ?? SwiftDataContext.shared
     }
 
-    /// MÃ©todo para acceder a la categorÃ­a
+    /// Método para acceder a la categoría
     func getCategory() -> Category? {
         guard let context = activeContext else { return nil }
         let habitId = self.id
@@ -39,7 +39,7 @@ extension Habit {
         return try? context.fetch(descriptor).first?.category
     }
     
-    /// MÃ©todo para establecer la categorÃ­a
+    /// Método para establecer la categoría
     func setCategory(_ newCategory: Category?) {
         guard let context = activeContext else { return }
         let habitId = self.id
@@ -64,9 +64,9 @@ extension Habit {
         }
     }
     
-    /// Agrupa hÃ¡bitos por categorÃ­a
-    /// - Parameter habits: Array de hÃ¡bitos a agrupar
-    /// - Returns: Diccionario donde la clave es el nombre de la categorÃ­a (o "Sin categorÃ­a") y el valor es un array de hÃ¡bitos
+    /// Agrupa hábitos por categoría
+    /// - Parameter habits: Array de hábitos a agrupar
+    /// - Returns: Diccionario donde la clave es el nombre de la categoría (o "Sin categoría") y el valor es un array de hábitos
     static func groupByCategory(_ habits: [Habit]) -> [String: [Habit]] {
         var groupedHabits: [String: [Habit]] = [:]
         

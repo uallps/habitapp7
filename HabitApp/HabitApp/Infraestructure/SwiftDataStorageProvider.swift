@@ -11,6 +11,7 @@ import SwiftData
 /// Contexto global de SwiftData para acceder desde extensiones
 class SwiftDataContext {
     static var shared: ModelContext?
+    static var sharedContainer: ModelContainer?
 }
 
 class SwiftDataStorageProvider: StorageProvider {
@@ -24,6 +25,7 @@ class SwiftDataStorageProvider: StorageProvider {
         do {
             self.modelContainer = try ModelContainer(for: schema)
             self.context = ModelContext(self.modelContainer)
+            SwiftDataContext.sharedContainer = self.modelContainer
             SwiftDataContext.shared = self.context
         } catch {
             fatalError("Failed to initialize storage provider: \(error)")

@@ -1,4 +1,4 @@
-﻿//
+//
 //  HabitAppTest.swift
 //  HabitAppTests
 //
@@ -140,7 +140,7 @@ final class HabitAppTest: XCTestCase {
             components.day = expected.day
             let date = calendar.date(from: components)!
             let weekday = Weekday.from(date: date)
-            XCTAssertEqual(weekday, expected.weekday, "DÃ­a \(expected.day) debe ser \(expected.weekday)")
+            XCTAssertEqual(weekday, expected.weekday, "Día \(expected.day) debe ser \(expected.weekday)")
         }
     }
 
@@ -240,7 +240,7 @@ final class HabitAppTest: XCTestCase {
 
     func testHabitWithAllFeatures() {
         let habit = Habit(
-            title: "HÃ¡bito completo",
+            title: "Hábito completo",
             priority: .high,
             completed: [
                 CompletionEntry(date: Date()),
@@ -249,7 +249,7 @@ final class HabitAppTest: XCTestCase {
             frequency: [.monday, .wednesday, .friday]
         )
 
-        XCTAssertEqual(habit.title, "HÃ¡bito completo")
+        XCTAssertEqual(habit.title, "Hábito completo")
         XCTAssertEqual(habit.priority, .high)
         XCTAssertEqual(habit.completed.count, 2)
         XCTAssertEqual(habit.frequency.count, 3)

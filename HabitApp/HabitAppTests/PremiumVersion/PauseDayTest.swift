@@ -26,13 +26,13 @@ import SwiftData
 #if PAUSE_DAY_FEATURE
 
 @MainActor
-final class PauseDayTest: XCTestCase {
+final class PauseDayTest: SwiftDataTestCase {
+    private var container: ModelContainer?
 
     private func makeInMemoryContext(models: [any PersistentModel.Type]) throws -> ModelContext {
-        let schema = Schema(models)
-        let configuration = ModelConfiguration(isStoredInMemoryOnly: true)
-        let container = try ModelContainer(for: schema, configurations: configuration)
-        return ModelContext(container)
+        let context = SwiftDataTestStack.makeContext()
+        container = SwiftDataTestStack.container
+        return context
     }
 
     // MARK: - Test de Modelo HabitPauseDays
@@ -126,11 +126,18 @@ final class PauseDayTest: XCTestCase {
     func testPauseDaySelectionViewExists() {
         XCTAssertTrue(true, "PauseDaySelectionView should be available in Premium")
     }
+
+    override func tearDown() {
+        SwiftDataContext.shared = nil
+        SwiftDataContext.sharedContainer = nil
+        container = nil
+        super.tearDown()
+    }
 }
 
 #else
 
-final class PauseDayTest: XCTestCase {
+final class PauseDayTest: SwiftDataTestCase {
     func testPauseDayNotAvailable() {
         XCTAssertTrue(true, "PauseDay correctly disabled in non-Premium versions")
     }

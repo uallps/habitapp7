@@ -21,14 +21,12 @@ import SwiftData
 @testable import HabitApp
 #endif
 
-final class HabitTest: XCTestCase {
+final class HabitTest: SwiftDataTestCase {
+    private var container: ModelContainer?
 
     private func makeInMemoryContext(models: [any PersistentModel.Type]) throws -> ModelContext {
-        let schema = Schema(models)
-        let configuration = ModelConfiguration(isStoredInMemoryOnly: true)
-        let container = try ModelContainer(for: schema, configurations: configuration)
-        let context = ModelContext(container)
-        SwiftDataContext.shared = context
+        let context = SwiftDataTestStack.makeContext()
+        container = SwiftDataTestStack.container
         return context
     }
 
@@ -440,6 +438,13 @@ final class HabitTest: XCTestCase {
     }
 
     #endif
+
+    override func tearDown() {
+        SwiftDataContext.shared = nil
+        SwiftDataContext.sharedContainer = nil
+        container = nil
+        super.tearDown()
+    }
 }
 
 

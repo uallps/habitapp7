@@ -89,6 +89,7 @@ struct HabitModifyView: View {
                 }
             }
             .scrollContentBackground(.hidden)
+            .accessibilityIdentifier("HabitModifyView")
             .background(backgroundColor)
             .tint(primaryColor)
             .navigationTitle(habitToEdit == nil ? "Nuevo Hábito" : "Modificar Hábito")
