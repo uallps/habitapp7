@@ -26,6 +26,8 @@
 		</dict>
 		<key>HabitApp-Premium.xcscheme_^#shared#^_</key>
 		<dict>
+			<key>isShown</key>
+			<false/>
 			<key>orderHint</key>
 			<integer>0</integer>
 		</dict>
@@ -39,10 +41,70 @@
 			<key>orderHint</key>
 			<integer>2</integer>
 		</dict>
+		<key>HabitAppCoreTests.xcscheme_^#shared#^_</key>
+		<dict>
+			<key>orderHint</key>
+			<integer>9</integer>
+		</dict>
+		<key>HabitAppCoreUITests.xcscheme_^#shared#^_</key>
+		<dict>
+			<key>orderHint</key>
+			<integer>6</integer>
+		</dict>
+		<key>HabitAppPremiumTests.xcscheme_^#shared#^_</key>
+		<dict>
+			<key>orderHint</key>
+			<integer>7</integer>
+		</dict>
+		<key>HabitAppPremiumUITests.xcscheme_^#shared#^_</key>
+		<dict>
+			<key>orderHint</key>
+			<integer>4</integer>
+		</dict>
+		<key>HabitAppStandardTests.xcscheme_^#shared#^_</key>
+		<dict>
+			<key>orderHint</key>
+			<integer>8</integer>
+		</dict>
+		<key>HabitAppStandardUITests.xcscheme_^#shared#^_</key>
+		<dict>
+			<key>orderHint</key>
+			<integer>5</integer>
+		</dict>
 	</dict>
 	<key>SuppressBuildableAutocreation</key>
 	<dict>
 		<key>3549249B2EA9492500A3BFCC</key>
+		<dict>
+			<key>primary</key>
+			<true/>
+		</dict>
+		<key>35DAFE6C2F15601D009FAACC</key>
+		<dict>
+			<key>primary</key>
+			<true/>
+		</dict>
+		<key>35DAFE7B2F1560B4009FAACC</key>
+		<dict>
+			<key>primary</key>
+			<true/>
+		</dict>
+		<key>35DAFE8A2F156110009FAACC</key>
+		<dict>
+			<key>primary</key>
+			<true/>
+		</dict>
+		<key>35DAFE992F156219009FAACC</key>
+		<dict>
+			<key>primary</key>
+			<true/>
+		</dict>
+		<key>35DAFEA62F156285009FAACC</key>
+		<dict>
+			<key>primary</key>
+			<true/>
+		</dict>
+		<key>35DAFEB32F1562E4009FAACC</key>
 		<dict>
 			<key>primary</key>
 			<true/>
