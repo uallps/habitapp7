@@ -1,11 +1,18 @@
-//
+﻿//
 //  StatsViewModelTest.swift
 //  HabitAppTests
 //
 
 import XCTest
 import Combine
-#if canImport(HabitApp_Premium)
+import SwiftData
+#if CORE_VERSION
+@testable import HabitApp_Core
+#elseif STANDARD_VERSION
+@testable import HabitApp_Standard
+#elseif PREMIUM_VERSION
+@testable import HabitApp_Premium
+#elseif canImport(HabitApp_Premium)
 @testable import HabitApp_Premium
 #elseif canImport(HabitApp_Standard)
 @testable import HabitApp_Standard
@@ -15,15 +22,30 @@ import Combine
 @testable import HabitApp
 #endif
 
+@MainActor
 final class StatsViewModelTest: XCTestCase {
     
     var viewModel: StatsViewModel!
     var habit: Habit!
     var cancellables: Set<AnyCancellable>!
+    private var context: ModelContext?
+
+    private func makeInMemoryContext() throws -> ModelContext {
+        let schema = Schema([Habit.self, CompletionEntry.self, HabitStreakFeature.self])
+        let configuration = ModelConfiguration(isStoredInMemoryOnly: true)
+        let container = try ModelContainer(for: schema, configurations: configuration)
+        let context = ModelContext(container)
+        SwiftDataContext.shared = context
+        return context
+    }
     
     override func setUp() {
         super.setUp()
+        context = try? makeInMemoryContext()
         habit = Habit(title: "Test Habit", frequency: [.monday, .wednesday, .friday])
+        if let context {
+            context.insert(habit)
+        }
         viewModel = StatsViewModel(habit: habit)
         cancellables = []
     }
@@ -32,10 +54,11 @@ final class StatsViewModelTest: XCTestCase {
         viewModel = nil
         habit = nil
         cancellables = nil
+        context = nil
         super.tearDown()
     }
     
-    // MARK: - Test de inicialización
+    // MARK: - Test de inicializacion
     
     func testInitialization() {
         // Assert
@@ -155,7 +178,7 @@ final class StatsViewModelTest: XCTestCase {
         viewModel = StatsViewModel(habit: habit)
         
         // Assert
-        XCTAssertEqual(viewModel.totalDaysActive, 8) // 7 días de diferencia + 1
+        XCTAssertEqual(viewModel.totalDaysActive, 8) // 7 dias de diferencia + 1
     }
     
     func testTotalDaysActiveUntilDate() {
@@ -215,7 +238,7 @@ final class StatsViewModelTest: XCTestCase {
         habit.completed.append(CompletionEntry(date: today))
         viewModel = StatsViewModel(habit: habit)
         
-        // Assert (mismo día, 100%)
+        // Assert (mismo dia, 100%)
         XCTAssertEqual(viewModel.completionPercentage, 100.0, accuracy: 0.01)
     }
     
@@ -226,7 +249,7 @@ final class StatsViewModelTest: XCTestCase {
         let oneDayAgo = calendar.date(byAdding: .day, value: -1, to: today)!
         
         habit.completed.append(CompletionEntry(date: oneDayAgo))
-        // No completar hoy (solo 1 de 2 días)
+        // No completar hoy (solo 1 de 2 dias)
         viewModel = StatsViewModel(habit: habit)
         
         // Assert
@@ -238,14 +261,14 @@ final class StatsViewModelTest: XCTestCase {
         let calendar = Calendar.current
         let today = Date()
         
-        // Completar 3 de los últimos 5 días
+        // Completar 3 de los ultimos 5 dias
         habit.completed.append(CompletionEntry(date: calendar.date(byAdding: .day, value: -4, to: today)!))
         habit.completed.append(CompletionEntry(date: calendar.date(byAdding: .day, value: -2, to: today)!))
         habit.completed.append(CompletionEntry(date: today))
         
         viewModel = StatsViewModel(habit: habit)
         
-        // Assert (3 completados de 5 días = 60%)
+        // Assert (3 completados de 5 dias = 60%)
         XCTAssertEqual(viewModel.completionPercentage, 60.0, accuracy: 0.01)
     }
     
@@ -293,7 +316,7 @@ final class StatsViewModelTest: XCTestCase {
         let calendar = Calendar.current
         var components = calendar.dateComponents([.year, .month, .day], from: Date())
         
-        // Crear fechas conocidas (lunes, martes, miércoles de enero 2024)
+        // Crear fechas conocidas (lunes, martes, miercoles de enero 2024)
         components.year = 2024
         components.month = 1
         
@@ -308,7 +331,7 @@ final class StatsViewModelTest: XCTestCase {
         
         viewModel = StatsViewModel(habit: habit)
         
-        // Assert - Todos tienen 1 completación, así que todos son "más completados"
+        // Assert - Todos tienen 1 completacion, asi que todos son "mas completados"
         XCTAssertEqual(viewModel.mostCompletedWeekdays.count, 3)
     }
     
@@ -358,7 +381,7 @@ final class StatsViewModelTest: XCTestCase {
         // Miércoles y viernes no se completan
         viewModel = StatsViewModel(habit: habit)
         
-        // Assert - Los días de la frecuencia sin completar deben aparecer
+        // Assert - Los dias de la frecuencia sin completar deben aparecer
         let leastDays = viewModel.leastCompletedWeekdays
         XCTAssertTrue(leastDays.contains(.wednesday) || leastDays.contains(.friday))
     }
@@ -380,7 +403,7 @@ final class StatsViewModelTest: XCTestCase {
         XCTAssertEqual(viewModel.streakLabel, "dias")
     }
     
-    // MARK: - Test de actualización reactiva
+    // MARK: - Test de actualizacion reactiva
     
     func testHabitUpdate_TriggersPublisher() {
         // Arrange
@@ -411,7 +434,7 @@ final class StatsViewModelTest: XCTestCase {
         habit.completed.append(CompletionEntry(date: today))
         viewModel = StatsViewModel(habit: habit)
         
-        // Assert - 1 completado de 1 día activo = 100%
+        // Assert - 1 completado de 1 dia activo = 100%
         XCTAssertEqual(viewModel.completionPercentage, 100.0, accuracy: 0.01)
     }
     
@@ -423,7 +446,11 @@ final class StatsViewModelTest: XCTestCase {
         habit.completed.append(CompletionEntry(date: today))
         viewModel = StatsViewModel(habit: habit)
         
-        // Assert - Aunque hay 3 entries, cuentan como 1 día
-        XCTAssertEqual(viewModel.totalDaysCompleted, 3) // Por la implementación actual
+        // Assert - Aunque hay 3 entries, cuentan como 1 dia
+        XCTAssertEqual(viewModel.totalDaysCompleted, 3) // Por la implementacion actual
     }
 }
+
+
+
+

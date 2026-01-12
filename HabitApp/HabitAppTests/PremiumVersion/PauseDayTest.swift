@@ -1,4 +1,4 @@
-//
+﻿//
 //  PauseDayTest.swift
 //  HabitAppTests - Premium Version
 //
@@ -6,7 +6,14 @@
 //
 
 import XCTest
-#if canImport(HabitApp_Premium)
+import SwiftData
+#if CORE_VERSION
+@testable import HabitApp_Core
+#elseif STANDARD_VERSION
+@testable import HabitApp_Standard
+#elseif PREMIUM_VERSION
+@testable import HabitApp_Premium
+#elseif canImport(HabitApp_Premium)
 @testable import HabitApp_Premium
 #elseif canImport(HabitApp_Standard)
 @testable import HabitApp_Standard
@@ -18,124 +25,104 @@ import XCTest
 
 #if PAUSE_DAY_FEATURE
 
+@MainActor
 final class PauseDayTest: XCTestCase {
-    
-    // MARK: - Test de Modelo PauseDays
-    
+
+    private func makeInMemoryContext(models: [any PersistentModel.Type]) throws -> ModelContext {
+        let schema = Schema(models)
+        let configuration = ModelConfiguration(isStoredInMemoryOnly: true)
+        let container = try ModelContainer(for: schema, configurations: configuration)
+        return ModelContext(container)
+    }
+
+    // MARK: - Test de Modelo HabitPauseDays
+
     func testPauseDaysInitialization() {
-        let pauseDays = PauseDays()
-        
-        XCTAssertNotNil(pauseDays.id)
-        XCTAssertTrue(pauseDays.pausedDates.isEmpty)
+        let pauseDays = HabitPauseDays(habitId: UUID())
+        XCTAssertNotNil(pauseDays.habitId)
+        XCTAssertTrue(pauseDays.pauseDates.isEmpty)
     }
-    
+
     func testAddPausedDate() {
-        let pauseDays = PauseDays()
+        let pauseDays = HabitPauseDays(habitId: UUID())
         let date = Date()
-        
-        pauseDays.addPausedDate(date)
-        
-        XCTAssertEqual(pauseDays.pausedDates.count, 1)
+
+        pauseDays.pauseDates = [date]
+
+        XCTAssertEqual(pauseDays.pauseDates.count, 1)
         XCTAssertTrue(pauseDays.isPaused(on: date))
     }
-    
+
     func testRemovePausedDate() {
-        let pauseDays = PauseDays()
+        let pauseDays = HabitPauseDays(habitId: UUID())
         let date = Date()
-        
-        pauseDays.addPausedDate(date)
+
+        pauseDays.pauseDates = [date]
         XCTAssertTrue(pauseDays.isPaused(on: date))
-        
-        pauseDays.removePausedDate(date)
+
+        pauseDays.pauseDates = []
         XCTAssertFalse(pauseDays.isPaused(on: date))
     }
-    
+
     func testMultiplePausedDates() {
-        let pauseDays = PauseDays()
+        let pauseDays = HabitPauseDays(habitId: UUID())
         let today = Date()
         let tomorrow = Calendar.current.date(byAdding: .day, value: 1, to: today)!
-        
-        pauseDays.addPausedDate(today)
-        pauseDays.addPausedDate(tomorrow)
-        
-        XCTAssertEqual(pauseDays.pausedDates.count, 2)
+
+        pauseDays.pauseDates = [today, tomorrow]
+
+        XCTAssertEqual(pauseDays.pauseDates.count, 2)
         XCTAssertTrue(pauseDays.isPaused(on: today))
         XCTAssertTrue(pauseDays.isPaused(on: tomorrow))
     }
-    
+
     // MARK: - Test de PauseDayViewModel
-    
-    func testPauseDayViewModelInitialization() async {
-        let habit = Habit(title: "Test", frequency: [.monday])
-        let viewModel = PauseDayViewModel(habit: habit)
-        
-        XCTAssertNotNil(viewModel)
-        XCTAssertEqual(viewModel.habit.title, "Test")
+
+    func testPauseDayViewModelInitialization() throws {
+        let context = try makeInMemoryContext(models: [HabitPauseDays.self])
+        let habitId = UUID()
+        let viewModel = PauseDayViewModel(habitId: habitId, context: context)
+
+        XCTAssertEqual(viewModel.sortedDates.count, 0)
     }
-    
-    func testTogglePauseDay() async {
-        let habit = Habit(title: "Test", frequency: [.monday])
-        let viewModel = PauseDayViewModel(habit: habit)
-        let date = Date()
-        
-        viewModel.togglePause(for: date)
-        
-        // Verificar que el día se pausó
-        XCTAssertTrue(viewModel.isPaused(date: date))
-        
-        viewModel.togglePause(for: date)
-        
-        // Verificar que el día ya no está pausado
-        XCTAssertFalse(viewModel.isPaused(date: date))
+
+    func testPauseDaySelectionFlow() throws {
+        let context = try makeInMemoryContext(models: [HabitPauseDays.self])
+        let habitId = UUID()
+        let viewModel = PauseDayViewModel(habitId: habitId, context: context)
+        let date = viewModel.today
+
+        viewModel.dateToAdd = date
+        viewModel.addDate()
+
+        XCTAssertTrue(viewModel.selectedDates.contains(date))
+
+        viewModel.removeDate(date)
+        XCTAssertFalse(viewModel.selectedDates.contains(date))
     }
-    
+
     // MARK: - Test de Plugin
-    
+
     func testPauseDayPluginRegistered() {
         let registry = PluginRegistry.shared
-        
-        // Verificar que el plugin está registrado
         let hasPlugin = registry.plugins.contains { plugin in
             plugin is PauseDayPlugin
         }
-        
         XCTAssertTrue(hasPlugin, "PauseDayPlugin should be registered")
     }
-    
+
     // MARK: - Test de CalendarPauseDayStyleProvider
-    
+
     func testCalendarPauseDayStyleProviderExists() {
         XCTAssertTrue(true, "CalendarPauseDayStyleProvider should be available in Premium")
     }
-    
-    // MARK: - Test de Integración con Habit
-    
-    func testHabitWithPausedDays() {
-        let habit = Habit(title: "Test", frequency: [.monday, .wednesday])
-        let today = Date()
-        
-        // El hábito debería poder tener días pausados
-        // habit.pauseDays.addPausedDate(today)
-        
-        XCTAssertNotNil(habit)
-    }
-    
-    func testPausedDayDoesNotCountForStreak() {
-        let habit = Habit(title: "Test", frequency: [.monday])
-        let today = Date()
-        
-        // Si un día está pausado, no debería afectar la racha
-        // habit.pauseDays.addPausedDate(today)
-        
-        XCTAssertNotNil(habit)
-    }
-    
+
     // MARK: - Test de Vistas
-    
+
     func testPauseDayRowButtonExists() {
         XCTAssertTrue(true, "PauseDayRowButton should be available in Premium")
     }
-    
+
     func testPauseDaySelectionViewExists() {
         XCTAssertTrue(true, "PauseDaySelectionView should be available in Premium")
     }
@@ -150,3 +137,5 @@ final class PauseDayTest: XCTestCase {
 }
 
 #endif
+
+

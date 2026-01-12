@@ -1,12 +1,19 @@
-//
+﻿//
 //  PremiumTests.swift
 //  HabitAppTests - Premium Version
 //
-//  Tests para la versión PREMIUM (Core + Todas las Features)
+//  Tests para la version PREMIUM (Core + Todas las Features)
 //
 
 import XCTest
-#if canImport(HabitApp_Premium)
+import SwiftData
+#if CORE_VERSION
+@testable import HabitApp_Core
+#elseif STANDARD_VERSION
+@testable import HabitApp_Standard
+#elseif PREMIUM_VERSION
+@testable import HabitApp_Premium
+#elseif canImport(HabitApp_Premium)
 @testable import HabitApp_Premium
 #elseif canImport(HabitApp_Standard)
 @testable import HabitApp_Standard
@@ -16,15 +23,24 @@ import XCTest
 @testable import HabitApp
 #endif
 
-/// Tests que deben ejecutarse en la versión PREMIUM
-/// Esta versión incluye TODO:
+/// Tests que deben ejecutarse en la version PREMIUM
+/// Esta version incluye TODO:
 /// - Core (Habit, CompletionEntry)
 /// - Standard Features (Category, Diary, Stats, Streaks, Reminders)
 /// - Premium Features (NM_ExpandedFrequency, NM_PauseDay, NM_Type)
 final class PremiumTests: XCTestCase {
-    
+
+    private func makeInMemoryContext(models: [any PersistentModel.Type]) throws -> ModelContext {
+        let schema = Schema(models)
+        let configuration = ModelConfiguration(isStoredInMemoryOnly: true)
+        let container = try ModelContainer(for: schema, configurations: configuration)
+        let context = ModelContext(container)
+        SwiftDataContext.shared = context
+        return context
+    }
+
     // MARK: - Test de Features Standard Disponibles
-    
+
     func testStandardFeaturesAvailable() {
         #if CATEGORY_FEATURE && DIARY_FEATURE && STATS_FEATURE && STREAKS_FEATURE && REMINDERS_FEATURE
             XCTAssertTrue(true, "All standard features correctly enabled in Premium version")
@@ -32,109 +48,106 @@ final class PremiumTests: XCTestCase {
             XCTFail("All standard features SHOULD be available in Premium version")
         #endif
     }
-    
+
     // MARK: - Test de Features Premium Disponibles
-    
+
     func testExpandedFrequencyAvailable() {
         #if EXPANDED_FREQUENCY_FEATURE
-            // Verificar que ExpandedFrequency está disponible
             let habit = Habit(title: "Test", frequency: [.monday])
-            // El plugin debería estar registrado y funcionando
-            XCTAssertTrue(true, "Expanded Frequency correctly enabled in Premium version")
+            XCTAssertNotNil(habit)
         #else
             XCTFail("Expanded Frequency SHOULD be available in Premium version")
         #endif
     }
-    
+
     func testPauseDayAvailable() {
         #if PAUSE_DAY_FEATURE
-            // Verificar que PauseDay está disponible
             let habit = Habit(title: "Test", frequency: [.monday])
-            // El plugin debería permitir pausar días
-            XCTAssertTrue(true, "Pause Day correctly enabled in Premium version")
+            XCTAssertNotNil(habit)
         #else
             XCTFail("Pause Day SHOULD be available in Premium version")
         #endif
     }
-    
+
     func testHabitTypeAvailable() {
         #if HABIT_TYPE_FEATURE
-            // Verificar que Habit Type está disponible
             let habit = Habit(title: "Test", frequency: [.monday])
-            // El plugin de tipos debería estar disponible
-            XCTAssertTrue(true, "Habit Type correctly enabled in Premium version")
+            XCTAssertNotNil(habit)
         #else
             XCTFail("Habit Type SHOULD be available in Premium version")
         #endif
     }
-    
+
     // MARK: - Test de Funcionalidad Premium Completa
-    
-    func testAllFeaturesIntegration() {
-        // Verificar que todas las features están disponibles y funcionan juntas
-        let habit = Habit(title: "Premium Habit", frequency: [.monday, .wednesday, .friday])
-        
+
+    func testAllFeaturesIntegration() throws {
+        let baseHabit = Habit(title: "Premium Habit", frequency: [.monday, .wednesday, .friday])
+
         #if CATEGORY_FEATURE
+            let context = try makeInMemoryContext(models: [Habit.self, Category.self, HabitCategoryFeature.self])
+            let habit = Habit(title: "Premium Habit", frequency: [.monday, .wednesday, .friday])
             let category = Category(name: "Premium", categoryDescription: "Premium category")
-            habit.category = category
-            XCTAssertNotNil(habit.category)
+            context.insert(habit)
+            context.insert(category)
+
+            habit.setCategory(category)
+            XCTAssertNotNil(habit.getCategory())
         #endif
-        
+
         #if DIARY_FEATURE
+            let context = try makeInMemoryContext(models: [CompletionEntry.self, DiaryNoteFeature.self])
             let entry = CompletionEntry(date: Date())
+            context.insert(entry)
+
             entry.setNote("Premium note")
             XCTAssertTrue(entry.hasNote)
         #endif
-        
+
         #if STREAKS_FEATURE
+            let context = try makeInMemoryContext(models: [Habit.self, HabitStreakFeature.self])
+            let habit = Habit(title: "Premium Habit", frequency: [.monday, .wednesday, .friday])
+            context.insert(habit)
+
             habit.setStreak(10)
             XCTAssertEqual(habit.getStreak(), 10)
         #endif
-        
+
         #if STATS_FEATURE
-            let statsVM = StatsViewModel(habit: habit)
+            let statsVM = StatsViewModel(habit: baseHabit)
             XCTAssertNotNil(statsVM)
         #endif
-        
+
         XCTAssertTrue(true, "All features integrated successfully")
     }
-    
+
     func testPluginRegistryHasAllPlugins() {
         #if EXPANDED_FREQUENCY_FEATURE || PAUSE_DAY_FEATURE || HABIT_TYPE_FEATURE
             let registry = PluginRegistry.shared
-            
-            // En la versión Premium, deberían estar registrados todos los plugins
             let pluginCount = registry.plugins.count
-            
-            // Debería haber plugins de las features NM_
             XCTAssertGreaterThan(pluginCount, 0, "Should have premium plugins registered")
         #endif
     }
-    
-    // MARK: - Test de Características Premium Específicas
-    
+
+    // MARK: - Test de Caracteristicas Premium Especificas
+
     func testExpandedFrequencyPlugin() {
         #if EXPANDED_FREQUENCY_FEATURE
-            // Probar funcionalidad específica de frecuencia expandida
-            // Por ejemplo: frecuencias personalizadas más allá de días de la semana
             XCTAssertTrue(true, "Expanded Frequency plugin working")
         #endif
     }
-    
+
     func testPauseDayPlugin() {
         #if PAUSE_DAY_FEATURE
-            // Probar funcionalidad de pausa de días
-            let habit = Habit(title: "Test", frequency: [.monday, .wednesday])
-            // Debería poder pausar días específicos
             XCTAssertTrue(true, "Pause Day plugin working")
         #endif
     }
-    
+
     func testHabitTypePlugin() {
         #if HABIT_TYPE_FEATURE
-            // Probar funcionalidad de tipos de hábitos
-            // Por ejemplo: hábitos de construcción vs eliminación
             XCTAssertTrue(true, "Habit Type plugin working")
         #endif
     }
 }
+
+
+

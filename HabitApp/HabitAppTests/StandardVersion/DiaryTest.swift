@@ -1,10 +1,16 @@
-//
+﻿//
 //  DiaryTest.swift
 //  HabitAppTests
 //
 
 import XCTest
-#if canImport(HabitApp_Premium)
+#if CORE_VERSION
+@testable import HabitApp_Core
+#elseif STANDARD_VERSION
+@testable import HabitApp_Standard
+#elseif PREMIUM_VERSION
+@testable import HabitApp_Premium
+#elseif canImport(HabitApp_Premium)
 @testable import HabitApp_Premium
 #elseif canImport(HabitApp_Standard)
 @testable import HabitApp_Standard
@@ -16,7 +22,7 @@ import XCTest
 
 final class DiaryTest: XCTestCase {
     
-    // MARK: - Test de DiaryNoteFeature inicialización
+    // MARK: - Test de DiaryNoteFeature inicializacion
     
     func testDiaryNoteFeatureInitialization() {
         // Arrange
@@ -93,7 +99,7 @@ final class DiaryTest: XCTestCase {
     func testDiaryNoteWithSpecialCharacters() {
         // Arrange
         let entryId = UUID()
-        let specialNote = "Hoy me sentí genial 😊\nCon energía 💪\n¡Excelente! áéíóú"
+        let specialNote = "Hoy me sentí genial 😊\nCon energía 💪\n¡Excelente! 🎉"
         
         // Act
         let diaryNote = DiaryNoteFeature(completionEntryId: entryId, note: specialNote)
@@ -108,9 +114,9 @@ final class DiaryTest: XCTestCase {
         // Arrange
         let entryId = UUID()
         let multilineNote = """
-        Primera línea
-        Segunda línea
-        Tercera línea
+        Primera linea
+        Segunda linea
+        Tercera linea
         """
         
         // Act
@@ -121,7 +127,7 @@ final class DiaryTest: XCTestCase {
         XCTAssertTrue(diaryNote.note?.contains("\n") ?? false)
     }
     
-    // MARK: - Test de relación con CompletionEntry
+    // MARK: - Test de relacion con CompletionEntry
     
     func testMultipleDiaryNotesWithDifferentEntries() {
         // Arrange
@@ -147,7 +153,7 @@ final class DiaryTest: XCTestCase {
         XCTAssertEqual(diaryNote.completionEntryId, entryId)
     }
     
-    // MARK: - Test de casos de uso típicos
+    // MARK: - Test de casos de uso tipicos
     
     func testCreateDiaryNoteForTodayCompletion() {
         // Arrange
@@ -221,3 +227,7 @@ final class DiaryTest: XCTestCase {
         XCTAssertTrue(diaryNote.note?.contains("https://") ?? false)
     }
 }
+
+
+
+

@@ -1,10 +1,17 @@
-//
+﻿//
 //  HabitTest.swift
 //  HabitAppTests
 //
 
 import XCTest
-#if canImport(HabitApp_Premium)
+import SwiftData
+#if CORE_VERSION
+@testable import HabitApp_Core
+#elseif STANDARD_VERSION
+@testable import HabitApp_Standard
+#elseif PREMIUM_VERSION
+@testable import HabitApp_Premium
+#elseif canImport(HabitApp_Premium)
 @testable import HabitApp_Premium
 #elseif canImport(HabitApp_Standard)
 @testable import HabitApp_Standard
@@ -15,19 +22,26 @@ import XCTest
 #endif
 
 final class HabitTest: XCTestCase {
-    
-    // MARK: - Test de inicialización básica
-    
+
+    private func makeInMemoryContext(models: [any PersistentModel.Type]) throws -> ModelContext {
+        let schema = Schema(models)
+        let configuration = ModelConfiguration(isStoredInMemoryOnly: true)
+        let container = try ModelContainer(for: schema, configurations: configuration)
+        let context = ModelContext(container)
+        SwiftDataContext.shared = context
+        return context
+    }
+
+    // MARK: - Test de inicializacion basica
+
     func testHabitInitialization() {
-        // Arrange & Act
         let habit = Habit(
             title: "Ejercicio diario",
             priority: .high,
             completed: [],
             frequency: [.monday, .wednesday, .friday]
         )
-        
-        // Assert
+
         XCTAssertEqual(habit.title, "Ejercicio diario")
         XCTAssertEqual(habit.priority, .high)
         XCTAssertEqual(habit.completed.count, 0)
@@ -36,434 +50,398 @@ final class HabitTest: XCTestCase {
         XCTAssertTrue(habit.frequency.contains(.wednesday))
         XCTAssertTrue(habit.frequency.contains(.friday))
     }
-    
+
     func testHabitInitializationWithDefaults() {
-        // Arrange & Act
         let habit = Habit(title: "Leer libros")
-        
-        // Assert
+
         XCTAssertEqual(habit.title, "Leer libros")
         XCTAssertNil(habit.priority)
         XCTAssertEqual(habit.completed.count, 0)
         XCTAssertEqual(habit.frequency.count, 0)
     }
-    
+
     // MARK: - Test de Priority
-    
+
     func testPriorityRawValuePersistence() {
-        // Arrange & Act
         let habitLow = Habit(title: "Test", priority: .low)
         let habitMedium = Habit(title: "Test", priority: .medium)
         let habitHigh = Habit(title: "Test", priority: .high)
-        
-        // Assert
+
         XCTAssertEqual(habitLow.priority, .low)
         XCTAssertEqual(habitMedium.priority, .medium)
         XCTAssertEqual(habitHigh.priority, .high)
     }
-    
+
     // MARK: - Test de isCompletedToday
-    
+
     func testIsCompletedToday_WhenNotCompleted() {
-        // Arrange
         let habit = Habit(title: "Meditar", frequency: [.monday])
-        
-        // Act & Assert
         XCTAssertFalse(habit.isCompletedToday)
     }
-    
+
     func testIsCompletedToday_WhenCompletedToday() {
-        // Arrange
         let habit = Habit(title: "Meditar", frequency: [.monday])
         let today = Date()
         let entry = CompletionEntry(date: today)
         habit.completed.append(entry)
-        
-        // Act & Assert
+
         XCTAssertTrue(habit.isCompletedToday)
     }
-    
+
     func testIsCompletedToday_WhenCompletedYesterday() {
-        // Arrange
         let habit = Habit(title: "Meditar", frequency: [.monday])
         let yesterday = Calendar.current.date(byAdding: .day, value: -1, to: Date())!
         let entry = CompletionEntry(date: yesterday)
         habit.completed.append(entry)
-        
-        // Act & Assert
+
         XCTAssertFalse(habit.isCompletedToday)
     }
-    
+
     // MARK: - Test de Weekday
-    
+
     func testWeekdayFromDate() {
-        // Arrange
         let calendar = Calendar.current
         var components = calendar.dateComponents([.year, .month, .day], from: Date())
-        
-        // Act & Assert - Probar diferentes días de la semana
-        // Nota: Los números dependen del calendario, pero podemos probar la consistencia
-        
-        // Crear una fecha conocida (e.g., 2024-01-01 es lunes)
+
         components.year = 2024
         components.month = 1
+
         components.day = 1 // Lunes
         let monday = calendar.date(from: components)!
         XCTAssertEqual(Weekday.from(date: monday), .monday)
-        
+
         components.day = 2 // Martes
         let tuesday = calendar.date(from: components)!
         XCTAssertEqual(Weekday.from(date: tuesday), .tuesday)
-        
+
         components.day = 7 // Domingo
         let sunday = calendar.date(from: components)!
         XCTAssertEqual(Weekday.from(date: sunday), .sunday)
     }
-    
+
     func testWeekdayAllCases() {
-        // Arrange & Act
         let allWeekdays = Weekday.allCases
-        
-        // Assert
         XCTAssertEqual(allWeekdays.count, 7)
         XCTAssertTrue(allWeekdays.contains(.monday))
         XCTAssertTrue(allWeekdays.contains(.sunday))
     }
-    
+
     // MARK: - Test de Reminders Extension (shouldBeCompletedOn)
-    
+
     func testShouldBeCompletedOn_WithEmptyFrequency() {
-        // Arrange
         let habit = Habit(title: "Test", frequency: [])
         let date = Date()
-        
-        // Act & Assert
         XCTAssertFalse(habit.shouldBeCompletedOn(date: date))
     }
-    
+
     func testShouldBeCompletedOn_WithMatchingDay() {
-        // Arrange
         let calendar = Calendar.current
         var components = calendar.dateComponents([.year, .month, .day], from: Date())
         components.year = 2024
         components.month = 1
         components.day = 1 // Lunes
         let monday = calendar.date(from: components)!
-        
+
         let habit = Habit(title: "Test", frequency: [.monday, .wednesday])
-        
-        // Act & Assert
         XCTAssertTrue(habit.shouldBeCompletedOn(date: monday))
     }
-    
+
     func testShouldBeCompletedOn_WithNonMatchingDay() {
-        // Arrange
         let calendar = Calendar.current
         var components = calendar.dateComponents([.year, .month, .day], from: Date())
         components.year = 2024
         components.month = 1
         components.day = 2 // Martes
         let tuesday = calendar.date(from: components)!
-        
+
         let habit = Habit(title: "Test", frequency: [.monday, .wednesday])
-        
-        // Act & Assert
         XCTAssertFalse(habit.shouldBeCompletedOn(date: tuesday))
     }
-    
+
     // MARK: - Test de Streak Extension
-    
-    func testStreakInitialValue() {
-        // Arrange & Act
+
+    #if STREAKS_FEATURE
+
+    func testStreakInitialValue() throws {
+        let context = try makeInMemoryContext(models: [Habit.self, HabitStreakFeature.self])
         let habit = Habit(title: "Test", frequency: [.monday])
-        
-        // Assert
-        XCTAssertEqual(habit.streak, 0)
-        XCTAssertEqual(habit.maxStreak, 0)
-        XCTAssertNil(habit.nextDay)
+        context.insert(habit)
+
+        XCTAssertEqual(habit.getStreak(), 0)
+        XCTAssertEqual(habit.getMaxStreak(), 0)
+        XCTAssertNil(habit.getNextDay())
     }
-    
-    func testStreakSetterCreatesFeature() {
-        // Arrange
+
+    func testStreakSetterCreatesFeature() throws {
+        let context = try makeInMemoryContext(models: [Habit.self, HabitStreakFeature.self])
         let habit = Habit(title: "Test", frequency: [.monday])
-        
-        // Act
-        habit.streak = 5
-        
-        // Assert
-        XCTAssertEqual(habit.streak, 5)
-        XCTAssertNotNil(habit.streakFeature)
+        context.insert(habit)
+
+        habit.setStreak(5)
+
+        XCTAssertEqual(habit.getStreak(), 5)
+        XCTAssertNotNil(habit.getStreakFeature())
     }
-    
-    func testMaxStreakSetterCreatesFeature() {
-        // Arrange
+
+    func testMaxStreakSetterCreatesFeature() throws {
+        let context = try makeInMemoryContext(models: [Habit.self, HabitStreakFeature.self])
         let habit = Habit(title: "Test", frequency: [.monday])
-        
-        // Act
-        habit.maxStreak = 10
-        
-        // Assert
-        XCTAssertEqual(habit.maxStreak, 10)
-        XCTAssertNotNil(habit.streakFeature)
+        context.insert(habit)
+
+        habit.setMaxStreak(10)
+
+        XCTAssertEqual(habit.getMaxStreak(), 10)
+        XCTAssertNotNil(habit.getStreakFeature())
     }
-    
-    func testNextDaySetterCreatesFeature() {
-        // Arrange
+
+    func testNextDaySetterCreatesFeature() throws {
+        let context = try makeInMemoryContext(models: [Habit.self, HabitStreakFeature.self])
         let habit = Habit(title: "Test", frequency: [.monday])
         let tomorrow = Calendar.current.date(byAdding: .day, value: 1, to: Date())!
-        
-        // Act
-        habit.nextDay = tomorrow
-        
-        // Assert
-        XCTAssertNotNil(habit.nextDay)
-        XCTAssertNotNil(habit.streakFeature)
+        context.insert(habit)
+
+        habit.setNextDay(tomorrow)
+
+        XCTAssertNotNil(habit.getNextDay())
+        XCTAssertNotNil(habit.getStreakFeature())
         XCTAssertEqual(
-            Calendar.current.startOfDay(for: habit.nextDay!),
+            Calendar.current.startOfDay(for: habit.getNextDay()!),
             Calendar.current.startOfDay(for: tomorrow)
         )
     }
-    
-    func testCheckAndUpdateStreak_FirstTime() {
-        // Arrange
+
+    func testCheckAndUpdateStreak_FirstTime() throws {
+        let context = try makeInMemoryContext(models: [Habit.self, HabitStreakFeature.self])
         let habit = Habit(title: "Test", frequency: [.monday, .wednesday, .friday])
-        
-        // Act
+        context.insert(habit)
+
         habit.checkAndUpdateStreak()
-        
-        // Assert
-        XCTAssertNotNil(habit.nextDay, "nextDay debe ser calculado la primera vez")
+
+        XCTAssertNotNil(habit.getNextDay(), "nextDay debe ser calculado la primera vez")
     }
-    
-    func testCheckAndUpdateStreak_CompletedOnExpectedDay() {
-        // Arrange
+
+    func testCheckAndUpdateStreak_CompletedOnExpectedDay() throws {
         let calendar = Calendar.current
         let today = calendar.startOfDay(for: Date())
+        let context = try makeInMemoryContext(models: [Habit.self, HabitStreakFeature.self])
         let habit = Habit(title: "Test", frequency: [Weekday.from(date: today)])
-        
-        // Establecer que hoy es el día esperado
-        habit.nextDay = today
-        
-        // Completar hoy
+        context.insert(habit)
+
+        habit.setNextDay(today)
+
         let entry = CompletionEntry(date: today)
         habit.completed.append(entry)
-        
-        // Act
-        habit.checkAndUpdateStreak()
-        
-        // Assert
-        XCTAssertEqual(habit.streak, 1, "La racha debe incrementarse")
-        XCTAssertEqual(habit.maxStreak, 1, "maxStreak debe actualizarse")
-        XCTAssertNotNil(habit.nextDay, "nextDay debe recalcularse")
+
+        habit.checkAndUpdateStreak(on: today)
+
+        XCTAssertEqual(habit.getStreak(), 1, "La racha debe incrementarse")
+        XCTAssertEqual(habit.getMaxStreak(), 1, "maxStreak debe actualizarse")
+        XCTAssertNotNil(habit.getNextDay(), "nextDay debe recalcularse")
     }
-    
-    func testCheckAndUpdateStreak_NotCompletedOnExpectedDay() {
-        // Arrange
+
+    func testCheckAndUpdateStreak_NotCompletedOnExpectedDay() throws {
         let calendar = Calendar.current
         let today = calendar.startOfDay(for: Date())
+        let context = try makeInMemoryContext(models: [Habit.self, HabitStreakFeature.self])
         let habit = Habit(title: "Test", frequency: [Weekday.from(date: today)])
-        
-        // Establecer racha previa
-        habit.streak = 5
-        habit.nextDay = today
-        
-        // NO completar hoy (no agregar CompletionEntry)
-        
-        // Act
-        habit.checkAndUpdateStreak()
-        
-        // Assert
-        XCTAssertEqual(habit.streak, 0, "La racha debe resetearse")
-        XCTAssertNotNil(habit.nextDay, "nextDay debe recalcularse")
+        context.insert(habit)
+
+        habit.setStreak(5)
+        habit.setNextDay(today)
+
+        habit.checkAndUpdateStreak(on: today)
+
+        XCTAssertEqual(habit.getStreak(), 0, "La racha debe resetearse")
+        XCTAssertNotNil(habit.getNextDay(), "nextDay debe recalcularse")
     }
-    
-    func testCheckAndUpdateStreak_MissedDay() {
-        // Arrange
+
+    func testCheckAndUpdateStreak_MissedDay() throws {
         let calendar = Calendar.current
         let today = calendar.startOfDay(for: Date())
         let yesterday = calendar.date(byAdding: .day, value: -1, to: today)!
+        let context = try makeInMemoryContext(models: [Habit.self, HabitStreakFeature.self])
         let habit = Habit(title: "Test", frequency: [Weekday.from(date: yesterday)])
-        
-        // Establecer que ayer era el día esperado
-        habit.streak = 3
-        habit.nextDay = yesterday
-        
-        // Act (hoy, pero el día esperado fue ayer)
-        habit.checkAndUpdateStreak()
-        
-        // Assert
-        XCTAssertEqual(habit.streak, 0, "La racha debe resetearse por día perdido")
+        context.insert(habit)
+
+        habit.setStreak(3)
+        habit.setNextDay(yesterday)
+
+        habit.checkAndUpdateStreak(on: today)
+
+        XCTAssertEqual(habit.getStreak(), 0, "La racha debe resetearse por dia perdido")
     }
-    
+
+    #endif
+
     // MARK: - Test de Category Extension
-    
-    func testCategoryGetter_WhenNoCategory() {
-        // Arrange
+
+    #if CATEGORY_FEATURE
+
+    func testCategoryGetter_WhenNoCategory() throws {
+        let context = try makeInMemoryContext(models: [Habit.self, Category.self, HabitCategoryFeature.self])
         let habit = Habit(title: "Test")
-        
-        // Act & Assert
-        XCTAssertNil(habit.category)
+        context.insert(habit)
+
+        XCTAssertNil(habit.getCategory())
     }
-    
-    func testCategorySetter_CreatesFeature() {
-        // Arrange
+
+    func testCategorySetter_CreatesFeature() throws {
+        let context = try makeInMemoryContext(models: [Habit.self, Category.self, HabitCategoryFeature.self])
         let habit = Habit(title: "Test")
         let category = Category(name: "Salud", categoryDescription: "Hábitos saludables")
-        
-        // Act
-        habit.category = category
-        
-        // Assert
-        XCTAssertNotNil(habit.categoryFeature)
-        XCTAssertEqual(habit.category?.name, "Salud")
+        context.insert(habit)
+        context.insert(category)
+
+        habit.setCategory(category)
+
+        XCTAssertEqual(habit.getCategory()?.name, "Salud")
     }
-    
-    func testCategorySetter_UpdatesExistingFeature() {
-        // Arrange
+
+    func testCategorySetter_UpdatesExistingFeature() throws {
+        let context = try makeInMemoryContext(models: [Habit.self, Category.self, HabitCategoryFeature.self])
         let habit = Habit(title: "Test")
         let category1 = Category(name: "Salud", categoryDescription: "Desc1")
         let category2 = Category(name: "Trabajo", categoryDescription: "Desc2")
-        
-        habit.category = category1
-        
-        // Act
-        habit.category = category2
-        
-        // Assert
-        XCTAssertEqual(habit.category?.name, "Trabajo")
+        context.insert(habit)
+        context.insert(category1)
+        context.insert(category2)
+
+        habit.setCategory(category1)
+        habit.setCategory(category2)
+
+        XCTAssertEqual(habit.getCategory()?.name, "Trabajo")
     }
-    
-    func testCategorySetter_RemovesFeature() {
-        // Arrange
+
+    func testCategorySetter_RemovesFeature() throws {
+        let context = try makeInMemoryContext(models: [Habit.self, Category.self, HabitCategoryFeature.self])
         let habit = Habit(title: "Test")
         let category = Category(name: "Salud", categoryDescription: "Desc")
-        habit.category = category
-        
-        // Act
-        habit.category = nil
-        
-        // Assert
-        XCTAssertNil(habit.categoryFeature)
-        XCTAssertNil(habit.category)
+        context.insert(habit)
+        context.insert(category)
+
+        habit.setCategory(category)
+        habit.setCategory(nil)
+
+        XCTAssertNil(habit.getCategory())
     }
-    
+
     func testGroupByCategory_EmptyArray() {
-        // Arrange
         let habits: [Habit] = []
-        
-        // Act
         let grouped = Habit.groupByCategory(habits)
-        
-        // Assert
         XCTAssertTrue(grouped.isEmpty)
     }
-    
-    func testGroupByCategory_WithCategories() {
-        // Arrange
+
+    func testGroupByCategory_WithCategories() throws {
+        let context = try makeInMemoryContext(models: [Habit.self, Category.self, HabitCategoryFeature.self])
         let categoryHealth = Category(name: "Salud", categoryDescription: "Desc1")
         let categoryWork = Category(name: "Trabajo", categoryDescription: "Desc2")
-        
+
         let habit1 = Habit(title: "Ejercicio")
-        habit1.category = categoryHealth
-        
         let habit2 = Habit(title: "Meditar")
-        habit2.category = categoryHealth
-        
         let habit3 = Habit(title: "Revisar email")
-        habit3.category = categoryWork
-        
-        let habits = [habit1, habit2, habit3]
-        
-        // Act
-        let grouped = Habit.groupByCategory(habits)
-        
-        // Assert
+
+        context.insert(categoryHealth)
+        context.insert(categoryWork)
+        context.insert(habit1)
+        context.insert(habit2)
+        context.insert(habit3)
+
+        habit1.setCategory(categoryHealth)
+        habit2.setCategory(categoryHealth)
+        habit3.setCategory(categoryWork)
+
+        let grouped = Habit.groupByCategory([habit1, habit2, habit3])
+
         XCTAssertEqual(grouped.count, 2)
         XCTAssertEqual(grouped["Salud"]?.count, 2)
         XCTAssertEqual(grouped["Trabajo"]?.count, 1)
     }
-    
-    func testGroupByCategory_WithUncategorized() {
-        // Arrange
+
+    func testGroupByCategory_WithUncategorized() throws {
+        let context = try makeInMemoryContext(models: [Habit.self, Category.self, HabitCategoryFeature.self])
         let category = Category(name: "Salud", categoryDescription: "Desc")
-        
+
         let habit1 = Habit(title: "Ejercicio")
-        habit1.category = category
-        
-        let habit2 = Habit(title: "Sin categoría")
-        // No asignamos categoría
-        
-        let habits = [habit1, habit2]
-        
-        // Act
-        let grouped = Habit.groupByCategory(habits)
-        
-        // Assert
+        let habit2 = Habit(title: "Sin categoria")
+
+        context.insert(category)
+        context.insert(habit1)
+        context.insert(habit2)
+
+        habit1.setCategory(category)
+
+        let grouped = Habit.groupByCategory([habit1, habit2])
+
         XCTAssertEqual(grouped.count, 2)
         XCTAssertEqual(grouped["Salud"]?.count, 1)
-        XCTAssertEqual(grouped["Sin categoría"]?.count, 1)
+        XCTAssertEqual(grouped["Sin categor\u{00ED}a"]?.count, 1)
     }
-    
+
+    #endif
+
     // MARK: - Test de Diary Extension (note)
-    
-    func testNoteGetter_WhenNoNote() {
-        // Arrange
+
+    #if DIARY_FEATURE
+
+    func testNoteGetter_WhenNoNote() throws {
+        let context = try makeInMemoryContext(models: [CompletionEntry.self, DiaryNoteFeature.self])
         let entry = CompletionEntry(date: Date())
-        
-        // Act & Assert
-        XCTAssertNil(entry.note)
+        context.insert(entry)
+
+        XCTAssertNil(entry.getNote())
         XCTAssertFalse(entry.hasNote)
     }
-    
-    func testNoteSetter_CreatesFeature() {
-        // Arrange
+
+    func testNoteSetter_CreatesFeature() throws {
+        let context = try makeInMemoryContext(models: [CompletionEntry.self, DiaryNoteFeature.self])
         let entry = CompletionEntry(date: Date())
-        
-        // Act
-        entry.note = "Hoy me sentí genial"
-        
-        // Assert
-        XCTAssertNotNil(entry.diaryFeature)
-        XCTAssertEqual(entry.note, "Hoy me sentí genial")
+        context.insert(entry)
+
+        entry.setNote("Hoy me sentí genial")
+
+        XCTAssertEqual(entry.getNote(), "Hoy me sentí genial")
         XCTAssertTrue(entry.hasNote)
     }
-    
-    func testNoteSetter_UpdatesExistingNote() {
-        // Arrange
+
+    func testNoteSetter_UpdatesExistingNote() throws {
+        let context = try makeInMemoryContext(models: [CompletionEntry.self, DiaryNoteFeature.self])
         let entry = CompletionEntry(date: Date())
-        entry.note = "Primera nota"
-        
-        // Act
-        entry.note = "Nota actualizada"
-        
-        // Assert
-        XCTAssertEqual(entry.note, "Nota actualizada")
+        context.insert(entry)
+        entry.setNote("Primera nota")
+
+        entry.setNote("Nota actualizada")
+
+        XCTAssertEqual(entry.getNote(), "Nota actualizada")
         XCTAssertTrue(entry.hasNote)
     }
-    
-    func testNoteSetter_RemovesFeatureWithEmptyString() {
-        // Arrange
+
+    func testNoteSetter_RemovesFeatureWithEmptyString() throws {
+        let context = try makeInMemoryContext(models: [CompletionEntry.self, DiaryNoteFeature.self])
         let entry = CompletionEntry(date: Date())
-        entry.note = "Alguna nota"
-        
-        // Act
-        entry.note = ""
-        
-        // Assert
-        XCTAssertNil(entry.diaryFeature)
+        context.insert(entry)
+        entry.setNote("Alguna nota")
+
+        entry.setNote("")
+
+        XCTAssertNil(entry.getNote())
         XCTAssertFalse(entry.hasNote)
     }
-    
-    func testNoteSetter_RemovesFeatureWithNil() {
-        // Arrange
+
+    func testNoteSetter_RemovesFeatureWithNil() throws {
+        let context = try makeInMemoryContext(models: [CompletionEntry.self, DiaryNoteFeature.self])
         let entry = CompletionEntry(date: Date())
-        entry.note = "Alguna nota"
-        
-        // Act
-        entry.note = nil
-        
-        // Assert
-        XCTAssertNil(entry.diaryFeature)
+        context.insert(entry)
+        entry.setNote("Alguna nota")
+
+        entry.setNote(nil)
+
+        XCTAssertNil(entry.getNote())
         XCTAssertFalse(entry.hasNote)
     }
+
+    #endif
 }
+
+
+
+

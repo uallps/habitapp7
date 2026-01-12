@@ -1,11 +1,17 @@
-//
+﻿//
 //  DiaryViewModelTest.swift
 //  HabitAppTests
 //
 
 import XCTest
 import Combine
-#if canImport(HabitApp_Premium)
+#if CORE_VERSION
+@testable import HabitApp_Core
+#elseif STANDARD_VERSION
+@testable import HabitApp_Standard
+#elseif PREMIUM_VERSION
+@testable import HabitApp_Premium
+#elseif canImport(HabitApp_Premium)
 @testable import HabitApp_Premium
 #elseif canImport(HabitApp_Standard)
 @testable import HabitApp_Standard
@@ -35,7 +41,7 @@ final class DiaryViewModelTest: XCTestCase {
         super.tearDown()
     }
     
-    // MARK: - Test de inicialización
+    // MARK: - Test de inicializacion
     
     func testInitialization_WithNoExistingNote() {
         // Arrange & Act
@@ -81,7 +87,7 @@ final class DiaryViewModelTest: XCTestCase {
     
     func testNoteTextCanBeSetToEmpty() {
         // Arrange
-        viewModel.noteText = "Algún texto"
+        viewModel.noteText = "Algun texto"
         
         // Act
         viewModel.noteText = ""
@@ -147,8 +153,8 @@ final class DiaryViewModelTest: XCTestCase {
         viewModel.saveNote()
         
         // Assert
-        // Una cadena vacía después de trim debería guardarse como cadena vacía
-        // (o nil dependiendo de la implementación)
+        // Una cadena vacia despues de trim deberia guardarse como cadena vacia
+        // (o nil dependiendo de la implementacion)
         let savedNote = completionEntry.getNote()
         XCTAssertTrue(savedNote == nil || savedNote == "")
     }
@@ -215,7 +221,7 @@ final class DiaryViewModelTest: XCTestCase {
         viewModel.saveNote()
         
         // Assert
-        // El trim de whitespace y newlines debería limpiar esto
+        // El trim de whitespace y newlines deberia limpiar esto
         XCTAssertEqual(completionEntry.getNote(), "Texto central")
     }
     
@@ -235,16 +241,16 @@ final class DiaryViewModelTest: XCTestCase {
     
     func testSaveNote_WithSpecialCharacters() {
         // Arrange
-        viewModel.noteText = "Hoy me sentí genial 😊💪 con 100% de energía!"
+        viewModel.noteText = "Hoy me sentí genial 😊 con 100% de energía!"
         
         // Act
         viewModel.saveNote()
         
         // Assert
-        XCTAssertEqual(completionEntry.getNote(), "Hoy me sentí genial 😊💪 con 100% de energía!")
+        XCTAssertEqual(completionEntry.getNote(), "Hoy me sentí genial 😊 con 100% de energía!")
     }
     
-    // MARK: - Test de integración con CompletionEntry
+    // MARK: - Test de integracion con CompletionEntry
     
     func testModifyAndSave_UpdatesEntry() {
         // Arrange
@@ -304,3 +310,7 @@ final class DiaryViewModelTest: XCTestCase {
         XCTAssertEqual(changeCount, 2)
     }
 }
+
+
+
+

@@ -1,11 +1,17 @@
-//
+﻿//
 //  ReminderManagerTest.swift
 //  HabitAppTests
 //
 
 import XCTest
 import UserNotifications
-#if canImport(HabitApp_Premium)
+#if CORE_VERSION
+@testable import HabitApp_Core
+#elseif STANDARD_VERSION
+@testable import HabitApp_Standard
+#elseif PREMIUM_VERSION
+@testable import HabitApp_Premium
+#elseif canImport(HabitApp_Premium)
 @testable import HabitApp_Premium
 #elseif canImport(HabitApp_Standard)
 @testable import HabitApp_Standard
@@ -25,7 +31,7 @@ final class ReminderManagerTest: XCTestCase {
     }
     
     override func tearDown() {
-        // Limpiar notificaciones después de cada test
+        // Limpiar notificaciones despues de cada test
         Task {
             await reminderManager.cancelAllNotifications()
         }
@@ -33,7 +39,7 @@ final class ReminderManagerTest: XCTestCase {
         super.tearDown()
     }
     
-    // MARK: - Test de inicialización y configuración
+    // MARK: - Test de inicializacion y configuracion
     
     func testReminderManager_IsSingleton() {
         // Arrange & Act
@@ -49,22 +55,22 @@ final class ReminderManagerTest: XCTestCase {
         // No podemos acceder directamente a modelContext, pero podemos verificar que no crashea
         
         // Act & Assert
-        // La configuración no debería causar errores
+        // La configuracion no deberia causar errores
         XCTAssertNotNil(reminderManager)
     }
     
-    // MARK: - Test de autorización
+    // MARK: - Test de autorizacion
     
     func testRequestAuthorizationIfNeeded_DoesNotCrash() async {
         // Arrange & Act & Assert
-        // Este test simplemente verifica que el método puede ser llamado sin errores
+        // Este test simplemente verifica que el metodo puede ser llamado sin errores
         await reminderManager.requestAuthorizationIfNeeded()
         
-        // Si llegamos aquí sin crash, el test pasa
+        // Si llegamos aqui sin crash, el test pasa
         XCTAssertTrue(true)
     }
     
-    // MARK: - Test de cancelación de notificaciones
+    // MARK: - Test de cancelacion de notificaciones
     
     func testCancelDailyHabitNotification_CompletesWithoutError() async {
         // Arrange & Act
@@ -81,7 +87,7 @@ final class ReminderManagerTest: XCTestCase {
     
     func testCancelAllNotifications_RemovesAllPending() async {
         // Arrange
-        // Primero programamos una notificación de prueba
+        // Primero programamos una notificacion de prueba
         let content = UNMutableNotificationContent()
         content.title = "Test"
         content.body = "Test notification"
@@ -104,7 +110,7 @@ final class ReminderManagerTest: XCTestCase {
         XCTAssertEqual(pending.count, 0, "Todas las notificaciones deben ser canceladas")
     }
     
-    // MARK: - Test de programación de notificaciones
+    // MARK: - Test de programacion de notificaciones
     
     func testScheduleDailyHabitNotificationDebounced_CanBeCalled() {
         // Arrange & Act
@@ -115,7 +121,7 @@ final class ReminderManagerTest: XCTestCase {
         XCTAssertTrue(true)
     }
     
-    // MARK: - Test de comportamiento con múltiples llamadas
+    // MARK: - Test de comportamiento con multiples llamadas
     
     func testMultipleCancellations_DoNotCauseErrors() async {
         // Arrange & Act
@@ -124,7 +130,7 @@ final class ReminderManagerTest: XCTestCase {
         await reminderManager.cancelDailyHabitNotification()
         
         // Assert
-        // Si no crashea con múltiples cancelaciones, el test pasa
+        // Si no crashea con multiples cancelaciones, el test pasa
         XCTAssertTrue(true)
     }
     
@@ -139,7 +145,7 @@ final class ReminderManagerTest: XCTestCase {
         XCTAssertEqual(pending.count, 0)
     }
     
-    // MARK: - Test de autorización de notificaciones
+    // MARK: - Test de autorizacion de notificaciones
     
     func testGetAuthorizationStatus() async {
         // Arrange
@@ -164,11 +170,11 @@ final class ReminderManagerTest: XCTestCase {
         XCTAssertTrue(validStatuses.contains(settings.authorizationStatus))
     }
     
-    // MARK: - Test de programación con debounce
+    // MARK: - Test de programacion con debounce
     
     func testScheduleDailyHabitNotificationDebounced_MultipleCallsDebounce() async {
         // Arrange & Act
-        // Llamar múltiples veces rápidamente
+        // Llamar multiples veces rapidamente
         reminderManager.scheduleDailyHabitNotificationDebounced()
         reminderManager.scheduleDailyHabitNotificationDebounced()
         reminderManager.scheduleDailyHabitNotificationDebounced()
@@ -177,7 +183,7 @@ final class ReminderManagerTest: XCTestCase {
         try? await Task.sleep(nanoseconds: 600_000_000) // 0.6 segundos
         
         // Assert
-        // Si no crashea, el debounce funcionó correctamente
+        // Si no crashea, el debounce funciono correctamente
         XCTAssertTrue(true)
     }
     
@@ -197,7 +203,7 @@ final class ReminderManagerTest: XCTestCase {
         XCTAssertEqual(pending.count, 0)
     }
     
-    // MARK: - Test de integración básica
+    // MARK: - Test de integracion basica
     
     func testReminderManager_CanInteractWithNotificationCenter() async {
         // Arrange
@@ -211,7 +217,7 @@ final class ReminderManagerTest: XCTestCase {
         XCTAssertNotNil(settings)
     }
     
-    // MARK: - Test de verificación de notificaciones pendientes
+    // MARK: - Test de verificacion de notificaciones pendientes
     
     func testPendingNotifications_CanBeQueried() async {
         // Arrange
@@ -269,7 +275,7 @@ final class ReminderManagerTest: XCTestCase {
         // Arrange & Act
         reminderManager.scheduleDailyHabitNotificationDebounced()
         
-        // Llamar inmediatamente otra vez debería cancelar la primera llamada
+        // Llamar inmediatamente otra vez deberia cancelar la primera llamada
         reminderManager.scheduleDailyHabitNotificationDebounced()
         
         // Esperar el debounce
@@ -280,3 +286,6 @@ final class ReminderManagerTest: XCTestCase {
         XCTAssertTrue(true)
     }
 }
+
+
+

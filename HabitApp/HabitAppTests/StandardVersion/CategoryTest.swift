@@ -1,10 +1,16 @@
-//
+﻿//
 //  CategoryTest.swift
 //  HabitAppTests
 //
 
 import XCTest
-#if canImport(HabitApp_Premium)
+#if CORE_VERSION
+@testable import HabitApp_Core
+#elseif STANDARD_VERSION
+@testable import HabitApp_Standard
+#elseif PREMIUM_VERSION
+@testable import HabitApp_Premium
+#elseif canImport(HabitApp_Premium)
 @testable import HabitApp_Premium
 #elseif canImport(HabitApp_Standard)
 @testable import HabitApp_Standard
@@ -16,7 +22,7 @@ import XCTest
 
 final class CategoryTest: XCTestCase {
     
-    // MARK: - Test de inicialización
+    // MARK: - Test de inicializacion
     
     func testCategoryInitializationWithDefaults() {
         // Arrange & Act
@@ -126,13 +132,13 @@ final class CategoryTest: XCTestCase {
     func testCategoryWithSpecialCharacters() {
         // Arrange & Act
         let category = Category(
-            name: "Salud 💪 & Bienestar",
-            categoryDescription: "Descripción con caracteres especiales: áéíóú ñ @#$%"
+            name: "Salud ñáéíóú & Bienestar",
+            categoryDescription: "Descripción con caracteres especiales: áéíóúñ @#$%"
         )
         
         // Assert
-        XCTAssertEqual(category.name, "Salud 💪 & Bienestar")
-        XCTAssertTrue(category.categoryDescription.contains("áéíóú"))
+        XCTAssertEqual(category.name, "Salud ñáéíóú & Bienestar")
+        XCTAssertTrue(category.categoryDescription.contains("áéíóúñ"))
         XCTAssertTrue(category.categoryDescription.contains("@#$%"))
     }
     
@@ -147,7 +153,7 @@ final class CategoryTest: XCTestCase {
         XCTAssertNotEqual(category1.categoryDescription, category2.categoryDescription)
     }
     
-    // MARK: - Test de comparación
+    // MARK: - Test de comparacion
     
     func testCategoryEquality() {
         // Arrange
@@ -156,7 +162,11 @@ final class CategoryTest: XCTestCase {
         let category2 = Category(id: id, name: "Different", categoryDescription: "Other")
         
         // Act & Assert
-        // Las categorías con el mismo ID deberían considerarse iguales (por referencia)
+        // Las categorias con el mismo ID deberian considerarse iguales (por referencia)
         XCTAssertEqual(category1.id, category2.id)
     }
 }
+
+
+
+

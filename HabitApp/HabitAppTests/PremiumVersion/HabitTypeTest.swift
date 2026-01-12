@@ -1,4 +1,4 @@
-//
+﻿//
 //  HabitTypeTest.swift
 //  HabitAppTests - Premium Version
 //
@@ -6,7 +6,14 @@
 //
 
 import XCTest
-#if canImport(HabitApp_Premium)
+import SwiftData
+#if CORE_VERSION
+@testable import HabitApp_Core
+#elseif STANDARD_VERSION
+@testable import HabitApp_Standard
+#elseif PREMIUM_VERSION
+@testable import HabitApp_Premium
+#elseif canImport(HabitApp_Premium)
 @testable import HabitApp_Premium
 #elseif canImport(HabitApp_Standard)
 @testable import HabitApp_Standard
@@ -18,139 +25,123 @@ import XCTest
 
 #if HABIT_TYPE_FEATURE
 
+@MainActor
 final class HabitTypeTest: XCTestCase {
-    
+
+    private func makeInMemoryContext(models: [any PersistentModel.Type]) throws -> ModelContext {
+        let schema = Schema(models)
+        let configuration = ModelConfiguration(isStoredInMemoryOnly: true)
+        let container = try ModelContainer(for: schema, configurations: configuration)
+        let context = ModelContext(container)
+        SwiftDataContext.shared = context
+        return context
+    }
+
     // MARK: - Test de Modelo HabitType
-    
-    func testHabitTypeEnumValues() {
-        XCTAssertEqual(HabitType.build.rawValue, "build")
-        XCTAssertEqual(HabitType.quit.rawValue, "quit")
+
+    func testHabitCompletionTypeCases() {
+        XCTAssertEqual(HabitCompletionType.allCases.count, 3)
+        XCTAssertTrue(HabitCompletionType.allCases.contains(.binary))
+        XCTAssertTrue(HabitCompletionType.allCases.contains(.count))
+        XCTAssertTrue(HabitCompletionType.allCases.contains(.timer))
     }
-    
-    func testHabitTypeBuild() {
-        let type = HabitType.build
-        
-        XCTAssertEqual(type, .build)
-        XCTAssertNotEqual(type, .quit)
+
+    func testHabitTypeInitialization() {
+        let habitId = UUID()
+        let model = HabitType(habitID: habitId, type: .count, targetValue: 5, unit: "minutos")
+
+        XCTAssertEqual(model.habitID, habitId)
+        XCTAssertEqual(model.type, .count)
+        XCTAssertEqual(model.targetValue, 5)
+        XCTAssertEqual(model.unit, "minutos")
     }
-    
-    func testHabitTypeQuit() {
-        let type = HabitType.quit
-        
-        XCTAssertEqual(type, .quit)
-        XCTAssertNotEqual(type, .build)
-    }
-    
-    // MARK: - Test de Integración con Habit
-    
-    func testHabitWithType() {
-        let habit = Habit(title: "Exercise", frequency: [.monday])
-        
-        // Asumiendo que hay una propiedad para el tipo
-        // habit.habitType = .build
-        
-        XCTAssertNotNil(habit)
-    }
-    
-    func testBuildHabitBehavior() {
-        let buildHabit = Habit(title: "Build Exercise", frequency: [.monday])
-        // buildHabit.habitType = .build
-        
-        // Los hábitos de construcción deberían marcarse como completados cuando se hace
-        XCTAssertNotNil(buildHabit)
-    }
-    
-    func testQuitHabitBehavior() {
-        let quitHabit = Habit(title: "Quit Smoking", frequency: [.monday])
-        // quitHabit.habitType = .quit
-        
-        // Los hábitos de eliminación deberían marcarse como completados cuando NO se hace
-        XCTAssertNotNil(quitHabit)
-    }
-    
+
     // MARK: - Test de HabitTypeViewModel
-    
-    func testHabitTypeViewModelInitialization() async {
-        let habit = Habit(title: "Test", frequency: [.monday])
-        let viewModel = HabitTypeViewModel(habit: habit)
-        
-        XCTAssertNotNil(viewModel)
-        XCTAssertEqual(viewModel.habit.title, "Test")
+
+    func testHabitTypeViewModelInitialization() throws {
+        let context = try makeInMemoryContext(models: [HabitType.self])
+        let habitId = UUID()
+        let viewModel = HabitTypeViewModel(habitID: habitId, context: context)
+
+        XCTAssertEqual(viewModel.selectedType, .binary)
     }
-    
-    func testChangeHabitType() async {
-        let habit = Habit(title: "Test", frequency: [.monday])
-        let viewModel = HabitTypeViewModel(habit: habit)
-        
-        viewModel.setType(.quit)
-        
-        // Verificar que el tipo cambió
-        XCTAssertNotNil(viewModel)
+
+    func testChangeHabitType() throws {
+        let context = try makeInMemoryContext(models: [HabitType.self])
+        let habitId = UUID()
+        let viewModel = HabitTypeViewModel(habitID: habitId, context: context)
+
+        viewModel.saveType(.timer)
+        XCTAssertEqual(viewModel.selectedType, .timer)
     }
-    
+
+    func testSaveTargetValue() throws {
+        let context = try makeInMemoryContext(models: [HabitType.self])
+        let habitId = UUID()
+        let viewModel = HabitTypeViewModel(habitID: habitId, context: context)
+
+        viewModel.saveTargetValue("5")
+        XCTAssertEqual(viewModel.targetValue, "5")
+    }
+
+    func testSaveTime() throws {
+        let context = try makeInMemoryContext(models: [HabitType.self])
+        let habitId = UUID()
+        let viewModel = HabitTypeViewModel(habitID: habitId, context: context)
+
+        viewModel.saveTime(minutes: 1, seconds: 30)
+        XCTAssertEqual(viewModel.selectedMinutes, 1)
+        XCTAssertEqual(viewModel.selectedSeconds, 30)
+        XCTAssertEqual(viewModel.targetValue, "90")
+    }
+
+    func testSaveUnit() throws {
+        let context = try makeInMemoryContext(models: [HabitType.self])
+        let habitId = UUID()
+        let viewModel = HabitTypeViewModel(habitID: habitId, context: context)
+
+        viewModel.saveUnit("minutos")
+        XCTAssertEqual(viewModel.unit, "minutos")
+    }
+
     // MARK: - Test de HabitCompletionViewModel
-    
-    func testHabitCompletionViewModelInitialization() async {
+
+    func testHabitCompletionViewModelLoadsType() throws {
+        let context = try makeInMemoryContext(models: [Habit.self, HabitType.self, ExpandedFrequency.self])
         let habit = Habit(title: "Test", frequency: [.monday])
-        let viewModel = HabitCompletionViewModel(habit: habit)
-        
-        XCTAssertNotNil(viewModel)
+        context.insert(habit)
+        let habitType = HabitType(habitID: habit.id, type: .count, targetValue: 2, unit: "minutos")
+        context.insert(habitType)
+
+        let viewModel = HabitCompletionViewModel(habit: habit, context: context) {}
+        XCTAssertNotNil(viewModel.habitType)
     }
-    
-    func testCompletionLogicForBuildHabit() async {
-        let habit = Habit(title: "Exercise", frequency: [.monday])
-        let viewModel = HabitCompletionViewModel(habit: habit)
-        
-        // Para hábitos de construcción, completar significa hacer la acción
-        XCTAssertNotNil(viewModel)
+
+    func testHabitCompletionViewModelProgressTriggersToggle() throws {
+        let context = try makeInMemoryContext(models: [Habit.self, HabitType.self, ExpandedFrequency.self])
+        let habit = Habit(title: "Test", frequency: [.monday])
+        context.insert(habit)
+        let habitType = HabitType(habitID: habit.id, type: .count, targetValue: 2, unit: "minutos")
+        context.insert(habitType)
+
+        var toggled = false
+        let viewModel = HabitCompletionViewModel(habit: habit, context: context) {
+            toggled = true
+        }
+
+        viewModel.updateProgress(2)
+        XCTAssertTrue(toggled)
     }
-    
-    func testCompletionLogicForQuitHabit() async {
-        let habit = Habit(title: "Quit Smoking", frequency: [.monday])
-        let viewModel = HabitCompletionViewModel(habit: habit)
-        
-        // Para hábitos de eliminación, completar significa NO hacer la acción
-        XCTAssertNotNil(viewModel)
-    }
-    
+
     // MARK: - Test de Plugin
-    
+
     func testHabitTypePluginRegistered() {
         let registry = PluginRegistry.shared
-        
-        // Verificar que el plugin está registrado
         let hasPlugin = registry.plugins.contains { plugin in
             plugin is HabitTypePlugin
         }
-        
+
         XCTAssertTrue(hasPlugin, "HabitTypePlugin should be registered")
-    }
-    
-    // MARK: - Test de Vistas
-    
-    func testHabitTypeViewsExist() {
-        // Verificar que las vistas del módulo Type están disponibles
-        XCTAssertTrue(true, "Habit Type views should be available in Premium")
-    }
-    
-    // MARK: - Test de Diferencias entre Build y Quit
-    
-    func testBuildVsQuitCompletion() {
-        // En un hábito Build: hacer la acción = completado
-        // En un hábito Quit: NO hacer la acción = completado
-        
-        let buildHabit = Habit(title: "Build", frequency: [.monday])
-        let quitHabit = Habit(title: "Quit", frequency: [.monday])
-        
-        XCTAssertNotNil(buildHabit)
-        XCTAssertNotNil(quitHabit)
-    }
-    
-    func testHabitTypeAffectsStatistics() {
-        // Las estadísticas deberían calcular de forma diferente para Build vs Quit
-        let habit = Habit(title: "Test", frequency: [.monday])
-        
-        XCTAssertNotNil(habit)
     }
 }
 
@@ -163,3 +154,5 @@ final class HabitTypeTest: XCTestCase {
 }
 
 #endif
+
+

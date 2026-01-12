@@ -121,7 +121,7 @@ final class HabitAppUITests: XCTestCase {
     
     func testDeleteCategoryFlow() throws {
         // Primero crear una categoría para eliminar
-        testCreateCategoryFlow()
+        try testCreateCategoryFlow()
         
         // Abrir la vista de categorías
         let categoryButton = app.buttons["CreateCategoryButton"]
@@ -182,10 +182,9 @@ final class HabitAppUITests: XCTestCase {
                                 "Debe aparecer una nueva vista")
                     
                     // Cerrar la vista (buscar botón cancelar o atrás)
-                    if let cancelButton = app.buttons["Cancelar"].firstMatch {
-                        if cancelButton.exists {
-                            cancelButton.tap()
-                        }
+                    let cancelButton = app.buttons["Cancelar"].firstMatch
+                    if cancelButton.exists {
+                        cancelButton.tap()
                     }
                     
                     break

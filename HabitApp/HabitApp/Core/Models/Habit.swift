@@ -1,4 +1,4 @@
-import Foundation
+﻿import Foundation
 import SwiftData
 
 @Model
@@ -6,7 +6,7 @@ final class Habit: Identifiable {
     // Persistimos un UUID controlado por nosotros
     @Attribute(.unique) var id: UUID
 
-    // Propiedades básicas
+    // Propiedades basicas
     var title: String
     var endDate: Date?
     // Almacenamos el rawValue de Priority para compatibilidad con SwiftData
@@ -17,7 +17,7 @@ final class Habit: Identifiable {
         set { priorityRaw = newValue?.rawValue }
     }
 
-    // Completados: relación to-many sin orden garantizado
+    // Completados: relacion to-many sin orden garantizado
     @Relationship(deleteRule: .cascade)
     var completed: [CompletionEntry]
 
@@ -28,7 +28,7 @@ final class Habit: Identifiable {
         set { frequencyRaw = newValue.map { $0.rawValue } }
     }
 
-    // Inicialización
+    // Inicializacion
     init(
         id: UUID = UUID(),
         title: String,
@@ -43,16 +43,16 @@ final class Habit: Identifiable {
         self.frequencyRaw = frequency.map { $0.rawValue }
     }
 
-    // Propiedad derivada: ¿está completada hoy?
+    // Propiedad derivada: esta completada hoy?
     var isCompletedToday: Bool {
         return isCompleted(on: Date())
     }
     
-    /// Determina si el hábito está completado en una fecha específica
+    /// Determina si el habito esta completado en una fecha especifica
     /// - Parameter date: Fecha a verificar (por defecto: hoy)
-    /// - Returns: true si el hábito está completado en esa fecha
+    /// - Returns: true si el habito esta completado en esa fecha
     func isCompleted(on date: Date = Date()) -> Bool {
-        // 🔌 PLUGINS: Permitir que un plugin determine si está completado (ej. Adicción = !entry)
+        // NO PLUGINS: Permitir que un plugin determine si esta completado (ej. Adiccion = !entry)
         if let pluginResult = PluginRegistry.shared.isHabitCompleted(habit: self, date: date) {
             return pluginResult
         }
@@ -67,10 +67,10 @@ enum Priority: String, Codable {
 enum Weekday: String, Codable, CaseIterable {
     case monday = "Lunes"
     case tuesday = "Martes"
-    case wednesday = "Miércoles"
+    case wednesday = "Mi\u{00E9}rcoles"
     case thursday = "Jueves"
     case friday = "Viernes"
-    case saturday = "Sábado"
+    case saturday = "S\u{00E1}bado"
     case sunday = "Domingo"
     
     /// Obtiene el Weekday correspondiente a un Date
@@ -78,7 +78,7 @@ enum Weekday: String, Codable, CaseIterable {
         let calendar = Calendar.current
         let weekdayIndex = calendar.component(.weekday, from: date)
         
-        // Calendar.weekday: 1 = Domingo, 2 = Lunes, ..., 7 = Sábado
+        // Calendar.weekday: 1 = Domingo, 2 = Lunes, ..., 7 = Sabado
         switch weekdayIndex {
         case 1: return .sunday
         case 2: return .monday
@@ -95,11 +95,11 @@ enum Weekday: String, Codable, CaseIterable {
 // MARK: - Habit Extensions for Reminders
 
 extension Habit {
-    /// Determina si este hábito debe completarse en una fecha específica
+    /// Determina si este habito debe completarse en una fecha especifica
     /// - Parameter date: Fecha a verificar
-    /// - Returns: true si el hábito debe hacerse ese día
+    /// - Returns: true si el habito debe hacerse ese dia
     func shouldBeCompletedOn(date: Date) -> Bool {
-        // 🔌 PLUGINS: Permitir que un plugin determine si se debe completar hoy (ej. Frecuencia extendida)
+        // NO PLUGINS: Permitir que un plugin determine si se debe completar hoy (ej. Frecuencia extendida)
         if let pluginResult = PluginRegistry.shared.shouldHabitBeCompletedOn(habit: self, date: date) {
             return pluginResult
         }
@@ -109,10 +109,10 @@ extension Habit {
             return false
         }
         
-        // Obtener el día de la semana de la fecha
+        // Obtener el dia de la semana de la fecha
         let weekday = Weekday.from(date: date)
         
-        // Verificar si el día está en la frecuencia del hábito
+        // Verificar si el dia esta en la frecuencia del habito
         return frequency.contains(weekday)
     }
 }

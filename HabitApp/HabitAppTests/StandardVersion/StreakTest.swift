@@ -1,10 +1,16 @@
-//
+﻿//
 //  StreakTest.swift
 //  HabitAppTests
 //
 
 import XCTest
-#if canImport(HabitApp_Premium)
+#if CORE_VERSION
+@testable import HabitApp_Core
+#elseif STANDARD_VERSION
+@testable import HabitApp_Standard
+#elseif PREMIUM_VERSION
+@testable import HabitApp_Premium
+#elseif canImport(HabitApp_Premium)
 @testable import HabitApp_Premium
 #elseif canImport(HabitApp_Standard)
 @testable import HabitApp_Standard
@@ -16,7 +22,7 @@ import XCTest
 
 final class StreakTest: XCTestCase {
     
-    // MARK: - Test de HabitStreakFeature inicialización
+    // MARK: - Test de HabitStreakFeature inicializacion
     
     func testHabitStreakFeatureInitialization() {
         // Arrange
@@ -308,7 +314,7 @@ final class StreakTest: XCTestCase {
         XCTAssertNotNil(habit.getNextDay(), "nextDay debe ser calculado la primera vez")
     }
     
-    // MARK: - Test de checkAndUpdateStreak - Completado en día esperado
+    // MARK: - Test de checkAndUpdateStreak - Completado en dia esperado
     
     func testCheckAndUpdateStreak_CompletedOnExpectedDay_IncrementsStreak() {
         // Arrange
@@ -372,7 +378,7 @@ final class StreakTest: XCTestCase {
         XCTAssertEqual(habit.getMaxStreak(), 10, "maxStreak no debe cambiar")
     }
     
-    // MARK: - Test de checkAndUpdateStreak - No completado en día esperado
+    // MARK: - Test de checkAndUpdateStreak - No completado en dia esperado
     
     func testCheckAndUpdateStreak_NotCompletedOnExpectedDay_ResetsStreak() {
         // Arrange
@@ -405,11 +411,11 @@ final class StreakTest: XCTestCase {
         habit.setNextDay(yesterday)
         habit.setStreak(3)
         
-        // Act (verificar hoy, pero el día esperado fue ayer)
+        // Act (verificar hoy, pero el dia esperado fue ayer)
         habit.checkAndUpdateStreak(on: today)
         
         // Assert
-        XCTAssertEqual(habit.getStreak(), 0, "La racha debe resetearse por día perdido")
+        XCTAssertEqual(habit.getStreak(), 0, "La racha debe resetearse por dia perdido")
     }
     
     // MARK: - Test de valores extremos
@@ -435,11 +441,11 @@ final class StreakTest: XCTestCase {
         habit.setStreak(-5)
         
         // Assert
-        // Debería permitir valores negativos (aunque no tenga sentido lógicamente)
+        // Debería permitir valores negativos (aunque no tenga sentido logicamente)
         XCTAssertEqual(habit.getStreak(), -5)
     }
     
-    // MARK: - Test de múltiples actualizaciones
+    // MARK: - Test de multiples actualizaciones
     
     func testMultipleStreakUpdates() {
         // Arrange
@@ -474,7 +480,7 @@ final class StreakTest: XCTestCase {
         XCTAssertEqual(habit.getStreak(), 0)
     }
     
-    // MARK: - Test de integración con Habit
+    // MARK: - Test de integracion con Habit
     
     func testStreak_PersistsAcrossAccess() {
         // Arrange
@@ -499,3 +505,7 @@ final class StreakTest: XCTestCase {
         XCTAssertNotEqual(feature1.id, feature2.id)
     }
 }
+
+
+
+

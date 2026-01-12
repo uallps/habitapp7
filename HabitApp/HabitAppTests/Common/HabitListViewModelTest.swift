@@ -1,11 +1,17 @@
-//
+﻿//
 //  HabitListViewModelTest.swift
 //  HabitAppTests
 //
 
 import XCTest
 import Combine
-#if canImport(HabitApp_Premium)
+#if CORE_VERSION
+@testable import HabitApp_Core
+#elseif STANDARD_VERSION
+@testable import HabitApp_Standard
+#elseif PREMIUM_VERSION
+@testable import HabitApp_Premium
+#elseif canImport(HabitApp_Premium)
 @testable import HabitApp_Premium
 #elseif canImport(HabitApp_Standard)
 @testable import HabitApp_Standard
@@ -17,6 +23,7 @@ import Combine
 
 // MARK: - Mock StorageProvider
 
+@MainActor
 class MockStorageProvider: StorageProvider {
     var habits: [Habit] = []
     var saveCalledCount = 0
@@ -47,6 +54,7 @@ class MockStorageProvider: StorageProvider {
 
 // MARK: - Tests
 
+@MainActor
 final class HabitListViewModelTest: XCTestCase {
     
     var viewModel: HabitListViewModel!
@@ -67,7 +75,7 @@ final class HabitListViewModelTest: XCTestCase {
         super.tearDown()
     }
     
-    // MARK: - Test de inicialización
+    // MARK: - Test de inicializacion
     
     func testInitialization_LoadsHabitsFromStorage() async {
         // Arrange
@@ -78,11 +86,12 @@ final class HabitListViewModelTest: XCTestCase {
         // Act
         let newViewModel = HabitListViewModel(storageProvider: mockStorage)
         
-        // Esperar a que se carguen los hábitos
+        // Esperar a que se carguen los habitos
         try? await Task.sleep(nanoseconds: 100_000_000) // 0.1 segundos
         
         // Assert
-        XCTAssertEqual(mockStorage.loadCalledCount, 2) // Una del setUp, otra de esta prueba
+        let loadCount = mockStorage.loadCalledCount
+        XCTAssertEqual(loadCount, 2) // Una del setUp, otra de esta prueba
         XCTAssertEqual(newViewModel.habits.count, 2)
     }
     
@@ -145,8 +154,10 @@ final class HabitListViewModelTest: XCTestCase {
         try? await Task.sleep(nanoseconds: 100_000_000) // 0.1 segundos
         
         // Assert
-        XCTAssertGreaterThan(mockStorage.saveCalledCount, 0, "Debe llamar a saveHabits")
-        XCTAssertEqual(mockStorage.habits.count, 1)
+        let saveCount = mockStorage.saveCalledCount
+        let habitCount = mockStorage.habits.count
+        XCTAssertGreaterThan(saveCount, 0, "Debe llamar a saveHabits")
+        XCTAssertEqual(habitCount, 1)
     }
     
     func testAddHabit_AddMultipleHabits() {
@@ -181,7 +192,8 @@ final class HabitListViewModelTest: XCTestCase {
         
         // Assert
         XCTAssertTrue(viewModel.habits.first!.isCompletedToday, "Debe estar marcado como completado")
-        XCTAssertGreaterThan(mockStorage.saveCalledCount, 0)
+        let saveCount = mockStorage.saveCalledCount
+        XCTAssertGreaterThan(saveCount, 0)
     }
     
     func testToggleCompletion_UnmarksAsCompleted() async {
@@ -201,13 +213,14 @@ final class HabitListViewModelTest: XCTestCase {
         
         // Assert
         XCTAssertFalse(viewModel.habits.first!.isCompletedToday, "Debe estar desmarcado")
-        XCTAssertGreaterThan(mockStorage.saveCalledCount, 0)
+        let saveCount = mockStorage.saveCalledCount
+        XCTAssertGreaterThan(saveCount, 0)
     }
     
     func testToggleCompletion_WithNonExistentHabit() async {
         // Arrange
         let habit = Habit(title: "No existe", frequency: [.monday])
-        // No agregamos el hábito a la lista
+        // No agregamos el habito a la lista
         
         let initialCount = viewModel.habits.count
         
@@ -250,7 +263,7 @@ final class HabitListViewModelTest: XCTestCase {
         let habit = Habit(title: "Original", frequency: [.monday])
         viewModel.addHabit(habit)
         
-        // Modificar el hábito
+        // Modificar el habito
         habit.title = "Modificado"
         
         let saveCountBefore = mockStorage.saveCalledCount
@@ -262,7 +275,8 @@ final class HabitListViewModelTest: XCTestCase {
         try? await Task.sleep(nanoseconds: 100_000_000)
         
         // Assert
-        XCTAssertGreaterThan(mockStorage.saveCalledCount, saveCountBefore, "Debe llamar a persist")
+        let saveCountAfter = mockStorage.saveCalledCount
+        XCTAssertGreaterThan(saveCountAfter, saveCountBefore, "Debe llamar a persist")
         XCTAssertEqual(viewModel.habits.first?.title, "Modificado")
     }
     
@@ -303,7 +317,7 @@ final class HabitListViewModelTest: XCTestCase {
         try? await Task.sleep(nanoseconds: 100_000_000)
         
         // Assert - No debe crashear, solo imprimir el error
-        XCTAssertEqual(viewModel.habits.count, 1, "El hábito debe seguir en la lista local")
+        XCTAssertEqual(viewModel.habits.count, 1, "El habito debe seguir en la lista local")
     }
     
     func testLoadHabits_HandlesErrors() async {
@@ -317,16 +331,16 @@ final class HabitListViewModelTest: XCTestCase {
         try? await Task.sleep(nanoseconds: 100_000_000)
         
         // Assert - No debe crashear
-        XCTAssertTrue(newViewModel.habits.isEmpty, "La lista debe estar vacía si falla la carga")
+        XCTAssertTrue(newViewModel.habits.isEmpty, "La lista debe estar vacia si falla la carga")
     }
     
-    // MARK: - Test de integración
+    // MARK: - Test de integracion
     
     func testCompleteWorkflow_AddToggleUpdate() async {
         // Arrange
         let habit = Habit(title: "Workflow Test", priority: .medium, frequency: [.monday, .wednesday])
         
-        // Act 1: Agregar hábito
+        // Act 1: Agregar habito
         viewModel.addHabit(habit)
         try? await Task.sleep(nanoseconds: 50_000_000)
         
@@ -339,7 +353,7 @@ final class HabitListViewModelTest: XCTestCase {
         
         XCTAssertTrue(viewModel.habits.first!.isCompletedToday)
         
-        // Act 3: Actualizar título
+        // Act 3: Actualizar titulo
         habit.title = "Actualizado en workflow"
         viewModel.updateHabit(habit)
         try? await Task.sleep(nanoseconds: 50_000_000)
@@ -347,7 +361,8 @@ final class HabitListViewModelTest: XCTestCase {
         // Assert final
         XCTAssertEqual(viewModel.habits.first?.title, "Actualizado en workflow")
         XCTAssertTrue(viewModel.habits.first!.isCompletedToday)
-        XCTAssertGreaterThan(mockStorage.saveCalledCount, 2, "Debe haber múltiples llamadas a persist")
+        let saveCount = mockStorage.saveCalledCount
+        XCTAssertGreaterThan(saveCount, 2, "Debe haber multiples llamadas a persist")
     }
     
     func testPublishedProperties_EmitChanges() {
@@ -372,3 +387,7 @@ final class HabitListViewModelTest: XCTestCase {
         XCTAssertEqual(receivedCount, 1)
     }
 }
+
+
+
+
