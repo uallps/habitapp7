@@ -16,8 +16,15 @@ struct HabitModifyView: View {
     @State private var showDeleteConfirmation = false
     
     // Hábito temporal para que los plugins puedan enlazar datos durante la edición/creación
-    @State private var tempHabit: Habit = Habit(title: "", completed: [])
-
+    // Inicializar con el hábito existente si lo hay, o crear uno nuevo
+    @State private var tempHabit: Habit
+    
+    init(viewModel: HabitListViewModel, habitToEdit: Habit? = nil) {
+        self.viewModel = viewModel
+        self.habitToEdit = habitToEdit
+        // Inicializar tempHabit con el hábito existente o crear uno nuevo
+        _tempHabit = State(initialValue: habitToEdit ?? Habit(title: "", completed: []))
+    }
     
     var body: some View {
         NavigationView {
@@ -131,9 +138,8 @@ struct HabitModifyView: View {
                     }
                 }
                 
-                // Cargar datos del hábito si estamos editando
+                // Cargar datos del hábito si estamos editando (tempHabit ya está asignado en init)
                 if let habit = habitToEdit {
-                    tempHabit = habit
                     title = habit.title
                     priority = habit.priority
                     selectedDays = Set(habit.frequency)

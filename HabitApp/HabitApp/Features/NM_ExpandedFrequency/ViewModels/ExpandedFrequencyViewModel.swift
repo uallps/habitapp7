@@ -13,8 +13,21 @@ final class ExpandedFrequencyViewModel: ObservableObject {
     init(habitId: UUID, context: ModelContext) {
         self.habitId = habitId
         self.context = context
-        self.selectedType = .daily
-        loadData()
+        
+        // Cargar datos ANTES de inicializar selectedType
+        let descriptor = FetchDescriptor<ExpandedFrequency>(
+            predicate: #Predicate { $0.habitID == habitId }
+        )
+        
+        if let existing = try? context.fetch(descriptor).first {
+            self.expandedFrequency = existing
+            self.selectedType = existing.type
+        } else {
+            let newFreq = ExpandedFrequency(habitID: habitId, type: .daily)
+            context.insert(newFreq)
+            self.expandedFrequency = newFreq
+            self.selectedType = .daily
+        }
     }
 
     var isDaily: Bool {
@@ -34,22 +47,6 @@ final class ExpandedFrequencyViewModel: ObservableObject {
             expandedFrequency = newFreq
         }
         syncCache()
-    }
-
-    private func loadData() {
-        let descriptor = FetchDescriptor<ExpandedFrequency>(
-            predicate: #Predicate { $0.habitID == habitId }
-        )
-
-        if let existing = try? context.fetch(descriptor).first {
-            expandedFrequency = existing
-            selectedType = existing.type
-        } else {
-            let newFreq = ExpandedFrequency(habitID: habitId, type: .daily)
-            context.insert(newFreq)
-            expandedFrequency = newFreq
-            selectedType = .daily
-        }
     }
 
     private func syncCache() {
