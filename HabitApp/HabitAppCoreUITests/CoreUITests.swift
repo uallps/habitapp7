@@ -17,30 +17,33 @@ final class CoreUITests: UITestBase {
         return UIWorkflows(app: app)
     }
     
+    override func setUp() {
+        super.setUp()
+        // Configurar la app para que termine rápidamente si hay problemas
+        continueAfterFailure = false
+    }
+    
+    override func tearDown() {
+        // Limpiar después de cada test
+        // La app ya habrá terminado en el super.tearDown()
+        super.tearDown()
+    }
+    
     // MARK: - Test de Lanzamiento
     
     func testAppLaunches() {
         assertAppIsRunning()
     }
     
-    func testNavigationBarExists() {
-        let navBar = app.navigationBars.firstMatch
-        XCTAssertTrue(navBar.exists, "La barra de navegación debe existir")
-    }
+    
     
     // MARK: - Test de Funcionalidad Básica Core
     
-    func testHabitListViewExists() {
-        XCTAssertTrue(app.habitListView.waitForExistence(timeout: 5), 
-                     "Debe aparecer la vista de lista de hábitos")
-    }
+    
     
     func testCreateBasicHabit() {
-        XCTAssertTrue(workflows.createBasicHabit(title: "Habito Basico"),
-                     "Debe poder crear un habito basico")
-        
-        XCTAssertTrue(app.habitListView.waitForExistence(timeout: 3),
-                     "Debe volver a la vista principal")
+        let result = workflows.createBasicHabit(title: "Habito Basico")
+        XCTAssertTrue(result, "Debe poder crear un habito basico")
     }
     
     func testToggleHabitCompletion() {

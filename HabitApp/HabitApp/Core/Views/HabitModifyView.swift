@@ -31,6 +31,7 @@ struct HabitModifyView: View {
             Form {
                 Section("Información del Hábito") {
                     TextField("Título", text: $title)
+                        .accessibilityIdentifier("HabitTitleField")
                     
                     Picker("Prioridad", selection: $priority) {
                         Text("Ninguna").tag(nil as Priority?)
@@ -128,6 +129,7 @@ struct HabitModifyView: View {
                         dismiss()
                     }
                     .disabled(title.isEmpty)
+                    .accessibilityIdentifier("SaveHabitButton")
                 }
             }
             .onAppear {

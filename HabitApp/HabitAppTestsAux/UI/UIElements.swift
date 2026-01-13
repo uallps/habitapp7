@@ -27,20 +27,47 @@ extension XCUIApplication {
     // MARK: - Botones Comunes
     
     var addButton: XCUIElement? {
-        let predicates = ["crear", "añadir", "agregar", "add", "new"]
-        for predicate in predicates {
-            let button = buttons.matching(NSPredicate(format: "label CONTAINS[c] %@", predicate)).firstMatch
-            if button.exists {
-                return button
-            }
+        // Buscar botón con label "Crear Habito" (exacto)
+        let exactMatch = buttons["Crear Habito"]
+        if exactMatch.exists {
+            return exactMatch
         }
+        
+        // Buscar por contains en label
+        let byLabel = buttons.matching(NSPredicate(format: "label CONTAINS[c] 'Crear Habito'")).firstMatch
+        if byLabel.exists {
+            return byLabel
+        }
+        
+        // Buscar cualquier botón con plus icon y texto crear
+        let withIcon = buttons.containing(NSPredicate(format: "label CONTAINS[c] 'crear'")).firstMatch
+        if withIcon.exists {
+            return withIcon
+        }
+        
         return nil
     }
     
     var saveButton: XCUIElement? {
-        if navigationBars.buttons["Guardar"].exists {
-            return navigationBars.buttons["Guardar"]
+        // Buscar en navigation bar primero (es donde debería estar)
+        let navBarButtons = navigationBars.buttons
+        for i in 0..<navBarButtons.count {
+            let button = navBarButtons.element(boundBy: i)
+            if button.label == "Guardar" {
+                return button
+            }
         }
+        
+        // Buscar en toolbars
+        let toolbarButtons = toolbars.buttons
+        for i in 0..<toolbarButtons.count {
+            let button = toolbarButtons.element(boundBy: i)
+            if button.label == "Guardar" {
+                return button
+            }
+        }
+        
+        // Último recurso: buscar en todos los botones
         return buttons["Guardar"].exists ? buttons["Guardar"] : nil
     }
     
@@ -61,6 +88,19 @@ extension XCUIApplication {
     }
     
     var habitTitleField: XCUIElement {
+        // Buscar por placeholder "Título"
+        let byPlaceholder = textFields["Título"]
+        if byPlaceholder.exists {
+            return byPlaceholder
+        }
+        
+        // Buscar en todos los text fields disponibles
+        let allFields = textFields
+        if allFields.count > 0 {
+            // En HabitModifyView, el primer text field es el de título
+            return allFields.element(boundBy: 0)
+        }
+        
         return textFields.firstMatch
     }
     
@@ -87,6 +127,30 @@ extension XCUIApplication {
         }
         return total
     }
+    
+    // MARK: - Debug Helpers
+    
+    func debugPrintButtons() {
+        print("📋 Botones disponibles:")
+        let allButtons = buttons
+        for i in 0..<min(allButtons.count, 20) {
+            let button = allButtons.element(boundBy: i)
+            if button.exists {
+                print("  - [\(i)] '\(button.label)' (enabled: \(button.isEnabled))")
+            }
+        }
+    }
+    
+    func debugPrintTextFields() {
+        print("📋 Text fields disponibles:")
+        let allFields = textFields
+        for i in 0..<allFields.count {
+            let field = allFields.element(boundBy: i)
+            if field.exists {
+                print("  - [\(i)] placeholder: '\(field.placeholderValue ?? "N/A")'")
+            }
+        }
+    }
 }
 
 /// Helper struct para predicados comunes
@@ -100,4 +164,6 @@ struct UIPredicates {
     static let pauseDay = ["pause", "pausa"]
     static let habitType = ["build", "quit", "construir", "dejar"]
     static let frequency = ["frecuencia", "frequency"]
+    static let calendary = ["calendar", "calendario"]
+    static let suggestedHabit = ["sugerido", "suggested", "sugerir", "suggest"]
 }

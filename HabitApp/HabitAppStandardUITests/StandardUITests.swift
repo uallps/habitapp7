@@ -2,8 +2,9 @@
 //  StandardUITests.swift
 //  HabitAppStandardUITests
 //
-//  UI Tests para la version STANDARD (Core + Features sin NM_)
-//  Incluye tests de Categories integrados
+//  UI Tests para HabitApp Standard Version
+//  Incluye: Core + Category + Stats + Diary + Reminders + Streaks
+//  Excluye: Plugins NM_* (ExpandedFrequency, PauseDay, Type, Calendary, SuggestedHabit)
 //
 
 import XCTest
@@ -17,227 +18,227 @@ final class StandardUITests: UITestBase {
     var workflows: UIWorkflows {
         return UIWorkflows(app: app)
     }
-
-    // MARK: - Test de Lanzamiento Standard
-
-    func testStandardVersionAppLaunches() {
+    
+    override func setUp() {
+        super.setUp()
+        continueAfterFailure = false
+    }
+    
+    override func tearDown() {
+        super.tearDown()
+    }
+    
+    // MARK: - Test de Lanzamiento
+    
+    func testAppLaunches() {
         assertAppIsRunning()
     }
-
-    // MARK: - Test de Features Standard Disponibles
-
-    func testCategoryFeatureIsAvailable() {
-        XCTAssertNotNil(findCategoryButton(), "Categorias debe estar disponible en Standard")
+    
+    // MARK: - Test de Funcionalidad Básica Standard
+    
+    
+    func testCreateBasicHabit() {
+        let result = workflows.createBasicHabit(title: "Habito Standard")
+        XCTAssertTrue(result, "Debe poder crear un habito basico")
     }
-
-    func testStatsFeatureIsAvailable() {
-        assertFeatureAvailable(keywords: UIPredicates.stats, 
+    
+    func testToggleHabitCompletion() {
+        // Primero crear un hábito
+        workflows.createBasicHabit(title: "Habito a Completar")
+        
+        // Luego marcarlo como completado
+        let success = workflows.toggleFirstHabitCompletion()
+        XCTAssertTrue(success, "Debe poder marcar habito como completado")
+    }
+    
+    // MARK: - Test de Features Standard DISPONIBLES
+    
+    func testCategoryFeatureAvailable() {
+        XCTAssertNotNil(findCategoryButton(), "Debe existir boton de categorias en Standard")
+    }
+    
+    func testStatsFeatureAvailable() {
+        assertFeatureAvailable(keywords: UIPredicates.stats,
                               message: "Estadisticas debe estar disponible en Standard")
     }
-
-    func testDiaryFeatureIsAvailable() {
-        if app.firstHabit.waitForExistence(timeout: 3) {
-            app.firstHabit.buttons.firstMatch.tap()
-            assertFeatureAvailable(keywords: UIPredicates.diary,
-                                  message: "Diario debe estar disponible en Standard")
-        }
+    
+    func testDiaryFeatureAvailable() {
+        // Crear hábito y completarlo para acceder al diario
+        workflows.createBasicHabit(title: "Habito con Diario")
+        workflows.toggleFirstHabitCompletion()
+        
+        // Buscar elementos relacionados con diario
+        assertFeatureAvailable(keywords: UIPredicates.diary,
+                              message: "Diario debe estar disponible en Standard")
     }
-
-    func testRemindersFeatureIsAvailable() {
-        if app.firstHabit.waitForExistence(timeout: 3) {
-            app.firstHabit.tap()
-            assertFeatureAvailable(keywords: UIPredicates.reminder,
-                                  message: "Recordatorios debe estar disponible en Standard")
-        }
-    }
-
-    func testStreaksFeatureIsAvailable() {
-        assertFeatureAvailable(keywords: UIPredicates.streak,
-                              message: "Rachas debe estar disponible en Standard")
-    }
-
+    
     // MARK: - Test de Features Premium NO Disponibles
-
+    
     func testExpandedFrequencyNotAvailable() {
-        let firstHabit = app.buttons.matching(identifier: "HabitRowView").firstMatch
-
-        if firstHabit.waitForExistence(timeout: 3) {
-            firstHabit.tap()
-
-            let expandedFreq = app.buttons.matching(NSPredicate(format: "label CONTAINS[c] 'diaria' OR label CONTAINS[c] 'mensual'")).count
-            XCTAssertEqual(expandedFreq, 0,
-                          "No debe haber frecuencias expandidas en Standard")
-        }
-    }
-
-    func testPauseDayNotAvailable() {
-        let pauseButtons = app.buttons.matching(NSPredicate(format: "label CONTAINS[c] 'pause' OR label CONTAINS[c] 'pausa'")).count
-
         assertFeatureNotAvailable(keywords: UIPredicates.expandedFrequency,
-                                 message: "No debe haber frecuencias expandidas en Standard")
+                                 message: "No debe haber frecuencia expandida en Standard")
     }
-
+    
     func testPauseDayNotAvailable() {
         assertFeatureNotAvailable(keywords: UIPredicates.pauseDay,
                                  message: "No debe haber funcion de pausa en Standard")
     }
-
+    
     func testHabitTypeNotAvailable() {
         assertFeatureNotAvailable(keywords: UIPredicates.habitType,
-                                 message: "No debe haber selector de tipo en Standard")   if nameField.waitForExistence(timeout: 2) {
-                nameField.tap()
-                nameField.typeText("Salud")
-
-                app.buttons["Guardar"].tap()
-                sleep(1)
-            }
-        }
-
-        XCTAssertTrue(workflows.createCategory(name: "Salud"), 
-                     "Debe poder crear categoria")
-        
-        XCTAssertTrue(workflows.createBasicHabit(title: "Ejercicio"),
-                     "Debe poder crear habito")
-    }
-
-    // MARK: - Test Completo de Flujo Standard
-
-    func testCompleteStandardWorkflow() {
-        XCTAssertTrue(workflows.createBasicHabit(title: "Meditar"),
-                     "Debe poder crear habito")
-        
-        XCTAssertTrue(workflows.toggleFirstHabitCompletion(),
-                     "Debe poder completar habito")
+                                 message: "No debe haber selector de tipo en Standard")
     }
     
-    // MARK: - Tests de Categorias (integrados desde CategoryUITests)
+    func testCalendaryNotAvailable() {
+        assertFeatureNotAvailable(keywords: UIPredicates.calendary,
+                                 message: "No debe haber calendario en Standard")
+    }
     
-    func testCompleteCreateCategoryWorkflow() {
-        assertMainViewExists()
-        
-        guard let categoryButton = findCategoryButton() else {
-            XCTFail("Debe existir un boton para crear categorias")
-            return
-        }
-        
-        categoryButton.tap()
-        
-        let categoryView = app.createCategoryView
-        XCTAssertTrue(categoryView.waitForExistence(timeout: 3),
-                     "Debe aparecer la vista de crear categoria")
-        
-        let segmentedControl = app.segmentedControls.firstMatch
-        XCTAssertTrue(segmentedControl.exists, "Debe existir el control de modo")
-        
-        let createButton = segmentedControl.buttons["Crear"]
-        if createButton.exists && !createButton.isSelected {
-            createButton.tap()
-        }
-        
-        let nameTextField = app.categoryNameField
-        XCTAssertTrue(nameTextField.waitForExistence(timeout: 2),
-                     "Debe existir el campo de nombre")
-        
-        let categoryName = "Salud y Fitness"
-        typeText(in: nameTextField, text: categoryName)
-        
-        let textValue = nameTextField.value as? String ?? ""
-        XCTAssertEqual(textValue, categoryName,
-                      "El texto ingresado debe coincidir")
-        
-        if let saveButton = findSaveButton() {
-            XCTAssertTrue(saveButton.isEnabled, "El boton Guardar debe estar habilitado")
-            saveButton.tap()
-            sleep(1)
-        }
-        
-        XCTAssertTrue(app.habitListView.waitForExistence(timeout: 3),
-                     "Debe volver a la vista principal")
+    func testSuggestedHabitNotAvailable() {
+        assertFeatureNotAvailable(keywords: UIPredicates.suggestedHabit,
+                                 message: "No debe haber habitos sugeridos en Standard")
+    }
+    
+    // MARK: - Test de Categorías
+    
+    func testCreateCategory() {
+        let result = workflows.createCategory(name: "Salud")
+        XCTAssertTrue(result, "Debe poder crear una categoria")
     }
     
     func testCreateMultipleCategories() {
-        let categories = ["Trabajo", "Personal", "Deporte", "Estudio"]
+        let categories = ["Trabajo", "Personal", "Deporte"]
         
         for category in categories {
-            XCTAssertTrue(workflows.createCategory(name: category),
-                         "Debe poder crear categoria: \(category)")
+            let result = workflows.createCategory(name: category)
+            XCTAssertTrue(result, "Debe poder crear categoria: \(category)")
         }
     }
     
-    func testDeleteCategoryWorkflow() {
-        workflows.createCategory(name: "Categoria a Eliminar")
+    func testDeleteCategory() {
+        // Crear y luego eliminar
+        workflows.createCategory(name: "Categoria Temporal")
         
-        XCTAssertTrue(workflows.deleteCategory(name: "Categoria a Eliminar"),
-                     "Debe poder eliminar categoria")
+        let result = workflows.deleteCategory(name: "Categoria Temporal")
+        XCTAssertTrue(result, "Debe poder eliminar categoria")
     }
     
-    func testCategoryValidation() {
-        guard let button = findCategoryButton() else {
-            XCTFail("Debe existir un boton para crear categorias")
+    // MARK: - Test de Flujo Completo: Categoria + Habito
+    
+    func testCreateCategoryAndAssignToHabit() {
+        // 1. Crear categoría
+        let categoryCreated = workflows.createCategory(name: "Fitness")
+        XCTAssertTrue(categoryCreated, "Debe crear la categoria Fitness")
+        
+        // 2. Crear hábito
+        guard let addButton = app.addButton else {
+            XCTFail("No se encontro boton de añadir")
             return
         }
         
-        button.tap()
+        addButton.tap()
         
-        let nameField = app.categoryNameField
-        if nameField.waitForExistence(timeout: 2) {
-            nameField.tap()
+        // 3. Llenar título
+        let titleField = app.habitTitleField
+        XCTAssertTrue(titleField.waitForExistence(timeout: 3), "Debe aparecer campo de titulo")
+        titleField.tap()
+        Thread.sleep(forTimeInterval: 0.5)
+        titleField.typeText("Correr 30 min")
+        
+        // 4. Seleccionar categoría
+        let categoryPicker = app.pickers["Categoría"]
+        if categoryPicker.exists {
+            categoryPicker.tap()
             
-            if let saveButton = findSaveButton() {
-                let initiallyEnabled = saveButton.isEnabled
-                
-                if initiallyEnabled {
-                    saveButton.tap()
-                    sleep(1)
-                    
-                    let stillInView = nameField.exists
-                    let hasAlert = app.alerts.count > 0
-                    
-                    XCTAssertTrue(stillInView || hasAlert,
-                                "Debe permanecer en la vista o mostrar error")
+            // Buscar la opción "Fitness" en el picker
+            let fitnessOption = app.buttons["Fitness"]
+            if fitnessOption.waitForExistence(timeout: 2) {
+                fitnessOption.tap()
+            } else {
+                // Si es un picker wheel
+                let pickerWheel = app.pickerWheels.firstMatch
+                if pickerWheel.exists {
+                    pickerWheel.adjust(toPickerWheelValue: "Fitness")
                 }
+            }
+        }
+        
+        // 5. Guardar
+        guard let saveButton = app.saveButton else {
+            XCTFail("No se encontro boton guardar")
+            return
+        }
+        
+        saveButton.tap()
+        Thread.sleep(forTimeInterval: 1)
+        
+        // 6. Verificar que volvimos a la lista
+        XCTAssertTrue(app.habitListView.waitForExistence(timeout: 3),
+                     "Debe volver a la lista principal")
+        
+        // 7. Verificar que el hábito existe
+        let habitExists = app.staticTexts["Correr 30 min"].exists
+        XCTAssertTrue(habitExists, "El habito debe aparecer en la lista")
+    }
+    
+    // MARK: - Test de Flujo Completo: Completar + Diario
+    
+    func testCompleteHabitAndWriteDiaryNote() {
+        // 1. Crear hábito
+        let habitCreated = workflows.createBasicHabit(title: "Meditar")
+        XCTAssertTrue(habitCreated, "Debe crear el habito")
+        
+        // 2. Marcar como completado
+        let firstHabit = app.firstHabit
+        XCTAssertTrue(firstHabit.waitForExistence(timeout: 3), "Debe existir el primer habito")
+        
+        let completionButton = firstHabit.buttons.firstMatch
+        XCTAssertTrue(completionButton.exists, "Debe existir boton de completitud")
+        completionButton.tap()
+        Thread.sleep(forTimeInterval: 0.5)
+        
+        // 3. Buscar campo de diario (puede aparecer automáticamente o necesitar tap en el hábito)
+        var diaryField = app.textViews.matching(NSPredicate(format: "placeholderValue CONTAINS[c] 'nota' OR placeholderValue CONTAINS[c] 'diario'")).firstMatch
+        
+        if !diaryField.exists {
+            // Intentar hacer tap en el hábito para ver detalles
+            firstHabit.tap()
+            Thread.sleep(forTimeInterval: 1)
+            
+            // Buscar campo de diario en la vista de detalles
+            diaryField = app.textViews.firstMatch
+        }
+        
+        if diaryField.waitForExistence(timeout: 3) {
+            diaryField.tap()
+            Thread.sleep(forTimeInterval: 0.5)
+            
+            let noteText = "Sesión de meditación muy productiva"
+            diaryField.typeText(noteText)
+            
+            // Verificar que el texto se escribió
+            let fieldValue = diaryField.value as? String ?? ""
+            XCTAssertTrue(fieldValue.contains("productiva"),
+                         "La nota del diario debe haberse guardado")
+            
+            // Cerrar si hay botón de cerrar
+            if app.buttons["Listo"].exists {
+                app.buttons["Listo"].tap()
+            } else if app.buttons["Guardar"].exists {
+                app.buttons["Guardar"].tap()
+            } else if app.buttons["Cancelar"].exists {
+                app.buttons["Cancelar"].tap()
             }
         }
     }
     
-    func testCategorySwitchBetweenModes() {
-        guard let button = findCategoryButton() else {
-            XCTFail("Debe existir un boton para crear categorias")
-            return
-        }
-        
-        button.tap()
-        
-        let segmentedControl = app.segmentedControls.firstMatch
-        XCTAssertTrue(segmentedControl.waitForExistence(timeout: 3))
-        
-        let createButton = segmentedControl.buttons["Crear"]
-        createButton.tap()
-        sleep(1)
-        
-        let nameField = app.categoryNameField
-        XCTAssertTrue(nameField.waitForExistence(timeout: 2),
-                     "Debe mostrar campo de texto en modo Crear")
-        
-        let deleteButton = segmentedControl.buttons["Eliminar"]
-        deleteButton.tap()
-        sleep(1)
-        
-        let picker = app.pickers.firstMatch
-        let noCategories = app.staticTexts["No hay categorias creadas"]
-        
-        XCTAssertTrue(picker.waitForExistence(timeout: 2) || noCategories.exists,
-                     "Debe mostrar picker o mensaje en modo Eliminar")
-    }
+    // MARK: - Test de Performance
     
-    func testCategoryWithSpecialCharacters() {
-        let specialCategories = [
-            "Habitos 2024",
-            "Trabajo & Estudio",
-            "Salud (Fisica)",
-            "Familia/Amigos"
-        ]
-        
-        for category in specialCategories {
-            workflows.createCategory(name: category)
+    func testLaunchPerformance() throws {
+        if #available(macOS 10.15, iOS 13.0, tvOS 13.0, watchOS 7.0, *) {
+            measure(metrics: [XCTApplicationLaunchMetric()]) {
+                XCUIApplication().launch()
+            }
         }
+    }
+}

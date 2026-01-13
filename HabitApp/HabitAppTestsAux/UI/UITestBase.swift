@@ -22,14 +22,27 @@ class UITestBase: XCTestCase {
     }
     
     override func setUpWithError() throws {
+        // No continuar después de fallos para evitar cascada de errores
         continueAfterFailure = false
         
         app = XCUIApplication()
+        
+        // Configurar argumentos de launch
         app.launchArguments = launchArguments
+        
+        // Reducir animaciones para tests más rápidos
+        app.launchEnvironment = ["UITEST_DISABLE_ANIMATIONS": "YES"]
+        
         app.launch()
     }
     
     override func tearDownWithError() throws {
+        // Limpiar estado de la app
+        if let currentApp = app {
+            if currentApp.state == .runningForeground || currentApp.state == .runningBackground {
+                currentApp.terminate()
+            }
+        }
         app = nil
     }
     
