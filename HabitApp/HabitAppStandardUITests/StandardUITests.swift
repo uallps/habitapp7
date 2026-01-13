@@ -142,7 +142,7 @@ final class StandardUITests: UITestBase {
         let titleField = app.habitTitleField
         XCTAssertTrue(titleField.waitForExistence(timeout: 3), "Debe aparecer campo de titulo")
         titleField.tap()
-        Thread.sleep(forTimeInterval: 0.5)
+        Thread.sleep(forTimeInterval: 0.05)
         titleField.typeText("Correr 30 min")
         
         // 4. Seleccionar categoría
@@ -170,7 +170,7 @@ final class StandardUITests: UITestBase {
         }
         
         saveButton.tap()
-        Thread.sleep(forTimeInterval: 1)
+        Thread.sleep(forTimeInterval: 0.05)
         
         // 6. Verificar que volvimos a la lista
         XCTAssertTrue(app.habitListView.waitForExistence(timeout: 3),
@@ -195,7 +195,7 @@ final class StandardUITests: UITestBase {
         let completionButton = firstHabit.buttons.firstMatch
         XCTAssertTrue(completionButton.exists, "Debe existir boton de completitud")
         completionButton.tap()
-        Thread.sleep(forTimeInterval: 0.5)
+        Thread.sleep(forTimeInterval: 0.05)
         
         // 3. Buscar campo de diario (puede aparecer automáticamente o necesitar tap en el hábito)
         var diaryField = app.textViews.matching(NSPredicate(format: "placeholderValue CONTAINS[c] 'nota' OR placeholderValue CONTAINS[c] 'diario'")).firstMatch
@@ -203,7 +203,7 @@ final class StandardUITests: UITestBase {
         if !diaryField.exists {
             // Intentar hacer tap en el hábito para ver detalles
             firstHabit.tap()
-            Thread.sleep(forTimeInterval: 1)
+            Thread.sleep(forTimeInterval: 0.05)
             
             // Buscar campo de diario en la vista de detalles
             diaryField = app.textViews.firstMatch
@@ -211,7 +211,7 @@ final class StandardUITests: UITestBase {
         
         if diaryField.waitForExistence(timeout: 3) {
             diaryField.tap()
-            Thread.sleep(forTimeInterval: 0.5)
+            Thread.sleep(forTimeInterval: 0.05)
             
             let noteText = "Sesión de meditación muy productiva"
             diaryField.typeText(noteText)

@@ -42,7 +42,11 @@ final class PremiumUITests: UITestBase {
     }
     
     func testToggleHabitCompletion() {
-        workflows.createBasicHabit(title: "Habito a Completar")
+        let created = workflows.createBasicHabit(
+            title: "Habito a Completar",
+            activateAllFrequencyDays: true
+        )
+        XCTAssertTrue(created, "Debe poder crear un habito con frecuencia activa")
         
         let success = workflows.toggleFirstHabitCompletion()
         XCTAssertTrue(success, "Debe poder marcar habito como completado")
@@ -162,13 +166,13 @@ final class PremiumUITests: UITestBase {
         }
         
         addButton.tap()
-        Thread.sleep(forTimeInterval: 1)
+        Thread.sleep(forTimeInterval: 0.05)
         
         // Llenar título
         let titleField = app.habitTitleField
         XCTAssertTrue(titleField.waitForExistence(timeout: 3), "Debe aparecer campo de titulo")
         titleField.tap()
-        Thread.sleep(forTimeInterval: 0.5)
+        Thread.sleep(forTimeInterval: 0.05)
         titleField.typeText("Construir Habito Positivo")
         
         // Buscar segmented control para tipo
@@ -178,7 +182,7 @@ final class PremiumUITests: UITestBase {
             let buildButton = typeSegment.buttons.matching(NSPredicate(format: "label CONTAINS[c] 'build' OR label CONTAINS[c] 'construir'")).firstMatch
             if buildButton.exists {
                 buildButton.tap()
-                Thread.sleep(forTimeInterval: 0.3)
+                Thread.sleep(forTimeInterval: 0.05)
             }
         }
         
@@ -189,7 +193,7 @@ final class PremiumUITests: UITestBase {
         }
         
         saveButton.tap()
-        Thread.sleep(forTimeInterval: 1)
+        Thread.sleep(forTimeInterval: 0.05)
         
         XCTAssertTrue(app.habitListView.waitForExistence(timeout: 3),
                      "Debe volver a la lista principal")
@@ -207,13 +211,13 @@ final class PremiumUITests: UITestBase {
         }
         
         addButton.tap()
-        Thread.sleep(forTimeInterval: 1)
+        Thread.sleep(forTimeInterval: 0.05)
         
         // Llenar título
         let titleField = app.habitTitleField
         XCTAssertTrue(titleField.waitForExistence(timeout: 3), "Debe aparecer campo de titulo")
         titleField.tap()
-        Thread.sleep(forTimeInterval: 0.5)
+        Thread.sleep(forTimeInterval: 0.05)
         titleField.typeText("Dejar Mal Habito")
         
         // Buscar segmented control para tipo
@@ -223,7 +227,7 @@ final class PremiumUITests: UITestBase {
             let quitButton = typeSegment.buttons.matching(NSPredicate(format: "label CONTAINS[c] 'quit' OR label CONTAINS[c] 'dejar'")).firstMatch
             if quitButton.exists {
                 quitButton.tap()
-                Thread.sleep(forTimeInterval: 0.3)
+                Thread.sleep(forTimeInterval: 0.05)
             }
         }
         
@@ -234,7 +238,7 @@ final class PremiumUITests: UITestBase {
         }
         
         saveButton.tap()
-        Thread.sleep(forTimeInterval: 1)
+        Thread.sleep(forTimeInterval: 0.05)
         
         XCTAssertTrue(app.habitListView.waitForExistence(timeout: 3),
                      "Debe volver a la lista principal")
@@ -271,13 +275,13 @@ final class PremiumUITests: UITestBase {
         }
         
         addButton.tap()
-        Thread.sleep(forTimeInterval: 1)
+        Thread.sleep(forTimeInterval: 0.05)
         
         // Título
         let titleField = app.habitTitleField
         if titleField.waitForExistence(timeout: 3) {
             titleField.tap()
-            Thread.sleep(forTimeInterval: 0.5)
+            Thread.sleep(forTimeInterval: 0.05)
             titleField.typeText("Ejercicio Premium")
         }
         
@@ -308,7 +312,7 @@ final class PremiumUITests: UITestBase {
         // Guardar
         if let saveButton = app.saveButton {
             saveButton.tap()
-            Thread.sleep(forTimeInterval: 1)
+            Thread.sleep(forTimeInterval: 0.05)
         }
         
         XCTAssertTrue(app.habitListView.waitForExistence(timeout: 3),

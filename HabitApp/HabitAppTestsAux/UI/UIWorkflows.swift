@@ -10,6 +10,7 @@
 //
 
 import XCTest
+import CoreGraphics
 
 /// Workflows comunes para tests UI
 class UIWorkflows {
@@ -24,7 +25,7 @@ class UIWorkflows {
     
     /// Crea un hábito básico con título
     @discardableResult
-    func createBasicHabit(title: String) -> Bool {
+    func createBasicHabit(title: String, activateAllFrequencyDays: Bool = false) -> Bool {
         // Paso 1: Buscar botón de añadir
         guard let addButton = app.addButton else {
             print("❌ No se encontró el botón de añadir")
@@ -41,13 +42,13 @@ class UIWorkflows {
         }
         
         // Esperar un momento antes de hacer tap
-        Thread.sleep(forTimeInterval: 0.5)
+        Thread.sleep(forTimeInterval: 0.05)
         
         print("🔘 Haciendo tap en botón añadir...")
         addButton.tap()
         
         // Esperar a que aparezca la vista de modificación
-        Thread.sleep(forTimeInterval: 1)
+        Thread.sleep(forTimeInterval: 0.05)
         
         // Paso 2: Buscar campo de título
         print("🔍 Buscando campo de título...")
@@ -63,14 +64,14 @@ class UIWorkflows {
         
         // Hacer tap en el campo
         titleField.tap()
-        Thread.sleep(forTimeInterval: 0.5)
+        Thread.sleep(forTimeInterval: 0.05)
         
         // Verificar que el teclado apareció
         var keyboardVisible = app.keyboards.count > 0
         if !keyboardVisible {
             print("⚠️ Teclado no visible, reintentando...")
             titleField.tap()
-            Thread.sleep(forTimeInterval: 0.5)
+            Thread.sleep(forTimeInterval: 0.05)
             keyboardVisible = app.keyboards.count > 0
         }
         
@@ -81,7 +82,22 @@ class UIWorkflows {
         
         print("⌨️ Escribiendo: '\(title)'")
         titleField.typeText(title)
-        Thread.sleep(forTimeInterval: 0.3)
+        Thread.sleep(forTimeInterval: 0.05)
+
+        if activateAllFrequencyDays {
+            dismissKeyboardIfNeeded()
+            if !activateFrequencyDays([
+                "Lunes",
+                "Martes",
+                "Mi\u{00E9}rcoles",
+                "Jueves",
+                "Viernes",
+                "S\u{00E1}bado",
+                "Domingo"
+            ]) {
+                return false
+            }
+        }
         
         // Paso 3: Buscar botón guardar
         print("🔍 Buscando botón Guardar...")
@@ -107,7 +123,7 @@ class UIWorkflows {
         saveButton.tap()
         
         // Dar un momento para que se cierre el sheet y vuelva a la lista
-        Thread.sleep(forTimeInterval: 1)
+        Thread.sleep(forTimeInterval: 0.05)
         
         // Verificar que volvemos a la lista
         // Intentar múltiples formas de verificar que estamos de vuelta
@@ -137,11 +153,16 @@ class UIWorkflows {
         
         guard firstHabit.waitForExistence(timeout: 2) else { return false }
         
-        let completionButton = firstHabit.buttons.firstMatch
-        guard completionButton.exists else { return false }
-        guard waitForElementToBeHittable(completionButton, timeout: 1) else { return false }
-        
-        completionButton.tap()
+        let circlePredicate = NSPredicate(format: "label CONTAINS[c] 'circle'")
+        let completionButton = firstHabit.buttons.matching(circlePredicate).firstMatch
+        if completionButton.exists {
+            guard waitForElementToBeHittable(completionButton, timeout: 1) else { return false }
+            completionButton.tap()
+            return true
+        }
+
+        let leftTap = firstHabit.coordinate(withNormalizedOffset: CGVector(dx: 0.08, dy: 0.5))
+        leftTap.tap()
         return true
     }
     
@@ -166,12 +187,12 @@ class UIWorkflows {
             return false
         }
         
-        Thread.sleep(forTimeInterval: 0.5)
+        Thread.sleep(forTimeInterval: 0.05)
         print("🔘 Haciendo tap en botón de categoría...")
         categoryButton.tap()
         
         // Esperar a que aparezca la vista
-        Thread.sleep(forTimeInterval: 1)
+        Thread.sleep(forTimeInterval: 0.05)
         
         // Paso 2: Verificar que apareció la vista de categoría
         let categoryView = app.createCategoryView
@@ -191,7 +212,7 @@ class UIWorkflows {
                 if !createButton.isSelected {
                     print("🔘 Seleccionando modo Crear...")
                     createButton.tap()
-                    Thread.sleep(forTimeInterval: 0.5)
+                    Thread.sleep(forTimeInterval: 0.05)
                 } else {
                     print("✅ Ya está en modo Crear")
                 }
@@ -212,14 +233,14 @@ class UIWorkflows {
         
         // Hacer tap en el campo
         nameField.tap()
-        Thread.sleep(forTimeInterval: 0.5)
+        Thread.sleep(forTimeInterval: 0.05)
         
         // Verificar que el teclado apareció
         var keyboardVisible = app.keyboards.count > 0
         if !keyboardVisible {
             print("⚠️ Teclado no visible, reintentando...")
             nameField.tap()
-            Thread.sleep(forTimeInterval: 0.5)
+            Thread.sleep(forTimeInterval: 0.05)
             keyboardVisible = app.keyboards.count > 0
         }
         
@@ -230,7 +251,7 @@ class UIWorkflows {
         
         print("⌨️ Escribiendo nombre: '\(name)'")
         nameField.typeText(name)
-        Thread.sleep(forTimeInterval: 0.3)
+        Thread.sleep(forTimeInterval: 0.05)
         
         // Paso 5: Buscar y presionar botón Guardar
         print("🔍 Buscando botón Guardar...")
@@ -256,7 +277,7 @@ class UIWorkflows {
         saveButton.tap()
         
         // Dar tiempo para que se cierre
-        Thread.sleep(forTimeInterval: 1)
+        Thread.sleep(forTimeInterval: 0.05)
         
         // Verificar que volvimos a la lista
         var success = app.habitListView.waitForExistence(timeout: 2)
@@ -288,7 +309,7 @@ class UIWorkflows {
         
         print("✅ Botón de categoría encontrado")
         categoryButton.tap()
-        Thread.sleep(forTimeInterval: 1)
+        Thread.sleep(forTimeInterval: 0.05)
         
         // Paso 2: Buscar y seleccionar modo Eliminar
         print("🔍 Buscando modo Eliminar...")
@@ -301,7 +322,7 @@ class UIWorkflows {
         
         print("🔘 Seleccionando modo Eliminar...")
         deleteSegment.tap()
-        Thread.sleep(forTimeInterval: 1)
+        Thread.sleep(forTimeInterval: 0.05)
         
         // Paso 3: Buscar picker
         print("🔍 Buscando picker de categorías...")
@@ -314,14 +335,14 @@ class UIWorkflows {
         
         print("✅ Picker encontrado")
         picker.tap()
-        Thread.sleep(forTimeInterval: 0.5)
+        Thread.sleep(forTimeInterval: 0.05)
         
         // Paso 4: Seleccionar categoría en picker wheel
         let pickerWheel = app.pickerWheels.firstMatch
         if pickerWheel.exists {
             print("🎡 Ajustando picker wheel a: '\(name)'")
             pickerWheel.adjust(toPickerWheelValue: name)
-            Thread.sleep(forTimeInterval: 0.5)
+            Thread.sleep(forTimeInterval: 0.05)
         } else {
             print("⚠️ Picker wheel no encontrado")
         }
@@ -343,7 +364,7 @@ class UIWorkflows {
         
         print("🗑️ Eliminando categoría...")
         deleteButton.tap()
-        Thread.sleep(forTimeInterval: 1)
+        Thread.sleep(forTimeInterval: 0.05)
         
         // Verificar que volvimos
         let success = app.habitListView.waitForExistence(timeout: 2) || (app.addButton?.exists ?? false)
@@ -431,12 +452,12 @@ class UIWorkflows {
         if app.buttons["CreateCategoryButton"].exists {
             return app.buttons["CreateCategoryButton"]
         }
-        
+
         let buttonsByLabel = app.buttons.matching(NSPredicate(format: "label CONTAINS[c] 'categor'"))
         if buttonsByLabel.count > 0 {
             return buttonsByLabel.firstMatch
         }
-        
+
         let toolbarButtons = app.toolbars.buttons
         for index in 0..<toolbarButtons.count {
             let button = toolbarButtons.element(boundBy: index)
@@ -444,7 +465,7 @@ class UIWorkflows {
                 return button
             }
         }
-        
+
         let navButtons = app.navigationBars.buttons
         for index in 0..<navButtons.count {
             let button = navButtons.element(boundBy: index)
@@ -452,7 +473,104 @@ class UIWorkflows {
                 return button
             }
         }
-        
+
         return nil
+    }
+
+    private func dismissKeyboardIfNeeded() {
+        guard app.keyboards.count > 0 else { return }
+
+        let keyboardButtons = ["Done", "Return", "OK", "Aceptar"]
+        for label in keyboardButtons {
+            let button = app.keyboards.buttons[label]
+            if button.exists {
+                button.tap()
+                return
+            }
+        }
+
+        app.tap()
+    }
+
+    private func activateFrequencyDays(_ labels: [String]) -> Bool {
+        let table = app.tables.firstMatch
+        let scrollView = app.scrollViews.firstMatch
+        let scrollContainer = table.exists ? table : scrollView
+
+        for label in labels {
+            if !activateFrequencyDay(label, scrollContainer: scrollContainer) {
+                return false
+            }
+        }
+
+        return true
+    }
+
+    private func activateFrequencyDay(_ label: String, scrollContainer: XCUIElement) -> Bool {
+        for _ in 0..<6 {
+            if let toggle = findFrequencyToggle(label: label), toggle.isHittable {
+                if ensureToggleOn(toggle) {
+                    return true
+                }
+            }
+
+            if let cell = findFrequencyCell(label: label), cell.isHittable {
+                tapRightSide(of: cell)
+                Thread.sleep(forTimeInterval: 0.05)
+                if let toggle = findFrequencyToggle(label: label), ensureToggleOn(toggle) {
+                    return true
+                }
+            }
+
+            scrollContainer.swipeUp()
+        }
+
+        print("No se pudo activar el toggle de frecuencia: \(label)")
+        return false
+    }
+
+    private func findFrequencyToggle(label: String) -> XCUIElement? {
+        let toggle = app.switches[label]
+        if toggle.exists {
+            return toggle
+        }
+
+        let cell = app.cells.containing(.staticText, identifier: label).firstMatch
+        if cell.exists, cell.switches.count > 0 {
+            return cell.switches.firstMatch
+        }
+
+        return nil
+    }
+
+    private func findFrequencyCell(label: String) -> XCUIElement? {
+        let cell = app.cells.containing(.staticText, identifier: label).firstMatch
+        return cell.exists ? cell : nil
+    }
+
+    private func ensureToggleOn(_ toggle: XCUIElement) -> Bool {
+        if isToggleOn(toggle) {
+            return true
+        }
+
+        toggle.tap()
+        Thread.sleep(forTimeInterval: 0.05)
+        return isToggleOn(toggle)
+    }
+
+    private func isToggleOn(_ toggle: XCUIElement) -> Bool {
+        if let value = toggle.value as? String {
+            let normalized = value.lowercased()
+            return normalized == "1" || normalized == "on" || normalized == "true"
+        }
+        if let value = toggle.value as? NSNumber {
+            return value.intValue != 0
+        }
+        return false
+    }
+
+    private func tapRightSide(of cell: XCUIElement) {
+        let coordinate = cell.coordinate(withNormalizedOffset: CGVector(dx: 0.95, dy: 0.5))
+        coordinate.tap()
     }
 }
