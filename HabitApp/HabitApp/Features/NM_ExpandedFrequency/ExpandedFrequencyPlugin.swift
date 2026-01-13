@@ -217,6 +217,7 @@ class ExpandedFrequencyPlugin: NSObject, FeaturePlugin, ViewPlugin, LogicPlugin 
         }
     }
     
+    #if STATS_FEATURE
     // MARK: - Stats Calculation
     
     func calculateTotalPeriodsActive(habit: Habit, until date: Date) -> (value: Int, label: String)? {
@@ -229,18 +230,28 @@ class ExpandedFrequencyPlugin: NSObject, FeaturePlugin, ViewPlugin, LogicPlugin 
         }
         
         let calendar = Calendar.current
+        let startDate = calendar.startOfDay(for: firstDate)
+        let endDate = calendar.startOfDay(for: date)
         
         switch freq.type {
-        case .daily, .addiction:
-            return nil // Usar lógica por defecto
+        case .daily:
+            return nil // Usar lógica por defecto del core (cuenta días según frecuencia)
+            
+        case .addiction:
+            // Contar TODOS los días desde el inicio
+            let components = calendar.dateComponents([.day], from: startDate, to: endDate)
+            let days = (components.day ?? 0) + 1
+            return (days, "dias")
             
         case .weekly:
-            let components = calendar.dateComponents([.weekOfYear], from: firstDate, to: date)
+            // Contar TODAS las semanas desde el inicio
+            let components = calendar.dateComponents([.weekOfYear], from: startDate, to: endDate)
             let weeks = (components.weekOfYear ?? 0) + 1
             return (weeks, "semanas")
             
         case .monthly:
-            let components = calendar.dateComponents([.month], from: firstDate, to: date)
+            // Contar TODOS los meses desde el inicio
+            let components = calendar.dateComponents([.month], from: startDate, to: endDate)
             let months = (components.month ?? 0) + 1
             return (months, "meses")
         }
@@ -252,8 +263,11 @@ class ExpandedFrequencyPlugin: NSObject, FeaturePlugin, ViewPlugin, LogicPlugin 
         }
         
         switch freq.type {
-        case .daily, .addiction:
-            return nil // Usar lógica por defecto
+        case .daily:
+            return nil // Usar lógica por defecto del core
+            
+        case .addiction:
+            return nil // Usar lógica por defecto (cuenta días completados)
             
         case .weekly:
             let count = countUniqueWeeks(habit: habit)
@@ -271,7 +285,10 @@ class ExpandedFrequencyPlugin: NSObject, FeaturePlugin, ViewPlugin, LogicPlugin 
         }
         
         switch freq.type {
-        case .daily, .addiction:
+        case .daily:
+            return nil // Usar valor por defecto "dias"
+            
+        case .addiction:
             return nil // Usar valor por defecto "dias"
             
         case .weekly:
@@ -305,6 +322,7 @@ class ExpandedFrequencyPlugin: NSObject, FeaturePlugin, ViewPlugin, LogicPlugin 
         })
         return uniqueMonths.count
     }
+    #endif
     
     private func hasEntryInWeek(habit: Habit, date: Date) -> Bool {
         let calendar = Calendar.current
