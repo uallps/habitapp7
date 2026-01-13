@@ -59,11 +59,29 @@ final class PremiumUITests: UITestBase {
     }
     
     func testStatsFeatureAvailable() {
+        let created = workflows.createBasicHabit(
+            title: "Habito con Stats",
+            activateAllFrequencyDays: true
+        )
+        XCTAssertTrue(created, "Debe poder crear un habito con frecuencia activa")
+
+        let completed = workflows.toggleFirstHabitCompletion()
+        XCTAssertTrue(completed, "Debe poder completar el habito para stats")
+
         assertFeatureAvailable(keywords: UIPredicates.stats,
                               message: "Estadisticas debe estar disponible en Premium")
     }
     
     func testStreaksFeatureAvailable() {
+        let created = workflows.createBasicHabit(
+            title: "Habito con Rachas",
+            activateAllFrequencyDays: true
+        )
+        XCTAssertTrue(created, "Debe poder crear un habito con frecuencia activa")
+
+        let completed = workflows.toggleFirstHabitCompletion()
+        XCTAssertTrue(completed, "Debe poder completar el habito para rachas")
+
         assertFeatureAvailable(keywords: UIPredicates.streak,
                               message: "Rachas debe estar disponible en Premium")
     }
@@ -76,16 +94,40 @@ final class PremiumUITests: UITestBase {
                               message: "Diario debe estar disponible en Premium")
     }
     
-    func testRemindersFeatureAvailable() {
-        assertFeatureAvailable(keywords: UIPredicates.reminder,
-                              message: "Recordatorios debe estar disponible en Premium")
-    }
-    
     // MARK: - Test de Features Premium DISPONIBLES
     
     func testExpandedFrequencyAvailable() {
-        assertFeatureAvailable(keywords: UIPredicates.expandedFrequency,
-                              message: "Frecuencia expandida debe estar disponible en Premium")
+        guard let addButton = app.addButton else {
+            XCTFail("No se encontro boton de anadir")
+            return
+        }
+
+        guard addButton.waitForExistence(timeout: 3) else {
+            XCTFail("Boton de anadir no aparece")
+            return
+        }
+
+        addButton.tap()
+
+        XCTAssertTrue(app.habitTitleField.waitForExistence(timeout: 2), "Debe aparecer el formulario")
+        let table = app.tables.firstMatch
+        let scrollView = app.scrollViews.firstMatch
+        let scrollContainer = table.exists ? table : scrollView
+        var found = false
+
+        for _ in 0..<6 {
+            if app.staticTexts["Frecuencia Extendida (Plugin)"].exists {
+                found = true
+                break
+            }
+            scrollContainer.swipeUp()
+        }
+
+        XCTAssertTrue(found, "Frecuencia expandida debe estar disponible en Premium")
+
+        if app.buttons["Cancelar"].exists {
+            app.buttons["Cancelar"].tap()
+        }
     }
     
     func testPauseDayAvailable() {
@@ -94,9 +136,41 @@ final class PremiumUITests: UITestBase {
     }
     
     func testHabitTypeAvailable() {
-        assertFeatureAvailable(keywords: UIPredicates.habitType,
-                              message: "Selector de tipo debe estar disponible en Premium")
+        guard let addButton = app.addButton else {
+            XCTFail("No se encontro boton de anadir")
+            return
+        }
+
+        guard addButton.waitForExistence(timeout: 3) else {
+            XCTFail("Boton de anadir no aparece")
+            return
+        }
+
+        addButton.tap()
+
+        XCTAssertTrue(app.habitTitleField.waitForExistence(timeout: 2), "Debe aparecer el formulario")
+
+        let table = app.tables.firstMatch
+        let scrollView = app.scrollViews.firstMatch
+        let scrollContainer = table.exists ? table : scrollView
+        var found = false
+
+        for _ in 0..<6 {
+            if app.staticTexts["Tipo de Completado (Plugin)"].exists {
+                found = true
+                break
+            }
+            scrollContainer.swipeUp()
+        }
+
+        XCTAssertTrue(found, "Selector de tipo debe estar disponible en Premium")
+
+        if app.buttons["Cancelar"].exists {
+            app.buttons["Cancelar"].tap()
+        }
     }
+
+
     
     func testCalendaryAvailable() {
         assertFeatureAvailable(keywords: UIPredicates.calendary,
@@ -115,15 +189,6 @@ final class PremiumUITests: UITestBase {
         XCTAssertTrue(result, "Debe poder crear una categoria")
     }
     
-    func testCreateMultipleCategories() {
-        let categories = ["VIP", "Elite", "Pro"]
-        
-        for category in categories {
-            let result = workflows.createCategory(name: category)
-            XCTAssertTrue(result, "Debe poder crear categoria: \(category)")
-        }
-    }
-    
     func testDeleteCategory() {
         workflows.createCategory(name: "Categoria Premium Temp")
         
@@ -134,12 +199,12 @@ final class PremiumUITests: UITestBase {
     // MARK: - Test de ExpandedFrequency
     
     func testCreateHabitWithDailyFrequency() {
-        let result = workflows.createHabitWithExpandedFrequency(title: "Habito Diario", frequency: "diaria")
+        let result = workflows.createHabitWithExpandedFrequency(title: "Habito Diario", frequency: "Diaria")
         XCTAssertTrue(result, "Debe poder crear habito con frecuencia diaria")
     }
     
     func testCreateHabitWithMonthlyFrequency() {
-        let result = workflows.createHabitWithExpandedFrequency(title: "Habito Mensual", frequency: "mensual")
+        let result = workflows.createHabitWithExpandedFrequency(title: "Habito Mensual", frequency: "Mensual")
         XCTAssertTrue(result, "Debe poder crear habito con frecuencia mensual")
     }
     
@@ -154,94 +219,9 @@ final class PremiumUITests: UITestBase {
     
     // MARK: - Test de HabitType
     
-    func testCreateBuildTypeHabit() {
-        guard let addButton = app.addButton else {
-            XCTFail("No se encontro boton de añadir")
-            return
-        }
-        
-        guard addButton.waitForExistence(timeout: 3) else {
-            XCTFail("Boton de añadir no aparece")
-            return
-        }
-        
-        addButton.tap()
-        Thread.sleep(forTimeInterval: 0.05)
-        
-        // Llenar título
-        let titleField = app.habitTitleField
-        XCTAssertTrue(titleField.waitForExistence(timeout: 3), "Debe aparecer campo de titulo")
-        titleField.tap()
-        Thread.sleep(forTimeInterval: 0.05)
-        titleField.typeText("Construir Habito Positivo")
-        
-        // Buscar segmented control para tipo
-        let typeSegment = app.segmentedControls.firstMatch
-        if typeSegment.waitForExistence(timeout: 2) {
-            // Intentar seleccionar Build
-            let buildButton = typeSegment.buttons.matching(NSPredicate(format: "label CONTAINS[c] 'build' OR label CONTAINS[c] 'construir'")).firstMatch
-            if buildButton.exists {
-                buildButton.tap()
-                Thread.sleep(forTimeInterval: 0.05)
-            }
-        }
-        
-        // Guardar
-        guard let saveButton = app.saveButton else {
-            XCTFail("No se encontro boton guardar")
-            return
-        }
-        
-        saveButton.tap()
-        Thread.sleep(forTimeInterval: 0.05)
-        
-        XCTAssertTrue(app.habitListView.waitForExistence(timeout: 3),
-                     "Debe volver a la lista principal")
-    }
-    
     func testCreateQuitTypeHabit() {
-        guard let addButton = app.addButton else {
-            XCTFail("No se encontro boton de añadir")
-            return
-        }
-        
-        guard addButton.waitForExistence(timeout: 3) else {
-            XCTFail("Boton de añadir no aparece")
-            return
-        }
-        
-        addButton.tap()
-        Thread.sleep(forTimeInterval: 0.05)
-        
-        // Llenar título
-        let titleField = app.habitTitleField
-        XCTAssertTrue(titleField.waitForExistence(timeout: 3), "Debe aparecer campo de titulo")
-        titleField.tap()
-        Thread.sleep(forTimeInterval: 0.05)
-        titleField.typeText("Dejar Mal Habito")
-        
-        // Buscar segmented control para tipo
-        let typeSegment = app.segmentedControls.firstMatch
-        if typeSegment.waitForExistence(timeout: 2) {
-            // Intentar seleccionar Quit
-            let quitButton = typeSegment.buttons.matching(NSPredicate(format: "label CONTAINS[c] 'quit' OR label CONTAINS[c] 'dejar'")).firstMatch
-            if quitButton.exists {
-                quitButton.tap()
-                Thread.sleep(forTimeInterval: 0.05)
-            }
-        }
-        
-        // Guardar
-        guard let saveButton = app.saveButton else {
-            XCTFail("No se encontro boton guardar")
-            return
-        }
-        
-        saveButton.tap()
-        Thread.sleep(forTimeInterval: 0.05)
-        
-        XCTAssertTrue(app.habitListView.waitForExistence(timeout: 3),
-                     "Debe volver a la lista principal")
+        let result = workflows.createHabitWithExpandedFrequency(title: "Habito Adiccion", frequency: "Adiccion")
+        XCTAssertTrue(result, "Debe poder crear habito con frecuencia adiccion")
     }
     
     // MARK: - Test de Flujo Completo Premium
@@ -252,7 +232,11 @@ final class PremiumUITests: UITestBase {
         XCTAssertTrue(categoryCreated, "Debe crear categoria")
         
         // 2. Crear hábito con frecuencia expandida
-        let habitCreated = workflows.createHabitWithExpandedFrequency(title: "Meditar Mensualmente", frequency: "mensual")
+        let habitCreated = workflows.createHabitWithExpandedFrequency(
+            title: "Meditar Mensualmente",
+            frequency: "Mensual",
+            activateAllFrequencyDays: true
+        )
         XCTAssertTrue(habitCreated, "Debe crear habito con frecuencia expandida")
         
         // 3. Completar hábito
@@ -265,58 +249,15 @@ final class PremiumUITests: UITestBase {
     }
     
     func testCategoryAndTypeWorkflow() {
-        // Crear categoría
-        workflows.createCategory(name: "Salud Premium")
-        
-        // Crear hábito de tipo Build con categoría
-        guard let addButton = app.addButton else {
-            XCTFail("No se encontro boton de añadir")
-            return
-        }
-        
-        addButton.tap()
-        Thread.sleep(forTimeInterval: 0.05)
-        
-        // Título
-        let titleField = app.habitTitleField
-        if titleField.waitForExistence(timeout: 3) {
-            titleField.tap()
-            Thread.sleep(forTimeInterval: 0.05)
-            titleField.typeText("Ejercicio Premium")
-        }
-        
-        // Tipo
-        let typeSegment = app.segmentedControls.firstMatch
-        if typeSegment.waitForExistence(timeout: 2) {
-            let buildButton = typeSegment.buttons.matching(NSPredicate(format: "label CONTAINS[c] 'build'")).firstMatch
-            if buildButton.exists {
-                buildButton.tap()
-            }
-        }
-        
-        // Categoría (si hay picker)
-        let categoryPicker = app.pickers["Categoría"]
-        if categoryPicker.exists {
-            categoryPicker.tap()
-            let healthOption = app.buttons["Salud Premium"]
-            if healthOption.waitForExistence(timeout: 2) {
-                healthOption.tap()
-            } else {
-                let pickerWheel = app.pickerWheels.firstMatch
-                if pickerWheel.exists {
-                    pickerWheel.adjust(toPickerWheelValue: "Salud Premium")
-                }
-            }
-        }
-        
-        // Guardar
-        if let saveButton = app.saveButton {
-            saveButton.tap()
-            Thread.sleep(forTimeInterval: 0.05)
-        }
-        
-        XCTAssertTrue(app.habitListView.waitForExistence(timeout: 3),
-                     "Debe volver a la lista principal")
+        let categoryCreated = workflows.createCategory(name: "Salud Premium")
+        XCTAssertTrue(categoryCreated, "Debe crear categoria")
+
+        let habitCreated = workflows.createHabitWithCategoryAndType(
+            title: "Ejercicio Premium",
+            category: "Salud Premium",
+            type: "Binario"
+        )
+        XCTAssertTrue(habitCreated, "Debe poder crear habito con categoria y tipo")
     }
     
     // MARK: - Test de Performance

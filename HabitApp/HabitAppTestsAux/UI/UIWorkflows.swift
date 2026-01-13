@@ -62,17 +62,18 @@ class UIWorkflows {
         
         print("✅ Campo de título encontrado")
         
+
         // Hacer tap en el campo
         titleField.tap()
         Thread.sleep(forTimeInterval: 0.05)
         
         // Verificar que el teclado apareció
-        var keyboardVisible = app.keyboards.count > 0
+        var keyboardVisible = waitForKeyboard(timeout: 1)
         if !keyboardVisible {
             print("⚠️ Teclado no visible, reintentando...")
             titleField.tap()
             Thread.sleep(forTimeInterval: 0.05)
-            keyboardVisible = app.keyboards.count > 0
+            keyboardVisible = waitForKeyboard(timeout: 1)
         }
         
         guard keyboardVisible else {
@@ -221,7 +222,13 @@ class UIWorkflows {
         
         // Paso 4: Buscar campo de nombre
         print("🔍 Buscando campo de nombre...")
-        let nameField = app.categoryNameField
+        var nameField = app.categoryNameField
+        if !nameField.exists {
+            let tableField = app.tables.textFields.firstMatch
+            if tableField.exists {
+                nameField = tableField
+            }
+        }
         
         guard nameField.waitForExistence(timeout: 3) else {
             print("❌ Campo de nombre no encontrado")
@@ -231,17 +238,24 @@ class UIWorkflows {
         
         print("✅ Campo de nombre encontrado")
         
+        if !waitForElementToBeHittable(nameField, timeout: 2) {
+            let nameCell = app.cells.containing(.staticText, identifier: "Nombre").firstMatch
+            if nameCell.exists {
+                nameCell.tap()
+            }
+        }
+
         // Hacer tap en el campo
         nameField.tap()
         Thread.sleep(forTimeInterval: 0.05)
         
         // Verificar que el teclado apareció
-        var keyboardVisible = app.keyboards.count > 0
+        var keyboardVisible = waitForKeyboard(timeout: 1)
         if !keyboardVisible {
             print("⚠️ Teclado no visible, reintentando...")
             nameField.tap()
-            Thread.sleep(forTimeInterval: 0.05)
-            keyboardVisible = app.keyboards.count > 0
+
+            keyboardVisible = waitForKeyboard(timeout: 1)
         }
         
         guard keyboardVisible else {
@@ -252,6 +266,14 @@ class UIWorkflows {
         print("⌨️ Escribiendo nombre: '\(name)'")
         nameField.typeText(name)
         Thread.sleep(forTimeInterval: 0.05)
+
+        if let value = nameField.value as? String,
+           !value.lowercased().contains(name.lowercased()) {
+            nameField.tap()
+            nameField.typeText(name)
+            Thread.sleep(forTimeInterval: 0.05)
+        }
+
         
         // Paso 5: Buscar y presionar botón Guardar
         print("🔍 Buscando botón Guardar...")
@@ -324,31 +346,20 @@ class UIWorkflows {
         deleteSegment.tap()
         Thread.sleep(forTimeInterval: 0.05)
         
-        // Paso 3: Buscar picker
-        print("🔍 Buscando picker de categorías...")
-        let picker = app.pickers.firstMatch
-        
-        guard picker.waitForExistence(timeout: 2) else {
-            print("❌ Picker no encontrado")
+        // Paso 3: Abrir selector (extensible) y elegir categoria
+        print("Buscando selector de categorias...")
+        guard openDeleteCategoryPicker() else {
+            print("Selector de categorias no encontrado")
             return false
         }
-        
-        print("✅ Picker encontrado")
-        picker.tap()
         Thread.sleep(forTimeInterval: 0.05)
-        
-        // Paso 4: Seleccionar categoría en picker wheel
-        let pickerWheel = app.pickerWheels.firstMatch
-        if pickerWheel.exists {
-            print("🎡 Ajustando picker wheel a: '\(name)'")
-            pickerWheel.adjust(toPickerWheelValue: name)
-            Thread.sleep(forTimeInterval: 0.05)
-        } else {
-            print("⚠️ Picker wheel no encontrado")
+
+        guard selectCategoryOption(name) else {
+            print("No se pudo seleccionar la categoria: '\(name)'")
+            return false
         }
-        
-        // Paso 5: Buscar botón de eliminar
-        print("🔍 Buscando botón de eliminar categoría...")
+        Thread.sleep(forTimeInterval: 0.05)
+
         let deleteButton = app.buttons["Eliminar categoria seleccionada"]
         
         guard deleteButton.waitForExistence(timeout: 2) else {
@@ -382,39 +393,75 @@ class UIWorkflows {
     
     /// Crea un hábito con frecuencia expandida
     @discardableResult
-    func createHabitWithExpandedFrequency(title: String, frequency: String) -> Bool {
+    func createHabitWithExpandedFrequency(title: String, frequency: String, activateAllFrequencyDays: Bool = false) -> Bool {
         guard let addButton = app.addButton else { return false }
-        
-        if addButton.waitForExistence(timeout: 3) {
-            addButton.tap()
-            
-            let titleField = app.habitTitleField
-            if titleField.waitForExistence(timeout: 2) {
-                titleField.tap()
-                titleField.typeText(title)
+
+        guard addButton.waitForExistence(timeout: 3) else { return false }
+        addButton.tap()
+
+        let titleField = app.habitTitleField
+        guard titleField.waitForExistence(timeout: 2) else { return false }
+        titleField.tap()
+        titleField.typeText(title)
+        dismissKeyboardIfNeeded()
+
+        if activateAllFrequencyDays {
+            if !activateFrequencyDays([
+                "Lunes",
+                "Martes",
+                "Mi\u{00E9}rcoles",
+                "Jueves",
+                "Viernes",
+                "S\u{00E1}bado",
+                "Domingo"
+            ]) {
+                return false
             }
-            
-            let frequencyButton = app.findElement(withKeywords: ["frecuencia", "frequency"], in: app.buttons)
-            if let freqBtn = frequencyButton, freqBtn.waitForExistence(timeout: 3) {
-                freqBtn.tap()
-                
-                let option = app.buttons.matching(NSPredicate(format: "label CONTAINS[c] %@", frequency)).firstMatch
-                if option.exists {
-                    option.tap()
-                }
-            }
-            
-            guard let saveButton = app.saveButton else { return false }
-            guard saveButton.waitForExistence(timeout: 2) else { return false }
-            
-            saveButton.tap()
-            return app.habitListView.waitForExistence(timeout: 2)
         }
-        
-        return false
+
+        guard scrollToExpandedFrequencySection() else { return false }
+        if !isExpandedFrequencySelected(frequency) {
+            guard openExpandedFrequencyPicker() else { return false }
+            _ = selectExpandedFrequencyOption(frequency)
+        }
+        guard isExpandedFrequencySelected(frequency) else { return false }
+
+        guard let saveButton = app.saveButton else { return false }
+        guard saveButton.waitForExistence(timeout: 2) else { return false }
+
+        saveButton.tap()
+        return app.habitListView.waitForExistence(timeout: 2)
     }
     
     /// Pausa un día para el primer hábito
+    /// Crea un habito con categoria y tipo de completado
+    @discardableResult
+    func createHabitWithCategoryAndType(title: String, category: String, type: String) -> Bool {
+        guard let addButton = app.addButton else { return false }
+        guard addButton.waitForExistence(timeout: 3) else { return false }
+        addButton.tap()
+
+        let titleField = app.habitTitleField
+        guard titleField.waitForExistence(timeout: 2) else { return false }
+        titleField.tap()
+        titleField.typeText(title)
+        dismissKeyboardIfNeeded()
+
+        guard openHabitCategoryPicker() else { return false }
+        guard selectCategoryOption(category) else { return false }
+
+        guard scrollToHabitTypeSection() else { return false }
+        guard openHabitTypePicker() else { return false }
+        guard selectHabitTypeOption(type) else { return false }
+        guard isHabitTypeSelected(type) else { return false }
+
+        guard let saveButton = app.saveButton else { return false }
+        guard saveButton.waitForExistence(timeout: 2) else { return false }
+        saveButton.tap()
+
+        return app.habitListView.waitForExistence(timeout: 2)
+    }
+
     @discardableResult
     func pauseFirstHabit() -> Bool {
         let firstHabit = app.firstHabit
@@ -490,6 +537,297 @@ class UIWorkflows {
         }
 
         app.tap()
+    }
+
+    private func scrollToExpandedFrequencySection() -> Bool {
+        let table = app.tables.firstMatch
+        let scrollView = app.scrollViews.firstMatch
+        let scrollContainer = table.exists ? table : scrollView
+
+        for _ in 0..<6 {
+            if app.staticTexts["Frecuencia Extendida (Plugin)"].exists {
+                return true
+            }
+            scrollContainer.swipeUp()
+        }
+
+        return app.staticTexts["Frecuencia Extendida (Plugin)"].exists
+    }
+
+    private func scrollToHabitTypeSection() -> Bool {
+        let table = app.tables.firstMatch
+        let scrollView = app.scrollViews.firstMatch
+        let scrollContainer = table.exists ? table : scrollView
+
+        for _ in 0..<6 {
+            if app.staticTexts["Tipo de Completado (Plugin)"].exists {
+                return true
+            }
+            scrollContainer.swipeUp()
+        }
+
+        return app.staticTexts["Tipo de Completado (Plugin)"].exists
+    }
+
+    private func openExpandedFrequencyPicker() -> Bool {
+        let table = app.tables.firstMatch
+        let scrollView = app.scrollViews.firstMatch
+        let scrollContainer = table.exists ? table : scrollView
+
+        for _ in 0..<6 {
+            let picker = app.pickers["Tipo de Frecuencia"]
+            if picker.exists, picker.isHittable {
+                picker.tap()
+                return true
+            }
+
+            let cell = app.cells.containing(.staticText, identifier: "Tipo de Frecuencia").firstMatch
+            if cell.exists {
+                if cell.isHittable {
+                    tapRightSide(of: cell)
+                    return true
+                }
+            }
+
+            let label = app.staticTexts["Tipo de Frecuencia"]
+            if label.exists, label.isHittable {
+                label.tap()
+                return true
+            }
+
+            scrollContainer.swipeUp()
+        }
+
+        return false
+    }
+
+    private func openHabitTypePicker() -> Bool {
+        let picker = app.pickers["Tipo"]
+        if picker.exists {
+            picker.tap()
+            return true
+        }
+
+        let cell = app.cells.containing(.staticText, identifier: "Tipo").firstMatch
+        if cell.exists {
+            tapRightSide(of: cell)
+            return true
+        }
+
+        let label = app.staticTexts["Tipo"]
+        if label.exists {
+            label.tap()
+            return true
+        }
+
+        return false
+    }
+
+    private func openHabitCategoryPicker() -> Bool {
+        let picker = app.pickers.matching(NSPredicate(format: "label CONTAINS[c] 'categor'")).firstMatch
+        if picker.exists {
+            picker.tap()
+            return true
+        }
+
+        let cell = app.cells.matching(NSPredicate(format: "label CONTAINS[c] 'categor'")).firstMatch
+        if cell.exists {
+            tapRightSide(of: cell)
+            return true
+        }
+
+        let label = app.staticTexts.matching(NSPredicate(format: "label CONTAINS[c] 'categor'")).firstMatch
+        if label.exists {
+            label.tap()
+            return true
+        }
+
+        return false
+    }
+
+    private func openDeleteCategoryPicker() -> Bool {
+        let pickerLabel = "Selecciona una para eliminar"
+        let table = app.tables.firstMatch
+        let scrollView = app.scrollViews.firstMatch
+        let scrollContainer = table.exists ? table : scrollView
+
+        for _ in 0..<6 {
+            let picker = app.pickers[pickerLabel]
+            if picker.exists, picker.isHittable {
+                picker.tap()
+                return true
+            }
+
+            let pickerCell = app.cells.containing(.staticText, identifier: pickerLabel).firstMatch
+            if pickerCell.exists, pickerCell.isHittable {
+                tapRightSide(of: pickerCell)
+                return true
+            }
+
+            let noneCell = app.cells.containing(.staticText, identifier: "Ninguna").firstMatch
+            if noneCell.exists, noneCell.isHittable {
+                tapRightSide(of: noneCell)
+                return true
+            }
+
+            scrollContainer.swipeUp()
+        }
+
+        let anyPicker = app.pickers.firstMatch
+        if anyPicker.exists {
+            anyPicker.tap()
+            return true
+        }
+
+        return false
+    }
+
+    private func selectExpandedFrequencyOption(_ option: String) -> Bool {
+        if isExpandedFrequencySelected(option) {
+            return true
+        }
+
+        let optionButton = app.buttons.matching(NSPredicate(format: "label CONTAINS[c] %@", option)).firstMatch
+        if optionButton.waitForExistence(timeout: 2) {
+            optionButton.tap()
+            return true
+        }
+
+        let optionCell = app.cells.staticTexts.matching(NSPredicate(format: "label CONTAINS[c] %@", option)).firstMatch
+        if optionCell.waitForExistence(timeout: 2) {
+            optionCell.tap()
+            return true
+        }
+
+        let optionText = app.staticTexts.matching(NSPredicate(format: "label CONTAINS[c] %@", option)).firstMatch
+        if optionText.waitForExistence(timeout: 2) {
+            optionText.tap()
+            return true
+        }
+
+        let wheel = app.pickerWheels.firstMatch
+        if wheel.waitForExistence(timeout: 1) {
+            wheel.adjust(toPickerWheelValue: option)
+            return true
+        }
+
+        return false
+    }
+
+    private func selectHabitTypeOption(_ option: String) -> Bool {
+        if isHabitTypeSelected(option) {
+            return true
+        }
+
+        let optionButton = app.buttons.matching(NSPredicate(format: "label CONTAINS[c] %@", option)).firstMatch
+        if optionButton.waitForExistence(timeout: 2) {
+            optionButton.tap()
+            return true
+        }
+
+        let optionCell = app.cells.staticTexts.matching(NSPredicate(format: "label CONTAINS[c] %@", option)).firstMatch
+        if optionCell.waitForExistence(timeout: 2) {
+            optionCell.tap()
+            return true
+        }
+
+        let optionText = app.staticTexts.matching(NSPredicate(format: "label CONTAINS[c] %@", option)).firstMatch
+        if optionText.waitForExistence(timeout: 2) {
+            optionText.tap()
+            return true
+        }
+
+        let wheel = app.pickerWheels.firstMatch
+        if wheel.waitForExistence(timeout: 1) {
+            wheel.adjust(toPickerWheelValue: option)
+            return true
+        }
+
+        return false
+    }
+
+    private func selectCategoryOption(_ option: String) -> Bool {
+        let optionButton = app.buttons.matching(NSPredicate(format: "label CONTAINS[c] %@", option)).firstMatch
+        if optionButton.waitForExistence(timeout: 2) {
+            optionButton.tap()
+            return true
+        }
+
+        let optionCell = app.cells.staticTexts.matching(NSPredicate(format: "label CONTAINS[c] %@", option)).firstMatch
+        if optionCell.waitForExistence(timeout: 2) {
+            optionCell.tap()
+            return true
+        }
+
+        let optionText = app.staticTexts.matching(NSPredicate(format: "label CONTAINS[c] %@", option)).firstMatch
+        if optionText.waitForExistence(timeout: 2) {
+            optionText.tap()
+            return true
+        }
+
+        let wheel = app.pickerWheels.firstMatch
+        if wheel.waitForExistence(timeout: 1) {
+            wheel.adjust(toPickerWheelValue: option)
+            return true
+        }
+
+        return false
+    }
+
+    private func isExpandedFrequencySelected(_ option: String) -> Bool {
+        let normalizedOption = option.lowercased()
+        let cell = app.cells.containing(.staticText, identifier: "Tipo de Frecuencia").firstMatch
+        if cell.exists {
+            if let value = cell.value as? String,
+               value.lowercased().contains(normalizedOption) {
+                return true
+            }
+            if cell.label.lowercased().contains(normalizedOption) {
+                return true
+            }
+
+            let match = cell.staticTexts.matching(NSPredicate(format: "label CONTAINS[c] %@", option)).firstMatch
+            if match.exists {
+                return true
+            }
+        }
+
+        if let pickerValue = app.pickers["Tipo de Frecuencia"].value as? String,
+           pickerValue.lowercased().contains(normalizedOption) {
+            return true
+        }
+
+        if let wheelValue = app.pickerWheels.firstMatch.value as? String,
+           wheelValue.lowercased().contains(normalizedOption) {
+            return true
+        }
+
+        let inlineMatch = app.staticTexts.matching(NSPredicate(format: "label CONTAINS[c] %@", option)).firstMatch
+        return inlineMatch.exists
+    }
+
+    private func isHabitTypeSelected(_ option: String) -> Bool {
+        let normalizedOption = option.lowercased()
+        let cell = app.cells.containing(.staticText, identifier: "Tipo").firstMatch
+        if cell.exists {
+            if let value = cell.value as? String,
+               value.lowercased().contains(normalizedOption) {
+                return true
+            }
+
+            let match = cell.staticTexts.matching(NSPredicate(format: "label CONTAINS[c] %@", option)).firstMatch
+            if match.exists {
+                return true
+            }
+        }
+
+        if let pickerValue = app.pickers["Tipo"].value as? String,
+           pickerValue.lowercased().contains(normalizedOption) {
+            return true
+        }
+
+        let inlineMatch = app.staticTexts.matching(NSPredicate(format: "label CONTAINS[c] %@", option)).firstMatch
+        return inlineMatch.exists
     }
 
     private func activateFrequencyDays(_ labels: [String]) -> Bool {
