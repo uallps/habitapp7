@@ -34,9 +34,31 @@ class StatsViewModel: ObservableObject {
         
         // Lógica por defecto (días)
         guard let firstDate = firstCompletionDate else { return 0 }
+        guard !habit.frequency.isEmpty else { return 0 }
+        
         let calendar = Calendar.current
-        let components = calendar.dateComponents([.day], from: firstDate, to: date)
-        return (components.day ?? 0) + 1
+        let startDate = calendar.startOfDay(for: firstDate)
+        let endDate = calendar.startOfDay(for: date)
+        
+        // Contar cuántos días de la frecuencia han ocurrido
+        var count = 0
+        var currentDate = startDate
+        
+        while currentDate <= endDate {
+            let weekday = Weekday.from(date: currentDate)
+            
+            if habit.frequency.contains(weekday) {
+                count += 1
+            }
+            
+            // Avanzar al siguiente día
+            guard let nextDay = calendar.date(byAdding: .day, value: 1, to: currentDate) else {
+                break
+            }
+            currentDate = nextDay
+        }
+        
+        return count
     }
     
     var totalPeriodsActiveLabel: String {
