@@ -24,8 +24,7 @@ struct HuggingFaceConfig {
     nonisolated static let userDefaultsTokenKey = "huggingFaceApiToken"
     nonisolated static let infoPlistTokenKey = "HUGGINGFACE_API_TOKEN"
     nonisolated static let modelIdKey = "HUGGINGFACE_MODEL_ID"
-    // Put your token here for local testing only. Do not commit it.
-    nonisolated static let hardcodedToken = "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"
+    nonisolated static let hardcodedToken = "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"
     nonisolated static let defaultModelId = "meta-llama/Llama-3.1-8B-Instruct:novita"
 
     nonisolated static func resolveApiToken() -> String? {

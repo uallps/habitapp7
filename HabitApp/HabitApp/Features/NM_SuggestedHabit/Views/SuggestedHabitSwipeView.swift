@@ -4,7 +4,6 @@ import SwiftData
 struct SuggestedHabitSwipeView: View {
     @Environment(\.dismiss) private var dismiss
     @Environment(\.colorScheme) private var colorScheme
-    @AppStorage(HuggingFaceConfig.userDefaultsTokenKey) private var apiToken: String = ""
 
     @StateObject private var viewModel: SuggestedHabitViewModel
 
@@ -16,7 +15,6 @@ struct SuggestedHabitSwipeView: View {
         NavigationStack {
             VStack(spacing: 16) {
                 header
-                tokenSection
                 content
             }
             .padding()
@@ -35,11 +33,6 @@ struct SuggestedHabitSwipeView: View {
                     await viewModel.loadInitialIfNeeded()
                 }
             }
-            .onChange(of: apiToken) { _ in
-                Task {
-                    await viewModel.retryIfEmpty()
-                }
-            }
         }
     }
 
@@ -50,21 +43,6 @@ struct SuggestedHabitSwipeView: View {
                 .foregroundColor(secondaryTextColor)
         }
         .frame(maxWidth: .infinity, alignment: .leading)
-    }
-
-    @ViewBuilder
-    private var tokenSection: some View {
-        if apiToken.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
-            VStack(alignment: .leading, spacing: 8) {
-                Text("Se necesita un API token de Hugging Face.")
-                    .font(.footnote)
-                    .foregroundColor(secondaryTextColor)
-
-                SecureField("Hugging Face API token", text: $apiToken)
-                    .textFieldStyle(.roundedBorder)
-            }
-            .frame(maxWidth: .infinity, alignment: .leading)
-        }
     }
 
     @ViewBuilder
