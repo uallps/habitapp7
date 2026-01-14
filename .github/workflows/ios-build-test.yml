@@ -43,12 +43,44 @@ jobs:
       - name: Show Xcode version
         run: xcodebuild -version
 
-      - name: List available simulators
-        run: xcrun simctl list devices available
+      - name: Setup xcodes tool
+        run: |
+          brew install xcodesorg/made/xcodes
+          brew install aria2
+
+      - name: Check and Download iOS Runtime
+        id: check-runtime
+        run: |
+          echo "📱 Runtimes before download"
+          available_runtimes="$(xcrun simctl list runtimes)"
+          echo "$available_runtimes"
+
+          if echo "$available_runtimes" | grep -q "iOS 18.2"; then
+            echo "✅ iOS 18.2 runtime is already installed"
+          else
+            echo "⬇️  Downloading iOS 18.2 runtime..."
+            sudo xcodes runtimes install "iOS 18.2"
+          fi
+
+          echo ""
+          echo "📱 Runtimes after download"
+          xcrun simctl list runtimes
+
+      - name: Create iOS Simulator
+        run: |
+          sudo xcodebuild -license accept || echo "License already accepted"
+          
+          # Crear iPhone 14 con iOS 18.2
+          xcrun simctl create "iPhone 14 CI" com.apple.CoreSimulator.SimDeviceType.iPhone-14 com.apple.CoreSimulator.SimRuntime.iOS-18-2 || echo "Simulator already exists"
+          
+          echo ""
+          echo "📱 Available simulators:"
+          xcrun simctl list devices available
 
       - name: Build
         run: |
-          DEST=$(xcrun simctl list devices available | grep "iPhone 14 (" | head -n 1 | awk -F '[()]' '{print $2}')
+          DEST=$(xcrun simctl list devices available | grep -E "iPhone 14( CI)? \(" | head -n 1 | awk -F '[()]' '{print $2}')
+          echo "🎯 Using simulator: $DEST"
           xcodebuild build \
             -project HabitApp/HabitApp.xcodeproj \
             -scheme "${{ matrix.scheme }}" \
@@ -61,7 +93,8 @@ jobs:
       - name: Run Tests
         if: matrix.run_tests == true
         run: |
-          DEST=$(xcrun simctl list devices available | grep "iPhone 14 (" | head -n 1 | awk -F '[()]' '{print $2}')
+          DEST=$(xcrun simctl list devices available | grep -E "iPhone 14( CI)? \(" | head -n 1 | awk -F '[()]' '{print $2}')
+          echo "🎯 Using simulator: $DEST"
           xcodebuild test \
             -project HabitApp/HabitApp.xcodeproj \
             -scheme "${{ matrix.scheme }}" \
