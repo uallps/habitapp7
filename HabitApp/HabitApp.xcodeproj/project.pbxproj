@@ -71,6 +71,8 @@
 		3534E8962F15F02400EB8423 /* Exceptions for "HabitApp" folder in "HabitApp-Miguel" target */ = {
 			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
 			membershipExceptions = (
+				Features/Category/CAMBIOS_REALIZADOS.md,
+				Features/Category/USAGE_GUIDE.md,
 				Features/NM_Calendary/CalendarPlugin.swift,
 				Features/NM_Calendary/Models/Calendar.swift,
 				Features/NM_Calendary/Views/CalendarView.swift,
@@ -96,6 +98,8 @@
 		3534E8C72F15F68100EB8423 /* Exceptions for "HabitApp" folder in "HabitApp-Ivan" target */ = {
 			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
 			membershipExceptions = (
+				Features/Category/CAMBIOS_REALIZADOS.md,
+				Features/Category/USAGE_GUIDE.md,
 				Features/NM_ExpandedFrequency/ExpandedFrequencyPlugin.swift,
 				Features/NM_ExpandedFrequency/Explicacion.txt,
 				Features/NM_ExpandedFrequency/Models/ExpandedFrequency.swift,
@@ -128,6 +132,8 @@
 		3534E8D02F15F68B00EB8423 /* Exceptions for "HabitApp" folder in "HabitApp-Manu" target */ = {
 			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
 			membershipExceptions = (
+				Features/Category/CAMBIOS_REALIZADOS.md,
+				Features/Category/USAGE_GUIDE.md,
 				Features/NM_Calendary/CalendarPlugin.swift,
 				Features/NM_Calendary/Models/Calendar.swift,
 				Features/NM_Calendary/Views/CalendarView.swift,
@@ -158,6 +164,8 @@
 		3534E8D92F15F6A400EB8423 /* Exceptions for "HabitApp" folder in "HabitApp-Antonio" target */ = {
 			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
 			membershipExceptions = (
+				Features/Category/CAMBIOS_REALIZADOS.md,
+				Features/Category/USAGE_GUIDE.md,
 				Features/NM_Calendary/CalendarPlugin.swift,
 				Features/NM_Calendary/Models/Calendar.swift,
 				Features/NM_Calendary/Views/CalendarView.swift,
@@ -247,6 +255,8 @@
 			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
 			membershipExceptions = (
 				Assets.xcassets,
+				Features/Category/CAMBIOS_REALIZADOS.md,
+				Features/Category/USAGE_GUIDE.md,
 				Features/NM_Calendary/CalendarPlugin.swift,
 				Features/NM_Calendary/Models/Calendar.swift,
 				Features/NM_Calendary/Views/CalendarView.swift,
@@ -283,6 +293,8 @@
 			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
 			membershipExceptions = (
 				Assets.xcassets,
+				Features/Category/CAMBIOS_REALIZADOS.md,
+				Features/Category/USAGE_GUIDE.md,
 				Features/NM_Calendary/CalendarPlugin.swift,
 				Features/NM_Calendary/Models/Calendar.swift,
 				Features/NM_Calendary/Views/CalendarView.swift,
@@ -1424,7 +1436,7 @@
 				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
 				GCC_WARN_UNUSED_FUNCTION = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
-				IPHONEOS_DEPLOYMENT_TARGET = 16.6;
+				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
 				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
 				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
 				MTL_FAST_MATH = YES;
@@ -1481,7 +1493,7 @@
 				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
 				GCC_WARN_UNUSED_FUNCTION = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
-				IPHONEOS_DEPLOYMENT_TARGET = 16.6;
+				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
 				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
 				MTL_ENABLE_DEBUG_INFO = NO;
 				MTL_FAST_MATH = YES;
