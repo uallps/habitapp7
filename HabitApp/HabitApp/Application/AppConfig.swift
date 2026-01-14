@@ -9,6 +9,7 @@ import SwiftUI
 import SwiftData
 import Combine
 
+@MainActor
 class AppConfig: ObservableObject {
     // MARK: - Core Features (siempre activas)
     // Habit básico con completions
