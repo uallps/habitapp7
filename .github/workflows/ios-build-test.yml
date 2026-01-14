@@ -83,7 +83,23 @@ jobs:
 
       - name: Build
         run: |
+          echo "📱 Searching for simulator..."
+          xcrun simctl list devices available | grep iPhone
+          
           DEST=$(xcrun simctl list devices available | grep -E "iPhone 14( CI)? \(" | head -n 1 | awk -F '[()]' '{print $2}')
+          
+          # Fallback: si no encuentra iPhone 14, buscar cualquier iPhone
+          if [ -z "$DEST" ]; then
+            echo "⚠️  iPhone 14 not found, trying any iPhone..."
+            DEST=$(xcrun simctl list devices available | grep -E "iPhone [0-9]+ \(" | head -n 1 | awk -F '[()]' '{print $2}')
+          fi
+          
+          # Validar que encontramos un simulador
+          if [ -z "$DEST" ]; then
+            echo "❌ No iPhone simulator found!"
+            exit 1
+          fi
+          
           echo "🎯 Using simulator: $DEST"
           xcodebuild build \
             -project HabitApp/HabitApp.xcodeproj \
@@ -98,6 +114,19 @@ jobs:
         if: matrix.run_tests == true
         run: |
           DEST=$(xcrun simctl list devices available | grep -E "iPhone 14( CI)? \(" | head -n 1 | awk -F '[()]' '{print $2}')
+          
+          # Fallback: si no encuentra iPhone 14, buscar cualquier iPhone
+          if [ -z "$DEST" ]; then
+            echo "⚠️  iPhone 14 not found, trying any iPhone..."
+            DEST=$(xcrun simctl list devices available | grep -E "iPhone [0-9]+ \(" | head -n 1 | awk -F '[()]' '{print $2}')
+          fi
+          
+          # Validar que encontramos un simulador
+          if [ -z "$DEST" ]; then
+            echo "❌ No iPhone simulator found!"
+            exit 1
+          fi
+          
           echo "🎯 Using simulator: $DEST"
           xcodebuild test \
             -project HabitApp/HabitApp.xcodeproj \
