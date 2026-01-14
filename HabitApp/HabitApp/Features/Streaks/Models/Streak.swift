@@ -44,7 +44,7 @@ extension Habit {
         return self.modelContext ?? SwiftDataContext.shared
     }
     
-    private func getStreakFeature() -> HabitStreakFeature? {
+    func getStreakFeature() -> HabitStreakFeature? {
         guard let context = activeContext else { return nil }
         let habitId = self.id
         let descriptor = FetchDescriptor<HabitStreakFeature>(
@@ -64,6 +64,10 @@ extension Habit {
     }
 
     func getStreak() -> Int {
+        // Permitir que un plugin calcule la racha
+        if let pluginStreak = PluginRegistry.shared.calculateCurrentStreak(habit: self, on: Date()) {
+            return pluginStreak
+        }
         return getStreakFeature()?.streak ?? 0
     }
     
@@ -87,8 +91,20 @@ extension Habit {
         getOrCreateStreakFeature()?.nextDay = newValue
     }
     
-    func checkAndUpdateStreak() {
-        let today = Calendar.current.startOfDay(for: Date())
+    func checkAndUpdateStreak(on date: Date = Date()) {
+        // Permitir que un plugin maneje la actualización de la racha
+        if PluginRegistry.shared.updateStreakOnCompletion(habit: self, on: date) {
+            return // Plugin manejó la actualización
+        }
+        
+        // Lógica por defecto (día a día)
+        checkAndUpdateDailyStreak(on: date)
+    }
+    
+    // MARK: - Daily Streak Logic
+    
+    private func checkAndUpdateDailyStreak(on date: Date) {
+        let today = Calendar.current.startOfDay(for: date)
         let next = getNextDay()
 
         guard let nextDayVal = next else {
@@ -108,7 +124,7 @@ extension Habit {
 
         // Si hoy es el dia esperado
         if Calendar.current.isDate(today, inSameDayAs: nextDayStart) {
-            if isCompletedToday {
+            if isCompleted(on: date) {
                 // Completado: incrementar streak y calcular siguiente dia
                 var currentStreak = getStreak()
                 currentStreak += 1

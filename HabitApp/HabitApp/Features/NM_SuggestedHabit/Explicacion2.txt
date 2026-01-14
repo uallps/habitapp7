@@ -1,0 +1,2 @@
+Este plugin agrega un boton en la vista principal que abre un carrusel de habitos sugeridos.
+Las sugerencias se generan con la API de Hugging Face y se guardan en SwiftData como cache.

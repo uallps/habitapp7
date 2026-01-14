@@ -23,15 +23,66 @@ class StatsViewModel: ObservableObject {
     }
     
     var totalDaysActive: Int {
+        return totalDaysActive(until: Date())
+    }
+    
+    func totalDaysActive(until date: Date = Date()) -> Int {
+        // Permitir que un plugin calcule los periodos activos
+        if let pluginResult = PluginRegistry.shared.calculateTotalPeriodsActive(habit: habit, until: date) {
+            return pluginResult.value
+        }
+        
+        // Lógica por defecto (días)
         guard let firstDate = firstCompletionDate else { return 0 }
-        let today = Date()
+        guard !habit.frequency.isEmpty else { return 0 }
+        
         let calendar = Calendar.current
-        let components = calendar.dateComponents([.day], from: firstDate, to: today)
-        return (components.day ?? 0) + 1
+        let startDate = calendar.startOfDay(for: firstDate)
+        let endDate = calendar.startOfDay(for: date)
+        
+        // Contar cuántos días de la frecuencia han ocurrido
+        var count = 0
+        var currentDate = startDate
+        
+        while currentDate <= endDate {
+            let weekday = Weekday.from(date: currentDate)
+            
+            if habit.frequency.contains(weekday) {
+                count += 1
+            }
+            
+            // Avanzar al siguiente día
+            guard let nextDay = calendar.date(byAdding: .day, value: 1, to: currentDate) else {
+                break
+            }
+            currentDate = nextDay
+        }
+        
+        return count
+    }
+    
+    var totalPeriodsActiveLabel: String {
+        if let pluginResult = PluginRegistry.shared.calculateTotalPeriodsActive(habit: habit, until: Date()) {
+            return pluginResult.label
+        }
+        return "dias"
     }
     
     var totalDaysCompleted: Int {
-        habit.completed.count
+        // Permitir que un plugin calcule los periodos completados
+        if let pluginResult = PluginRegistry.shared.calculateTotalPeriodsCompleted(habit: habit) {
+            return pluginResult.value
+        }
+        
+        // Lógica por defecto (días)
+        return habit.completed.count
+    }
+    
+    var totalPeriodsCompletedLabel: String {
+        if let pluginResult = PluginRegistry.shared.calculateTotalPeriodsCompleted(habit: habit) {
+            return pluginResult.label
+        }
+        return "dias"
     }
     
     var completionPercentage: Double {
@@ -47,6 +98,14 @@ class StatsViewModel: ObservableObject {
     
     var longestStreak: Int {
         return habit.getMaxStreak()
+    }
+    
+    var streakLabel: String {
+        // Permitir que un plugin determine la unidad de la racha
+        if let label = PluginRegistry.shared.getStreakLabel(habit: habit) {
+            return label
+        }
+        return "dias"
     }
     
     var mostCompletedWeekdays: [Weekday] {

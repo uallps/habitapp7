@@ -1,82 +1,102 @@
-import Foundation
+﻿import Foundation
 import Combine
 import SwiftData
 
 class HabitListViewModel: ObservableObject {
     @Published var habits: [Habit] = []
-    @Published var categories: [Category] = []   // Lista de categorias
+    @Published var categories: [Category] = []
 
     private let storage: StorageProvider
     private var groupedHabitsCache: [String: [Habit]] = [:]
     private var isGroupedCacheDirty = true
+    private var cachedCategoryHabitIds: Set<UUID> = []
+    private var cachedCategoriesByHabitId: [UUID: Category] = [:]
+    private var isCategoryCacheDirty = true
 
-    // Inyección de dependencias pura, como el profesor
     init(storageProvider: StorageProvider) {
         self.storage = storageProvider
-        
-        // Cargar hábitos al iniciar
+
         Task { @MainActor in
             do {
                 let loaded = try await storage.loadHabits()
                 self.habits = loaded
                 self.markGroupingDirty()
+                self.markCategoryCacheDirty()
             } catch {
-                print("Error cargando hábitos: \(error)")
+                print("Error cargando habitos: \(error)")
             }
         }
     }
 
-    // Añadir categoría al sistema
     func addCategory(_ category: Category) {
         categories.append(category)
         markGroupingDirty()
+        markCategoryCacheDirty()
     }
-    
-    // Añadir hábito
+
     func addHabit(_ habit: Habit) {
         habits.append(habit)
         markGroupingDirty()
-        persist()
+        markCategoryCacheDirty()
+
+        Task {
+            do {
+                try await storage.saveHabits(habits: habits)
+                await MainActor.run {
+                    self.reloadHabits()
+                }
+            } catch {
+                print("Error guardando habitos: \(error)")
+            }
+        }
     }
-    
+
     func reloadHabits() {
         Task { @MainActor in
             do {
                 let loaded = try await storage.loadHabits()
                 self.habits = loaded
                 self.markGroupingDirty()
+                self.markCategoryCacheDirty()
             } catch {
-                print("Error recargando hábitos: \(error)")
+                print("Error recargando habitos: \(error)")
             }
         }
     }
-    
+
     func deleteHabit(_ habit: Habit) {
         if let idx = habits.firstIndex(where: { $0.id == habit.id }) {
             habits.remove(at: idx)
             markGroupingDirty()
+            markCategoryCacheDirty()
             persist()
         }
     }
-    
-    // Marcar/desmarcar completado
-    func toggleCompletion(habit: Habit) {
+
+    func toggleCompletion(habit: Habit, on date: Date = Date()) {
         guard let index = habits.firstIndex(where: { $0.id == habit.id }) else { return }
-        let today = Calendar.current.startOfDay(for: Date())
-        
-        if habits[index].completed.contains(where: { Calendar.current.isDate($0.date, inSameDayAs: today) }) {
-            habits[index].completed.removeAll { Calendar.current.isDate($0.date, inSameDayAs: today) }
+        let targetDate = Calendar.current.startOfDay(for: date)
+
+        if habits[index].completed.contains(where: { Calendar.current.isDate($0.date, inSameDayAs: targetDate) }) {
+            habits[index].completed.removeAll { Calendar.current.isDate($0.date, inSameDayAs: targetDate) }
         } else {
-            let entry = CompletionEntry(date: today)
+            let entry = CompletionEntry(date: targetDate)
             habits[index].completed.append(entry)
         }
+#if STREAKS_FEATURE
+        habits[index].checkAndUpdateStreak(on: targetDate)
+#endif
         persist()
     }
-    
-    // Actualizar hábito (solo persiste, los cambios ya están aplicados en el objeto)
+
     func updateHabit(_ habit: Habit) {
-        // El objeto ya está modificado, solo necesitamos persistir
         markGroupingDirty()
+        markCategoryCacheDirty()
+        if let index = habits.firstIndex(where: { $0.id == habit.id }) {
+            var updatedHabits = habits
+            updatedHabits[index] = habit
+            habits = updatedHabits
+        }
         persist()
     }
 
@@ -95,7 +115,7 @@ class HabitListViewModel: ObservableObject {
         var groupedHabits: [String: [Habit]] = [:]
 
         for habit in habits {
-            let categoryName = categoryNameByHabitId[habit.id] ?? "Sin categoría"
+            let categoryName = categoryNameByHabitId[habit.id] ?? "Sin categoria"
             groupedHabits[categoryName, default: []].append(habit)
         }
 
@@ -127,16 +147,80 @@ class HabitListViewModel: ObservableObject {
         return categoryNames
     }
 
+    func categoryByHabitId(for habits: [Habit]) -> [UUID: Category] {
+        let habitIds = Set(habits.map(\.id))
+        if !isCategoryCacheDirty, habitIds == cachedCategoryHabitIds {
+            return cachedCategoriesByHabitId
+        }
+
+        guard let context = SwiftDataContext.shared else {
+            return [:]
+        }
+
+        guard !habitIds.isEmpty else {
+            cachedCategoriesByHabitId = [:]
+            cachedCategoryHabitIds = []
+            isCategoryCacheDirty = false
+            return [:]
+        }
+
+        let habitIdsList = Array(habitIds)
+        let descriptor = FetchDescriptor<HabitCategoryFeature>(
+            predicate: #Predicate { habitIdsList.contains($0.habitId) }
+        )
+        let features = (try? context.fetch(descriptor)) ?? []
+        var categoriesByHabitId: [UUID: Category] = [:]
+
+        for feature in features {
+            if let category = feature.category {
+                categoriesByHabitId[feature.habitId] = category
+            }
+        }
+
+        cachedCategoriesByHabitId = categoriesByHabitId
+        cachedCategoryHabitIds = habitIds
+        isCategoryCacheDirty = false
+        return categoriesByHabitId
+    }
+
+    func splitHabitsForToday(_ habits: [Habit], on date: Date) -> (today: [Habit], other: [Habit]) {
+        var todayHabits: [Habit] = []
+        var otherHabits: [Habit] = []
+        todayHabits.reserveCapacity(habits.count)
+        otherHabits.reserveCapacity(habits.count)
+
+        for habit in habits {
+            if habit.shouldBeCompletedOn(date: date) {
+                todayHabits.append(habit)
+            } else {
+                otherHabits.append(habit)
+            }
+        }
+
+        return (sortHabitsByTitle(todayHabits), sortHabitsByTitle(otherHabits))
+    }
+
     private func markGroupingDirty() {
         isGroupedCacheDirty = true
+    }
+
+    private func markCategoryCacheDirty() {
+        isCategoryCacheDirty = true
+    }
+
+    private func sortHabitsByTitle(_ habits: [Habit]) -> [Habit] {
+        habits.sorted {
+            $0.title.localizedCaseInsensitiveCompare($1.title) == .orderedAscending
+        }
     }
 
     private func persist() {
         Task {
             do {
                 try await storage.saveHabits(habits: habits)
+                ReminderManager.shared.scheduleDailyHabitNotificationDebounced()
             } catch {
-                print("Error guardando hábitos: \(error)")
+                print("Error guardando habitos: \(error)")
             }
         }
     }

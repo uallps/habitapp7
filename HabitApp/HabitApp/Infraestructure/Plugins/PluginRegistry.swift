@@ -46,6 +46,64 @@ class PluginRegistry: ObservableObject {
         return nil
     }
     
+    func getCompletionPeriodType(habit: Habit) -> CompletionPeriodType {
+        for plugin in logicPlugins {
+            if let result = plugin.getCompletionPeriodType(habit: habit) {
+                return result
+            }
+        }
+        return .daily // Default
+    }
+    
+    // MARK: - Streak Plugin Support
+    
+    func calculateCurrentStreak(habit: Habit, on date: Date) -> Int? {
+        for plugin in logicPlugins {
+            if let result = plugin.calculateCurrentStreak(habit: habit, on: date) {
+                return result
+            }
+        }
+        return nil
+    }
+    
+    func updateStreakOnCompletion(habit: Habit, on date: Date) -> Bool {
+        for plugin in logicPlugins {
+            if plugin.updateStreakOnCompletion(habit: habit, on: date) {
+                return true
+            }
+        }
+        return false
+    }
+    
+    // MARK: - Stats Plugin Support
+    
+    func calculateTotalPeriodsActive(habit: Habit, until date: Date) -> (value: Int, label: String)? {
+        for plugin in logicPlugins {
+            if let result = plugin.calculateTotalPeriodsActive(habit: habit, until: date) {
+                return result
+            }
+        }
+        return nil
+    }
+    
+    func calculateTotalPeriodsCompleted(habit: Habit) -> (value: Int, label: String)? {
+        for plugin in logicPlugins {
+            if let result = plugin.calculateTotalPeriodsCompleted(habit: habit) {
+                return result
+            }
+        }
+        return nil
+    }
+    
+    func getStreakLabel(habit: Habit) -> String? {
+        for plugin in logicPlugins {
+            if let label = plugin.getStreakLabel(habit: habit) {
+                return label
+            }
+        }
+        return nil
+    }
+    
     // MARK: - Helpers para Vistas
     
     func getHabitListHeaderViews() -> [AnyView] {

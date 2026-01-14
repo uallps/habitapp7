@@ -71,7 +71,7 @@ extension Habit {
         var groupedHabits: [String: [Habit]] = [:]
         
         for habit in habits {
-            let categoryName = habit.getCategory()?.name ?? "Sin categoría"
+            let categoryName = habit.getCategory()?.name ?? "Sin categor\u{00ED}a"
             
             if groupedHabits[categoryName] == nil {
                 groupedHabits[categoryName] = []

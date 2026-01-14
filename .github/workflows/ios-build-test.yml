@@ -1,0 +1,62 @@
+name: iOS – Build All Variants
+
+on:
+  pull_request:
+    branches: [ main, develop ]
+  push:
+    branches: [ main ]
+
+jobs:
+  build-and-test:
+    runs-on: macos-14
+    name: Build (${{ matrix.scheme }})
+
+    strategy:
+      fail-fast: false
+      matrix:
+        scheme:
+          - HabitApp-Core
+          - HabitApp-Standard
+          - HabitApp
+          - HabitApp-Miguel
+          - HabitApp-Ivan
+          - HabitApp-Manu
+          - HabitApp-Antonio
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Select Xcode 16.2
+        run: sudo xcode-select -s /Applications/Xcode_16.2.app/Contents/Developer
+
+      - name: Show Xcode version
+        run: xcodebuild -version
+
+      - name: Build
+        run: |
+          set -o pipefail
+          xcodebuild build \
+            -project HabitApp/HabitApp.xcodeproj \
+            -scheme "${{ matrix.scheme }}" \
+            -destination 'generic/platform=iOS Simulator' \
+            -sdk iphonesimulator \
+            -configuration Debug \
+            ONLY_ACTIVE_ARCH=YES \
+            EXCLUDED_ARCHS="x86_64" \
+            ASSETCATALOG_COMPILER_ENABLE_THINNING=NO \
+            ENABLE_ON_DEMAND_RESOURCES=NO \
+            CODE_SIGN_IDENTITY="" \
+            CODE_SIGNING_REQUIRED=NO \
+            CODE_SIGNING_ALLOWED=NO \
+            | tee xcodebuild.log
+
+      - name: Upload Build Logs on Failure
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: build-logs-${{ matrix.scheme }}
+          path: |
+            ~/Library/Logs/DiagnosticReports/
+            ~/Library/Developer/Xcode/DerivedData/*/Logs/Build/
+          retention-days: 5

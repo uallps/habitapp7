@@ -5,10 +5,12 @@ struct PauseDayRowButton: View {
     let habit: Habit
 
     @State private var showSheet = false
+    @State private var existingPauseDays: HabitPauseDays?
     @Environment(\.colorScheme) private var colorScheme
 
     var body: some View {
         Button(action: {
+            existingPauseDays = loadExistingPauseDays()
             showSheet = true
         }) {
             Image(systemName: "pause.circle.fill")
@@ -24,11 +26,21 @@ struct PauseDayRowButton: View {
             PauseDaySheetView(
                 habitID: habit.id,
                 context: habit.modelContext ?? SwiftDataContext.shared,
+                existingPauseDays: existingPauseDays,
                 primaryColor: primaryColor,
                 backgroundColor: backgroundColor,
                 cardBackground: cardBackground
             )
         }
+    }
+
+    private func loadExistingPauseDays() -> HabitPauseDays? {
+        guard let context = habit.modelContext ?? SwiftDataContext.shared else { return nil }
+        let habitId = habit.id
+        let descriptor = FetchDescriptor<HabitPauseDays>(
+            predicate: #Predicate { $0.habitId == habitId }
+        )
+        return try? context.fetch(descriptor).first
     }
 
     private var primaryColor: Color {
@@ -57,6 +69,7 @@ struct PauseDayRowButton: View {
 private struct PauseDaySheetView: View {
     let habitID: UUID
     let context: ModelContext?
+    let existingPauseDays: HabitPauseDays?
     let primaryColor: Color
     let backgroundColor: Color
     let cardBackground: Color
@@ -67,7 +80,11 @@ private struct PauseDaySheetView: View {
         NavigationView {
             if let context = context {
                 Form {
-                    PauseDaySelectionView(habitID: habitID, context: context)
+                    PauseDaySelectionView(
+                        habitID: habitID,
+                        context: context,
+                        existingPauseDays: existingPauseDays
+                    )
                         .listRowBackground(cardBackground)
                 }
                 .scrollContentBackground(.hidden)
