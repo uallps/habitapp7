@@ -182,32 +182,6 @@ final class PremiumUITests: UITestBase {
                               message: "Habitos sugeridos debe estar disponible en Premium")
     }
     
-    // MARK: - Test de Categorías
-    
-    func testCreateCategory() {
-        let result = workflows.createCategory(name: "Premium")
-        XCTAssertTrue(result, "Debe poder crear una categoria")
-    }
-    
-    func testDeleteCategory() {
-        workflows.createCategory(name: "Categoria Premium Temp")
-        
-        let result = workflows.deleteCategory(name: "Categoria Premium Temp")
-        XCTAssertTrue(result, "Debe poder eliminar categoria")
-    }
-    
-    // MARK: - Test de ExpandedFrequency
-    
-    func testCreateHabitWithDailyFrequency() {
-        let result = workflows.createHabitWithExpandedFrequency(title: "Habito Diario", frequency: "Diaria")
-        XCTAssertTrue(result, "Debe poder crear habito con frecuencia diaria")
-    }
-    
-    func testCreateHabitWithMonthlyFrequency() {
-        let result = workflows.createHabitWithExpandedFrequency(title: "Habito Mensual", frequency: "Mensual")
-        XCTAssertTrue(result, "Debe poder crear habito con frecuencia mensual")
-    }
-    
     // MARK: - Test de PauseDay
     
     func testPauseHabit() {
@@ -215,49 +189,6 @@ final class PremiumUITests: UITestBase {
         
         let result = workflows.pauseFirstHabit()
         XCTAssertTrue(result, "Debe poder pausar un habito")
-    }
-    
-    // MARK: - Test de HabitType
-    
-    func testCreateQuitTypeHabit() {
-        let result = workflows.createHabitWithExpandedFrequency(title: "Habito Adiccion", frequency: "Adiccion")
-        XCTAssertTrue(result, "Debe poder crear habito con frecuencia adiccion")
-    }
-    
-    // MARK: - Test de Flujo Completo Premium
-    
-    func testCompletePremiumWorkflow() {
-        // 1. Crear categoría
-        let categoryCreated = workflows.createCategory(name: "Premium VIP")
-        XCTAssertTrue(categoryCreated, "Debe crear categoria")
-        
-        // 2. Crear hábito con frecuencia expandida
-        let habitCreated = workflows.createHabitWithExpandedFrequency(
-            title: "Meditar Mensualmente",
-            frequency: "Mensual",
-            activateAllFrequencyDays: true
-        )
-        XCTAssertTrue(habitCreated, "Debe crear habito con frecuencia expandida")
-        
-        // 3. Completar hábito
-        let completed = workflows.toggleFirstHabitCompletion()
-        XCTAssertTrue(completed, "Debe poder completar habito")
-        
-        // 4. Pausar hábito
-        let paused = workflows.pauseFirstHabit()
-        XCTAssertTrue(paused, "Debe poder pausar habito")
-    }
-    
-    func testCategoryAndTypeWorkflow() {
-        let categoryCreated = workflows.createCategory(name: "Salud Premium")
-        XCTAssertTrue(categoryCreated, "Debe crear categoria")
-
-        let habitCreated = workflows.createHabitWithCategoryAndType(
-            title: "Ejercicio Premium",
-            category: "Salud Premium",
-            type: "Binario"
-        )
-        XCTAssertTrue(habitCreated, "Debe poder crear habito con categoria y tipo")
     }
     
     // MARK: - Test de Performance

@@ -192,8 +192,8 @@ class UIWorkflows {
         print("🔘 Haciendo tap en botón de categoría...")
         categoryButton.tap()
         
-        // Esperar a que aparezca la vista
-        Thread.sleep(forTimeInterval: 0.05)
+        // Esperar más tiempo a que aparezca y se cargue completamente la vista
+        Thread.sleep(forTimeInterval: 0.5)
         
         // Paso 2: Verificar que apareció la vista de categoría
         let categoryView = app.createCategoryView
@@ -204,75 +204,44 @@ class UIWorkflows {
         
         print("✅ Vista de categoría detectada")
         
-        // Paso 3: Asegurar que estamos en modo Crear
-        let segmentedControl = app.segmentedControls.firstMatch
-        if segmentedControl.waitForExistence(timeout: 2) {
-            print("🔄 Segmented control encontrado")
-            let createButton = segmentedControl.buttons["Crear"]
-            if createButton.exists {
-                if !createButton.isSelected {
-                    print("🔘 Seleccionando modo Crear...")
-                    createButton.tap()
-                    Thread.sleep(forTimeInterval: 0.05)
-                } else {
-                    print("✅ Ya está en modo Crear")
-                }
-            }
-        }
+        // Dar tiempo adicional para que se renderice completamente
+        Thread.sleep(forTimeInterval: 0.3)
         
-        // Paso 4: Buscar campo de nombre
+        // Paso 3: Buscar campo de nombre (celda que contiene el header "Nombre")
         print("🔍 Buscando campo de nombre...")
-        var nameField = app.categoryNameField
-        if !nameField.exists {
-            let tableField = app.tables.textFields.firstMatch
-            if tableField.exists {
-                nameField = tableField
-            }
-        }
+        let nameField = app.categoryNameField
         
-        guard nameField.waitForExistence(timeout: 3) else {
+        guard nameField.waitForExistence(timeout: 5) else {
             print("❌ Campo de nombre no encontrado")
+            app.debugPrintCells()
             app.debugPrintTextFields()
             return false
         }
         
-        print("✅ Campo de nombre encontrado")
-        
-        if !waitForElementToBeHittable(nameField, timeout: 2) {
-            let nameCell = app.cells.containing(.staticText, identifier: "Nombre").firstMatch
-            if nameCell.exists {
-                nameCell.tap()
-            }
-        }
+        print("✅ Celda de nombre encontrada")
 
-        // Hacer tap en el campo
+        // Hacer tap en la celda
         nameField.tap()
-        Thread.sleep(forTimeInterval: 0.05)
+        Thread.sleep(forTimeInterval: 0.3)
         
         // Verificar que el teclado apareció
-        var keyboardVisible = waitForKeyboard(timeout: 1)
+        var keyboardVisible = waitForKeyboard(timeout: 2)
         if !keyboardVisible {
             print("⚠️ Teclado no visible, reintentando...")
             nameField.tap()
-
+            Thread.sleep(forTimeInterval: 0.2)
             keyboardVisible = waitForKeyboard(timeout: 1)
         }
         
         guard keyboardVisible else {
-            print("❌ El teclado no apareció")
+            print("❌ Teclado no apareció")
             return false
         }
         
         print("⌨️ Escribiendo nombre: '\(name)'")
+        // Escribir directamente en la celda (el sistema encontrará el TextField activo)
         nameField.typeText(name)
-        Thread.sleep(forTimeInterval: 0.05)
-
-        if let value = nameField.value as? String,
-           !value.lowercased().contains(name.lowercased()) {
-            nameField.tap()
-            nameField.typeText(name)
-            Thread.sleep(forTimeInterval: 0.05)
-        }
+        Thread.sleep(forTimeInterval: 0.2)
 
         
         // Paso 5: Buscar y presionar botón Guardar
