@@ -45,6 +45,10 @@ jobs:
 
       - name: Setup xcodes tool
         run: |
+          # Desinstalar versión existente si existe
+          brew uninstall xcodes 2>/dev/null || echo "xcodes not previously installed"
+          
+          # Instalar desde el tap correcto
           brew install xcodesorg/made/xcodes
           brew install aria2
 
