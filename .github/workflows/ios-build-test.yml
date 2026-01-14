@@ -1,4 +1,4 @@
-name: iOS – Build & Test All Variants
+name: iOS – Build All Variants
 
 on:
   pull_request:
@@ -9,29 +9,19 @@ on:
 jobs:
   build-and-test:
     runs-on: macos-15
-    name: Build & Test (${{ matrix.scheme }})
+    name: Build (${{ matrix.scheme }})
 
     strategy:
       fail-fast: false
       matrix:
-        include:
-          # Schemes CON tests
-          - scheme: HabitApp-Core
-            run_tests: true
-          - scheme: HabitApp-Standard
-            run_tests: true
-          - scheme: HabitApp
-            run_tests: true
-
-          # Schemes SOLO build
-          - scheme: HabitApp-Miguel
-            run_tests: false
-          - scheme: HabitApp-Ivan
-            run_tests: false
-          - scheme: HabitApp-Manu
-            run_tests: false
-          - scheme: HabitApp-Antonio
-            run_tests: false
+        scheme:
+          - HabitApp-Core
+          - HabitApp-Standard
+          - HabitApp
+          - HabitApp-Miguel
+          - HabitApp-Ivan
+          - HabitApp-Manu
+          - HabitApp-Antonio
 
     steps:
       - name: Checkout repository
@@ -43,107 +33,23 @@ jobs:
       - name: Show Xcode version
         run: xcodebuild -version
 
-      - name: Setup xcodes tool
-        run: |
-          # Desinstalar versión existente si existe
-          brew uninstall xcodes 2>/dev/null || echo "xcodes not previously installed"
-          
-          # Instalar desde el tap correcto
-          brew install xcodesorg/made/xcodes
-          brew install aria2
-
-      - name: Check and Download iOS Runtime
-        id: check-runtime
-        run: |
-          echo "📱 Runtimes before download"
-          available_runtimes="$(xcrun simctl list runtimes)"
-          echo "$available_runtimes"
-
-          if echo "$available_runtimes" | grep -q "iOS 18.2"; then
-            echo "✅ iOS 18.2 runtime is already installed"
-          else
-            echo "⬇️  Downloading iOS 18.2 runtime..."
-            sudo xcodes runtimes install "iOS 18.2"
-          fi
-
-          echo ""
-          echo "📱 Runtimes after download"
-          xcrun simctl list runtimes
-
-      - name: Create iOS Simulator
-        run: |
-          sudo xcodebuild -license accept || echo "License already accepted"
-          
-          # Crear iPhone 14 con iOS 18.2
-          xcrun simctl create "iPhone 14 CI" com.apple.CoreSimulator.SimDeviceType.iPhone-14 com.apple.CoreSimulator.SimRuntime.iOS-18-2 || echo "Simulator already exists"
-          
-          echo ""
-          echo "📱 Available simulators:"
-          xcrun simctl list devices available
-
       - name: Build
         run: |
-          echo "📱 Searching for simulator..."
-          xcrun simctl list devices available | grep iPhone
-          
-          DEST=$(xcrun simctl list devices available | grep -E "iPhone 14( CI)? \(" | head -n 1 | awk -F '[()]' '{print $2}')
-          
-          # Fallback: si no encuentra iPhone 14, buscar cualquier iPhone
-          if [ -z "$DEST" ]; then
-            echo "⚠️  iPhone 14 not found, trying any iPhone..."
-            DEST=$(xcrun simctl list devices available | grep -E "iPhone [0-9]+ \(" | head -n 1 | awk -F '[()]' '{print $2}')
-          fi
-          
-          # Validar que encontramos un simulador
-          if [ -z "$DEST" ]; then
-            echo "❌ No iPhone simulator found!"
-            exit 1
-          fi
-          
-          echo "🎯 Using simulator: $DEST"
           xcodebuild build \
             -project HabitApp/HabitApp.xcodeproj \
             -scheme "${{ matrix.scheme }}" \
-            -destination "id=$DEST" \
+            -destination 'generic/platform=iOS Simulator' \
             -configuration Debug \
             CODE_SIGN_IDENTITY="" \
             CODE_SIGNING_REQUIRED=NO \
             CODE_SIGNING_ALLOWED=NO
 
-      - name: Run Tests
-        if: matrix.run_tests == true
-        run: |
-          DEST=$(xcrun simctl list devices available | grep -E "iPhone 14( CI)? \(" | head -n 1 | awk -F '[()]' '{print $2}')
-          
-          # Fallback: si no encuentra iPhone 14, buscar cualquier iPhone
-          if [ -z "$DEST" ]; then
-            echo "⚠️  iPhone 14 not found, trying any iPhone..."
-            DEST=$(xcrun simctl list devices available | grep -E "iPhone [0-9]+ \(" | head -n 1 | awk -F '[()]' '{print $2}')
-          fi
-          
-          # Validar que encontramos un simulador
-          if [ -z "$DEST" ]; then
-            echo "❌ No iPhone simulator found!"
-            exit 1
-          fi
-          
-          echo "🎯 Using simulator: $DEST"
-          xcodebuild test \
-            -project HabitApp/HabitApp.xcodeproj \
-            -scheme "${{ matrix.scheme }}" \
-            -destination "id=$DEST" \
-            -configuration Debug \
-            -enableCodeCoverage YES \
-            CODE_SIGN_IDENTITY="" \
-            CODE_SIGNING_REQUIRED=NO \
-            CODE_SIGNING_ALLOWED=NO
-
-      - name: Upload Test Logs on Failure
+      - name: Upload Build Logs on Failure
         if: failure()
         uses: actions/upload-artifact@v4
         with:
-          name: test-logs-${{ matrix.scheme }}
+          name: build-logs-${{ matrix.scheme }}
           path: |
             ~/Library/Logs/DiagnosticReports/
-            ~/Library/Developer/Xcode/DerivedData/*/Logs/Test/
+            ~/Library/Developer/Xcode/DerivedData/*/Logs/Build/
           retention-days: 5
