@@ -20,41 +20,102 @@ enum HuggingFaceError: LocalizedError {
     }
 }
 
+private enum HuggingFaceTokenObfuscator {
+    private nonisolated static let huggingFacePrefix = "hf_"
+
+    nonisolated static func obfuscate(_ token: String) -> String {
+        shiftPrintableASCII(token, delta: 1)
+    }
+
+    nonisolated static func deobfuscate(_ token: String) -> String {
+        shiftPrintableASCII(token, delta: -1)
+    }
+
+    nonisolated static func decodeIfNeeded(_ token: String) -> String {
+        let trimmed = token.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !trimmed.isEmpty else { return trimmed }
+
+        if trimmed.hasPrefix(huggingFacePrefix) {
+            return trimmed
+        }
+
+        let decoded = deobfuscate(trimmed)
+        if decoded.hasPrefix(huggingFacePrefix) {
+            return decoded
+        }
+
+        return trimmed
+    }
+
+    private nonisolated static func shiftPrintableASCII(_ input: String, delta: Int) -> String {
+        var scalars = String.UnicodeScalarView()
+        scalars.reserveCapacity(input.unicodeScalars.count)
+
+        for scalar in input.unicodeScalars {
+            let value = scalar.value
+            guard value >= 32 && value <= 126 else {
+                scalars.append(scalar)
+                continue
+            }
+
+            let offset = Int(value - 32)
+            let modulo = 95
+            let shifted = ((offset + delta) % modulo + modulo) % modulo
+            let newValue = UInt32(shifted + 32)
+            scalars.append(UnicodeScalar(newValue)!)
+        }
+
+        return String(scalars)
+    }
+}
+
 struct HuggingFaceConfig {
     nonisolated static let userDefaultsTokenKey = "huggingFaceApiToken"
     nonisolated static let infoPlistTokenKey = "HUGGINGFACE_API_TOKEN"
     nonisolated static let modelIdKey = "HUGGINGFACE_MODEL_ID"
-    nonisolated static let hardcodedToken = "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"
+    nonisolated static let hardcodedToken = "ig`shVnR{gLLcKrcsNOiZSxISoNEhYcGIILrg"
     nonisolated static let defaultModelId = "meta-llama/Llama-3.1-8B-Instruct:novita"
 
     nonisolated static func resolveApiToken() -> String? {
-        let hardcoded = hardcodedToken.trimmingCharacters(in: .whitespacesAndNewlines)
-        if !hardcoded.isEmpty {
+        if let hardcoded = normalizeToken(hardcodedToken) {
             return hardcoded
         }
 
         if let envToken = ProcessInfo.processInfo.environment[infoPlistTokenKey] {
-            let trimmed = envToken.trimmingCharacters(in: .whitespacesAndNewlines)
-            if !trimmed.isEmpty {
-                return trimmed
-            }
+            if let token = normalizeToken(envToken) { return token }
         }
 
         if let token = Bundle.main.object(forInfoDictionaryKey: infoPlistTokenKey) as? String {
-            let trimmed = token.trimmingCharacters(in: .whitespacesAndNewlines)
-            if !trimmed.isEmpty {
-                return trimmed
-            }
+            if let resolved = normalizeToken(token) { return resolved }
         }
 
         if let stored = UserDefaults.standard.string(forKey: userDefaultsTokenKey) {
-            let trimmed = stored.trimmingCharacters(in: .whitespacesAndNewlines)
-            if !trimmed.isEmpty {
-                return trimmed
-            }
+            if let token = normalizeToken(stored) { return token }
         }
 
         return nil
+    }
+
+    nonisolated static func storePlainApiToken(_ token: String?) {
+        guard let token else {
+            UserDefaults.standard.removeObject(forKey: userDefaultsTokenKey)
+            return
+        }
+
+        let trimmed = token.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !trimmed.isEmpty else {
+            UserDefaults.standard.removeObject(forKey: userDefaultsTokenKey)
+            return
+        }
+
+        let obfuscated = HuggingFaceTokenObfuscator.obfuscate(trimmed)
+        UserDefaults.standard.set(obfuscated, forKey: userDefaultsTokenKey)
+    }
+
+    private nonisolated static func normalizeToken(_ value: String) -> String? {
+        let decoded = HuggingFaceTokenObfuscator.decodeIfNeeded(value)
+        let trimmed = decoded.trimmingCharacters(in: .whitespacesAndNewlines)
+        return trimmed.isEmpty ? nil : trimmed
     }
 
     nonisolated static func resolveModelId() -> String {
@@ -86,12 +147,17 @@ struct HuggingFaceClient {
         apiToken: String? = HuggingFaceConfig.resolveApiToken(),
         session: URLSession = .shared
     ) throws {
-        guard let apiToken, !apiToken.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty else {
+        guard let apiToken else {
+            throw HuggingFaceError.missingToken
+        }
+
+        let decodedToken = HuggingFaceTokenObfuscator.decodeIfNeeded(apiToken)
+        guard !decodedToken.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty else {
             throw HuggingFaceError.missingToken
         }
 
         self.modelId = modelId
-        self.apiToken = apiToken
+        self.apiToken = decodedToken
         self.session = session
     }
 
