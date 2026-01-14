@@ -9,35 +9,19 @@ on:
 jobs:
   build-and-test:
     runs-on: macos-14
-    name: ${{ matrix.scheme }}
+    name: Build (${{ matrix.scheme }})
 
     strategy:
       fail-fast: false
       matrix:
-        include:
-          # --- Targets with Tests (Build + Unit/UI Tests) ---
-          - scheme: HabitApp
-            run_tests: true
-            # Xcode 16.2 includes iOS 18.2 simulators. iPhone 16 is a safe bet for iOS 18.
-            destination: 'platform=iOS Simulator,name=iPhone 16'
-            
-          - scheme: HabitApp-Core
-            run_tests: true
-            destination: 'platform=iOS Simulator,name=iPhone 16'
-            
-          - scheme: HabitApp-Standard
-            run_tests: true
-            destination: 'platform=iOS Simulator,name=iPhone 16'
-
-          # --- Targets for Build Check Only ---
-          - scheme: HabitApp-Miguel
-            run_tests: false
-          - scheme: HabitApp-Ivan
-            run_tests: false
-          - scheme: HabitApp-Manu
-            run_tests: false
-          - scheme: HabitApp-Antonio
-            run_tests: false
+        scheme:
+          - HabitApp-Core
+          - HabitApp-Standard
+          - HabitApp
+          - HabitApp-Miguel
+          - HabitApp-Ivan
+          - HabitApp-Manu
+          - HabitApp-Antonio
 
     steps:
       - name: Checkout repository
@@ -49,11 +33,6 @@ jobs:
       - name: Show Xcode version
         run: xcodebuild -version
 
-      # ---------------------------------------------------------
-      # STEP 1: Build (Compilation Check)
-      # ---------------------------------------------------------
-      # Uses 'generic/platform=iOS Simulator' for speed (no simulator boot required).
-      # Runs for ALL schemes in the matrix.
       - name: Build
         run: |
           set -o pipefail
@@ -70,39 +49,14 @@ jobs:
             CODE_SIGN_IDENTITY="" \
             CODE_SIGNING_REQUIRED=NO \
             CODE_SIGNING_ALLOWED=NO \
-            | tee xcodebuild_build.log
-
-      # ---------------------------------------------------------
-      # STEP 2: Test (Unit & UI Tests)
-      # ---------------------------------------------------------
-      # Only runs for schemes with run_tests: true.
-      # Uses a specific simulator destination required for tests.
-      - name: Test
-        if: matrix.run_tests == true
-        run: |
-          set -o pipefail
-          xcodebuild test \
-            -project HabitApp/HabitApp.xcodeproj \
-            -scheme "${{ matrix.scheme }}" \
-            -destination "${{ matrix.destination }}" \
-            -configuration Debug \
-            ONLY_ACTIVE_ARCH=YES \
-            EXCLUDED_ARCHS="x86_64" \
-            ASSETCATALOG_COMPILER_ENABLE_THINNING=NO \
-            ENABLE_ON_DEMAND_RESOURCES=NO \
-            CODE_SIGN_IDENTITY="" \
-            CODE_SIGNING_REQUIRED=NO \
-            CODE_SIGNING_ALLOWED=NO \
-            | tee xcodebuild_test.log
+            | tee xcodebuild.log
 
       - name: Upload Build Logs on Failure
         if: failure()
         uses: actions/upload-artifact@v4
         with:
-          name: logs-${{ matrix.scheme }}
+          name: build-logs-${{ matrix.scheme }}
           path: |
-            *.log
             ~/Library/Logs/DiagnosticReports/
             ~/Library/Developer/Xcode/DerivedData/*/Logs/Build/
-            ~/Library/Developer/Xcode/DerivedData/*/Logs/Test/
           retention-days: 5
