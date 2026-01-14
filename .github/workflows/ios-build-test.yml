@@ -38,9 +38,8 @@ jobs:
           xcodebuild build \
             -project HabitApp/HabitApp.xcodeproj \
             -scheme "${{ matrix.scheme }}" \
-            -destination 'generic/platform=iOS Simulator' \
+            -destination 'generic/platform=iOS Simulator,arch=arm64' \
             -sdk iphonesimulator \
-            -arch arm64 \
             -configuration Debug \
             ONLY_ACTIVE_ARCH=YES \
             EXCLUDED_ARCHS='x86_64' \
